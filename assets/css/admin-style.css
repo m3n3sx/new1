@@ -1,0 +1,3297 @@
+/* Live Admin Styler Settings Page Styles - Modern UI */
+.las-fresh-settings-wrap {
+    background: #f6f7f7;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-top: 20px;
+}
+
+.las-fresh-settings-wrap .ui-tabs .ui-tabs-nav {
+    padding: 0;
+    border-bottom: 2px solid #e1e5e9;
+    background: transparent;
+    border-radius: 8px 8px 0 0;
+    margin-bottom: 20px;
+}
+
+.las-fresh-settings-wrap .ui-tabs .ui-tabs-nav li {
+    list-style: none;
+    float: left;
+    position: relative;
+    top: 0;
+    margin: 0 4px 0 0;
+    border-bottom-width: 0;
+    padding: 0;
+    white-space: nowrap;
+    border-radius: 8px 8px 0 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.las-fresh-settings-wrap .ui-tabs .ui-tabs-nav .ui-tabs-anchor {
+    float: left;
+    padding: 12px 20px;
+    text-decoration: none;
+    outline: none;
+    background: #ffffff;
+    color: #646970;
+    border: 2px solid #e1e5e9;
+    border-bottom: none;
+    font-weight: 500;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.las-fresh-settings-wrap .ui-tabs .ui-tabs-nav .ui-tabs-anchor:hover {
+    background: #f8f9fa;
+    color: #007cba;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 124, 186, 0.1);
+}
+
+.las-fresh-settings-wrap .ui-tabs .ui-tabs-nav li.ui-tabs-active {
+    margin-bottom: -2px;
+    padding-bottom: 0;
+    z-index: 10;
+}
+
+.las-fresh-settings-wrap .ui-tabs .ui-tabs-nav li.ui-tabs-active .ui-tabs-anchor {
+    color: #007cba;
+    cursor: default;
+    background: #ffffff;
+    border-color: #007cba;
+    font-weight: 600;
+    box-shadow: 0 -2px 8px rgba(0, 124, 186, 0.1);
+}
+
+.las-fresh-settings-wrap .ui-tabs .ui-tabs-nav li.ui-tabs-active .ui-tabs-anchor::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #007cba;
+}
+
+.las-fresh-settings-wrap .ui-tabs .ui-tabs-panel {
+    display: block;
+    border-width: 0;
+    padding: 24px;
+    background: #ffffff;
+    border-radius: 0 8px 8px 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 2px solid #e1e5e9;
+    border-top: none;
+}
+.las-fresh-settings-wrap .ui-tabs-hide { /* jQuery UI uses this class */
+    display: none !important;
+}
+
+/* Modern Field Layout and Typography */
+.las-fresh-settings-wrap .form-table {
+    background: transparent;
+    border-spacing: 0;
+}
+
+.las-fresh-settings-wrap .form-table th {
+    width: 220px;
+    padding: 20px 20px 20px 0;
+    vertical-align: top;
+    font-weight: 600;
+    color: #1d2327;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.las-fresh-settings-wrap .form-table td {
+    padding: 20px 0;
+    vertical-align: top;
+}
+
+.las-fresh-settings-wrap .field-row {
+    margin-bottom: 16px;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e1e5e9;
+    transition: all 0.3s ease;
+}
+
+.las-fresh-settings-wrap .field-row:hover {
+    background: #ffffff;
+    border-color: #c3c4c7;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.las-fresh-settings-wrap .field-row .description {
+    font-style: normal;
+    color: #646970;
+    font-size: 13px;
+    margin-top: 8px;
+    line-height: 1.5;
+    padding: 8px 12px;
+    background: rgba(0, 124, 186, 0.05);
+    border-radius: 6px;
+    border-left: 3px solid #007cba;
+}
+
+.las-fresh-settings-wrap .sub-field {
+    margin-top: 12px;
+    margin-left: 16px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 6px;
+    border: 1px solid #e1e5e9;
+}
+
+/* Enhanced Modern Slider Styles */
+.las-slider-container {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 1px solid #e1e5e9;
+    transition: all 0.3s ease;
+}
+
+.las-slider-container:hover {
+    background: #ffffff;
+    border-color: #c3c4c7;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.las-slider-input {
+    width: 80px !important;
+    min-height: 40px;
+    text-align: center;
+    font-weight: 600;
+    background: #ffffff;
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.las-slider-input:focus {
+    border-color: #007cba;
+    box-shadow: 0 0 0 2px rgba(0, 124, 186, 0.1);
+    transform: scale(1.05);
+}
+
+.las-slider {
+    flex-grow: 1;
+    max-width: 320px;
+    margin: 0 8px;
+    position: relative;
+}
+
+.las-slider-value {
+    min-width: 60px;
+    font-weight: 700;
+    color: #007cba;
+    background: rgba(0, 124, 186, 0.1);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    text-align: center;
+    border: 1px solid rgba(0, 124, 186, 0.2);
+    transition: all 0.3s ease;
+}
+
+.las-slider-container:hover .las-slider-value {
+    background: rgba(0, 124, 186, 0.15);
+    transform: scale(1.05);
+}
+
+/* Modern Image Uploader */
+.las-image-preview {
+    margin-top: 16px;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 2px dashed #e1e5e9;
+    transition: all 0.3s ease;
+}
+
+.las-image-preview:hover {
+    border-color: #007cba;
+    background: rgba(0, 124, 186, 0.05);
+}
+
+.las-image-preview img {
+    border: 2px solid #e1e5e9;
+    padding: 8px;
+    background: #ffffff;
+    max-height: 120px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.las-image-preview img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Modern Color Picker Styling */
+.las-fresh-settings-wrap .wp-color-picker {
+    border-radius: 8px !important;
+    border: 2px solid #e1e5e9 !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+
+.las-fresh-settings-wrap .wp-picker-container .wp-color-result {
+    border-radius: 8px !important;
+    border: 2px solid #e1e5e9 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    transition: all 0.3s ease !important;
+    min-height: 44px !important;
+    padding: 0 12px !important;
+}
+
+.las-fresh-settings-wrap .wp-picker-container .wp-color-result:hover {
+    border-color: #007cba !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 16px rgba(0, 124, 186, 0.2) !important;
+}
+
+.las-fresh-settings-wrap .wp-picker-container .wp-color-result:focus {
+    box-shadow: 0 0 0 3px rgba(0, 124, 186, 0.1), 0 4px 16px rgba(0, 124, 186, 0.2) !important;
+    outline: none !important;
+}
+
+.las-fresh-settings-wrap .wp-picker-container .wp-color-result-text {
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+}
+
+/* Conditional visibility helper */
+.las-hidden {
+    display: none;
+}
+
+/* Modern Font Selector Container */
+.las-font-selector-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e1e5e9;
+    transition: all 0.3s ease;
+}
+
+.las-font-selector-container:hover {
+    background: #ffffff;
+    border-color: #c3c4c7;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.las-font-selector-container .google-font-field-wrapper {
+    margin-top: 8px;
+    padding: 12px;
+    background: rgba(0, 124, 186, 0.05);
+    border-radius: 6px;
+    border: 1px solid rgba(0, 124, 186, 0.1);
+    transition: all 0.3s ease;
+}
+
+.las-font-selector-container .google-font-field-wrapper:hover {
+    background: rgba(0, 124, 186, 0.08);
+    border-color: rgba(0, 124, 186, 0.2);
+}
+
+.las-font-selector-container .google-font-field-wrapper label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #1d2327;
+    font-size: 13px;
+}
+
+
+/* Admin Area General Styling (can be overridden by dynamic CSS) */
+
+/* Base Admin Menu Positioning - Enhanced by dynamic CSS */
+#adminmenuwrap {
+    position: fixed !important;
+    top: 32px; /* Default assuming admin bar is 32px - overridden by dynamic CSS */
+    left: 0;
+    height: calc(100vh - 32px); /* Adjust if admin bar height changes */
+    z-index: 9990; /* Below admin bar, above most content */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on touch devices */
+    /* Note: width, overflow, and other properties are set by dynamic CSS to avoid conflicts */
+}
+
+/* Enhanced Submenu Visibility System */
+#adminmenu .wp-submenu {
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: translateX(0) !important;
+    transition: all 0.2s ease-in-out !important;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.1) !important;
+    border-radius: 4px !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    background-color: rgba(44, 51, 56, 0.95) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    min-width: 200px !important;
+    z-index: 9999 !important;
+    position: absolute !important;
+    left: 100% !important;
+    top: 0 !important;
+    margin-left: 0 !important;
+}
+
+#adminmenu .wp-submenu.las-submenu-hidden {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    transform: translateX(-10px) !important;
+    pointer-events: none !important;
+}
+
+#adminmenu .wp-submenu.las-submenu-visible {
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: translateX(0) !important;
+    pointer-events: auto !important;
+}
+
+/* Enhanced submenu hover effects */
+#adminmenu .wp-has-submenu:hover .wp-submenu,
+#adminmenu .wp-has-submenu.opensub .wp-submenu {
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: translateX(0) !important;
+    pointer-events: auto !important;
+}
+
+/* Submenu items styling */
+#adminmenu .wp-submenu li a {
+    transition: all 0.15s ease-in-out !important;
+    border-radius: 2px !important;
+    margin: 2px 4px !important;
+    padding: 8px 12px !important;
+}
+
+#adminmenu .wp-submenu li a:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    transform: translateX(2px) !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+
+/* Folded menu submenu positioning */
+body.folded #adminmenu .wp-submenu {
+    left: 36px !important;
+    margin-left: 0 !important;
+    min-width: 200px !important;
+}
+
+/* Enhanced parent menu item hover state */
+#adminmenu .wp-has-submenu:hover > a,
+#adminmenu .wp-has-submenu.opensub > a {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    transition: background-color 0.2s ease-in-out !important;
+}
+
+/* Submenu arrow enhancement */
+#adminmenu .wp-has-submenu .wp-menu-arrow {
+    transition: transform 0.2s ease-in-out !important;
+}
+
+#adminmenu .wp-has-submenu:hover .wp-menu-arrow,
+#adminmenu .wp-has-submenu.opensub .wp-menu-arrow {
+    transform: rotate(90deg) !important;
+}
+
+/* Adjust content area for fixed menu - fallback values */
+body.admin-bar #wpcontent,
+body.admin-bar #wpfooter {
+    /* Default margin-left will be set by dynamic CSS based on menu width */
+    /* This is a fallback if dynamic CSS isn't loaded */
+    margin-left: 220px; /* Example default menu width */
+}
+
+/* Folded menu content area adjustments - fallback values */
+body.folded #wpcontent,
+body.folded #wpfooter {
+    margin-left: 36px !important; /* Standard WordPress folded margin */
+}
+
+/* Note: All other menu styling (width, colors, borders, shadows, etc.) 
+   is handled by dynamic CSS to prevent conflicts and duplication */
+
+/* Styles for detached menu (can be added by JS via a class like .las-menu-detached) */
+/* #adminmenuwrap.las-menu-detached styles are set dynamically by PHP/JS based on options */
+
+/* Styles for detached admin bar (can be added by JS via a class like .las-admin-bar-detached) */
+/* #wpadminbar.las-admin-bar-detached styles are set dynamically by PHP/JS based on options */
+
+/* Modern jQuery UI Slider Styles */
+.las-fresh-settings-wrap .ui-widget-content {
+    border: none;
+    background: transparent;
+    color: #1d2327;
+}
+
+.las-fresh-settings-wrap .ui-slider-horizontal {
+    height: 8px;
+    background: #e1e5e9;
+    border-radius: 4px;
+    border: none;
+    position: relative;
+    overflow: visible;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.las-fresh-settings-wrap .ui-slider-horizontal:hover {
+    background: #d7dbdf;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.las-fresh-settings-wrap .ui-slider .ui-slider-handle {
+    position: absolute;
+    z-index: 3;
+    width: 24px;
+    height: 24px;
+    cursor: grab;
+    touch-action: none;
+    border-radius: 50%;
+    border: 3px solid #ffffff;
+    background: linear-gradient(135deg, #007cba 0%, #005a87 100%);
+    top: 50%;
+    margin-top: -12px;
+    margin-left: -12px;
+    box-shadow: 0 2px 8px rgba(0, 124, 186, 0.3), 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.las-fresh-settings-wrap .ui-slider .ui-slider-handle:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 16px rgba(0, 124, 186, 0.4), 0 2px 6px rgba(0, 0, 0, 0.3);
+    cursor: grabbing;
+}
+
+.las-fresh-settings-wrap .ui-slider .ui-slider-handle:focus {
+    box-shadow: 0 0 0 4px rgba(0, 124, 186, 0.2), 0 4px 16px rgba(0, 124, 186, 0.4);
+    transform: scale(1.15);
+}
+
+.las-fresh-settings-wrap .ui-slider .ui-slider-handle:active {
+    transform: scale(0.95);
+    cursor: grabbing;
+}
+
+.las-fresh-settings-wrap .ui-slider .ui-slider-range {
+    position: absolute;
+    z-index: 2;
+    font-size: 1em;
+    display: block;
+    border: 0;
+    background: linear-gradient(90deg, #007cba 0%, #0073aa 100%);
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 124, 186, 0.3);
+    transition: all 0.3s ease;
+}
+
+.las-fresh-settings-wrap .ui-slider-horizontal .ui-slider-range {
+    top: 0;
+    height: 100%;
+}
+
+.las-fresh-settings-wrap .ui-slider-horizontal .ui-slider-range-min {
+    left: 0;
+}
+
+.las-fresh-settings-wrap .ui-slider:hover .ui-slider-range {
+    background: linear-gradient(90deg, #005a87 0%, #004066 100%);
+    box-shadow: 0 2px 6px rgba(0, 124, 186, 0.4);
+}
+
+/* Slider Animation Effects */
+.las-fresh-settings-wrap .ui-slider .ui-slider-handle::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.3s ease;
+}
+
+.las-fresh-settings-wrap .ui-slider .ui-slider-handle:hover::after {
+    width: 10px;
+    height: 10px;
+    background: rgba(255, 255, 255, 1);
+}
+
+/* Modern Conditional Containers */
+.las-conditional-container,
+.las-conditional-container-radius,
+.cai-conditional-container, 
+.cai-conditional-container-radius {
+    padding: 16px 20px;
+    margin: 16px 0;
+    background: linear-gradient(135deg, rgba(0, 124, 186, 0.03) 0%, rgba(0, 124, 186, 0.01) 100%);
+    border-left: 4px solid #007cba;
+    border-radius: 0 8px 8px 0;
+    position: relative;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.las-conditional-container:hover,
+.las-conditional-container-radius:hover,
+.cai-conditional-container:hover, 
+.cai-conditional-container-radius:hover {
+    background: linear-gradient(135deg, rgba(0, 124, 186, 0.05) 0%, rgba(0, 124, 186, 0.02) 100%);
+    border-left-color: #005a87;
+    box-shadow: 0 2px 8px rgba(0, 124, 186, 0.1);
+    transform: translateX(2px);
+}
+
+.las-conditional-container::before,
+.las-conditional-container-radius::before,
+.cai-conditional-container::before, 
+.cai-conditional-container-radius::before {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, #007cba 0%, #005a87 100%);
+    border-radius: 0 2px 2px 0;
+    transition: all 0.3s ease;
+}
+
+.cai-border-radius-container .cai-conditional-container-radius {
+    border-left: none;
+    padding-left: 16px;
+    margin-left: 16px;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid #e1e5e9;
+    border-radius: 8px;
+}
+
+.cai-border-radius-container .cai-conditional-container-radius::before {
+    display: none;
+}
+
+/* Modern Section Headers */
+.las-fresh-settings-wrap h2,
+.las-fresh-settings-wrap h3 {
+    color: #1d2327;
+    font-weight: 600;
+    margin: 24px 0 16px 0;
+    padding: 16px 0 12px 0;
+    border-bottom: 2px solid #e1e5e9;
+    position: relative;
+    font-size: 18px;
+    line-height: 1.3;
+}
+
+.las-fresh-settings-wrap h3 {
+    font-size: 16px;
+    margin: 20px 0 12px 0;
+    padding: 12px 0 8px 0;
+    border-bottom: 1px solid #e1e5e9;
+}
+
+.las-fresh-settings-wrap h2::after,
+.las-fresh-settings-wrap h3::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, #007cba 0%, #005a87 100%);
+    border-radius: 1px;
+}
+
+.las-fresh-settings-wrap h3::after {
+    bottom: -1px;
+    height: 1px;
+    width: 40px;
+}
+
+/* Modern Spinner Styling */
+#las-template-ajax-spinner {
+    float: none;
+    vertical-align: middle;
+    visibility: visible;
+    width: 24px;
+    height: 24px;
+    border: 3px solid #e1e5e9;
+    border-top: 3px solid #007cba;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 8px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Modern Notice Styling */
+.las-fresh-settings-wrap .notice,
+.las-fresh-settings-wrap .updated,
+.las-fresh-settings-wrap .error {
+    border-radius: 8px;
+    border-left-width: 4px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.las-fresh-settings-wrap .notice:hover,
+.las-fresh-settings-wrap .updated:hover,
+.las-fresh-settings-wrap .error:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.las-fresh-settings-wrap .updated {
+    background: linear-gradient(135deg, rgba(0, 160, 0, 0.05) 0%, rgba(0, 160, 0, 0.02) 100%);
+    border-left-color: #00a000;
+}
+
+.las-fresh-settings-wrap .error {
+    background: linear-gradient(135deg, rgba(220, 50, 50, 0.05) 0%, rgba(220, 50, 50, 0.02) 100%);
+    border-left-color: #dc3232;
+}
+
+
+/* Enhanced Live Preview Styles */
+#las-temp-preview-style,
+#las-live-preview-style {
+    /* Ensure high priority for live preview styles */
+    z-index: 999999 !important;
+}
+
+/* Enhanced Submenu Visibility System */
+#adminmenu .wp-submenu.las-submenu-visible {
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: translateX(0) !important;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+    border-radius: 4px;
+    backdrop-filter: blur(10px);
+}
+
+#adminmenu .wp-submenu.las-submenu-hidden {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    transform: translateX(-10px) !important;
+    transition: all 0.2s ease-in-out;
+}
+
+/* Live Preview Loading States */
+.las-live-preview-loading {
+    position: relative;
+}
+
+.las-live-preview-loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+/* Modern Form Controls */
+.las-fresh-settings-wrap input[type="text"],
+.las-fresh-settings-wrap input[type="number"],
+.las-fresh-settings-wrap input[type="email"],
+.las-fresh-settings-wrap input[type="url"],
+.las-fresh-settings-wrap textarea,
+.las-fresh-settings-wrap select,
+.las-modern-control {
+    background: #ffffff;
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    padding: 12px 16px;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    font-weight: 400;
+    color: #1d2327;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    min-height: 44px;
+    line-height: 1.4;
+}
+
+.las-fresh-settings-wrap input[type="text"]:focus,
+.las-fresh-settings-wrap input[type="number"]:focus,
+.las-fresh-settings-wrap input[type="email"]:focus,
+.las-fresh-settings-wrap input[type="url"]:focus,
+.las-fresh-settings-wrap textarea:focus,
+.las-fresh-settings-wrap select:focus,
+.las-modern-control:focus {
+    border-color: #007cba;
+    box-shadow: 0 0 0 3px rgba(0, 124, 186, 0.1), 0 2px 8px rgba(0, 0, 0, 0.1);
+    outline: none;
+    transform: translateY(-1px);
+}
+
+.las-fresh-settings-wrap input[type="text"]:hover,
+.las-fresh-settings-wrap input[type="number"]:hover,
+.las-fresh-settings-wrap input[type="email"]:hover,
+.las-fresh-settings-wrap input[type="url"]:hover,
+.las-fresh-settings-wrap textarea:hover,
+.las-fresh-settings-wrap select:hover {
+    border-color: #c3c4c7;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* Modern Checkbox and Radio Styling */
+.las-fresh-settings-wrap input[type="checkbox"],
+.las-fresh-settings-wrap input[type="radio"] {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e1e5e9;
+    border-radius: 4px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.las-fresh-settings-wrap input[type="radio"] {
+    border-radius: 50%;
+}
+
+.las-fresh-settings-wrap input[type="checkbox"]:checked,
+.las-fresh-settings-wrap input[type="radio"]:checked {
+    background: #007cba;
+    border-color: #007cba;
+    transform: scale(1.05);
+}
+
+.las-fresh-settings-wrap input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.las-fresh-settings-wrap input[type="radio"]:checked::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+}
+
+.las-fresh-settings-wrap input[type="checkbox"]:focus,
+.las-fresh-settings-wrap input[type="radio"]:focus {
+    box-shadow: 0 0 0 3px rgba(0, 124, 186, 0.2);
+    outline: none;
+}
+
+/* Modern Button Styling */
+.las-fresh-settings-wrap .button,
+.las-fresh-settings-wrap .button-primary,
+.las-fresh-settings-wrap .button-secondary {
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-weight: 500;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    border: 2px solid;
+    min-height: 44px;
+    cursor: pointer;
+}
+
+.las-fresh-settings-wrap .button-primary {
+    background: linear-gradient(135deg, #007cba 0%, #005a87 100%);
+    border-color: #007cba;
+    color: white;
+    box-shadow: 0 2px 8px rgba(0, 124, 186, 0.2);
+}
+
+.las-fresh-settings-wrap .button-primary:hover {
+    background: linear-gradient(135deg, #005a87 0%, #004066 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 124, 186, 0.3);
+}
+
+.las-fresh-settings-wrap .button-secondary {
+    background: #ffffff;
+    border-color: #e1e5e9;
+    color: #646970;
+}
+
+.las-fresh-settings-wrap .button-secondary:hover {
+    background: #f8f9fa;
+    border-color: #c3c4c7;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Live Preview Error Notifications */
+.las-live-preview-error {
+    background: #dc3232;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin: 5px 0;
+    font-size: 12px;
+    animation: fadeInOut 3s ease-in-out;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translateY(-10px); }
+    10% { opacity: 1; transform: translateY(0); }
+    90% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-10px); }
+}
+
+/* Performance Indicator */
+.las-performance-indicator {
+    position: fixed;
+    top: 32px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    z-index: 999999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.las-performance-indicator.visible {
+    opacity: 1;
+}
+
+/* Enhanced Debounce Visual Feedback */
+.las-field-debouncing {
+    position: relative;
+}
+
+.las-field-debouncing::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border: 2px solid #007cba;
+    border-radius: 4px;
+    opacity: 0.5;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.02); }
+    100% { opacity: 0.5; transform: scale(1); }
+}
+/* 
+Modern Animation System */
+.las-fresh-settings-wrap * {
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Smooth Page Transitions */
+.las-fresh-settings-wrap {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Tab Switching Animation */
+.las-fresh-settings-wrap .ui-tabs .ui-tabs-panel {
+    animation: slideInFromRight 0.4s ease-out;
+}
+
+@keyframes slideInFromRight {
+    0% {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Field Focus Animation */
+.las-fresh-settings-wrap input:focus,
+.las-fresh-settings-wrap select:focus,
+.las-fresh-settings-wrap textarea:focus {
+    animation: focusPulse 0.3s ease-out;
+}
+
+@keyframes focusPulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Hover Effects for Interactive Elements */
+.las-fresh-settings-wrap .field-row,
+.las-fresh-settings-wrap .las-slider-container,
+.las-fresh-settings-wrap .las-font-selector-container {
+    transform-origin: center;
+    will-change: transform, box-shadow;
+}
+
+/* Loading State Animation */
+.las-loading {
+    position: relative;
+    overflow: hidden;
+}
+
+.las-loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 124, 186, 0.1), transparent);
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+/* Success Animation */
+.las-success-animation {
+    animation: successBounce 0.6s ease-out;
+}
+
+@keyframes successBounce {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Micro-interactions */
+.las-fresh-settings-wrap label {
+    transition: color 0.3s ease;
+    cursor: pointer;
+}
+
+.las-fresh-settings-wrap label:hover {
+    color: #007cba;
+}
+
+/* Enhanced Tooltip Styling */
+.las-tooltip {
+    position: relative;
+    display: inline-block;
+    cursor: help;
+}
+
+.las-tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1d2327;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.las-tooltip::before {
+    content: '';
+    position: absolute;
+    bottom: 115%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #1d2327;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.las-tooltip:hover::after,
+.las-tooltip:hover::before {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(-2px);
+}
+
+/* Responsive Design Enhancements */
+@media (max-width: 768px) {
+    .las-fresh-settings-wrap {
+        padding: 16px;
+        margin-top: 16px;
+    }
+    
+    .las-fresh-settings-wrap .ui-tabs .ui-tabs-nav .ui-tabs-anchor {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+    
+    .las-fresh-settings-wrap .ui-tabs .ui-tabs-panel {
+        padding: 16px;
+    }
+    
+    .las-fresh-settings-wrap .form-table th {
+        width: 100%;
+        padding: 12px 0 8px 0;
+    }
+    
+    .las-fresh-settings-wrap .form-table td {
+        padding: 8px 0 16px 0;
+    }
+    
+    .las-slider-container {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    
+    .las-slider {
+        max-width: none;
+        margin: 0;
+    }
+}
+
+/* Dark Mode Support (if enabled) */
+@media (prefers-color-scheme: dark) {
+    .las-fresh-settings-wrap {
+        background: #1e1e1e;
+        color: #ffffff;
+    }
+    
+    .las-fresh-settings-wrap .ui-tabs .ui-tabs-panel {
+        background: #2d2d2d;
+        border-color: #404040;
+    }
+    
+    .las-fresh-settings-wrap input,
+    .las-fresh-settings-wrap select,
+    .las-fresh-settings-wrap textarea {
+        background: #2d2d2d;
+        border-color: #404040;
+        color: #ffffff;
+    }
+    
+    .las-fresh-settings-wrap .field-row {
+        background: #2d2d2d;
+        border-color: #404040;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .las-fresh-settings-wrap {
+        box-shadow: none;
+        background: white;
+    }
+    
+    .las-fresh-settings-wrap .ui-tabs .ui-tabs-nav {
+        display: none;
+    }
+    
+    .las-fresh-settings-wrap .ui-tabs .ui-tabs-panel {
+        display: block !important;
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+}
+
+/* Accessibility Enhancements */
+.las-fresh-settings-wrap *:focus {
+    outline: 2px solid #007cba;
+    outline-offset: 2px;
+}
+
+.las-fresh-settings-wrap .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    .las-fresh-settings-wrap {
+        border: 2px solid;
+    }
+    
+    .las-fresh-settings-wrap input,
+    .las-fresh-settings-wrap select,
+    .las-fresh-settings-wrap textarea {
+        border-width: 3px;
+    }
+    
+    .las-fresh-settings-wrap .button {
+        border-width: 3px;
+    }
+}
+
+/* Enhanced Settings Search and Organization */
+.las-settings-header {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e1e5e9;
+}
+
+.las-search-container {
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.las-search-wrapper {
+    position: relative;
+    max-width: 400px;
+}
+
+.las-search-input {
+    width: 100%;
+    padding: 12px 16px 12px 44px;
+    border: 2px solid #e1e5e9;
+    border-radius: 25px;
+    font-size: 14px;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.las-search-input:focus {
+    border-color: #007cba;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(0, 124, 186, 0.1);
+}
+
+.las-search-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #646970;
+    font-size: 16px;
+    pointer-events: none;
+}
+
+.las-search-clear {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: #646970;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    display: none;
+}
+
+.las-search-clear:hover {
+    background: #f0f0f1;
+    color: #dc3232;
+}
+
+.las-search-input:not(:placeholder-shown) + .las-search-clear {
+    display: block;
+}
+
+.las-search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    border: 2px solid #007cba;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    max-height: 400px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+
+.las-search-results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e1e5e9;
+    font-size: 13px;
+    color: #646970;
+}
+
+.las-search-results-close {
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: #646970;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 2px;
+}
+
+.las-search-results-close:hover {
+    background: #e1e5e9;
+}
+
+.las-search-results-content {
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.las-search-result-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f0f0f1;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.las-search-result-item:hover {
+    background: #f8f9fa;
+}
+
+.las-search-result-item:last-child {
+    border-bottom: none;
+}
+
+.las-search-result-title {
+    font-weight: 600;
+    color: #1d2327;
+    margin-bottom: 4px;
+}
+
+.las-search-result-description {
+    font-size: 12px;
+    color: #646970;
+    margin-bottom: 4px;
+}
+
+.las-search-result-location {
+    font-size: 11px;
+    color: #007cba;
+    background: rgba(0, 124, 186, 0.1);
+    padding: 2px 6px;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+.las-settings-filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.las-filter-button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: #f8f9fa;
+    border: 1px solid #e1e5e9;
+    border-radius: 20px;
+    font-size: 13px;
+    color: #646970;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.las-filter-button:hover {
+    background: #ffffff;
+    border-color: #007cba;
+    color: #007cba;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 124, 186, 0.1);
+}
+
+.las-filter-button.active {
+    background: #007cba;
+    border-color: #007cba;
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 124, 186, 0.2);
+}
+
+.las-filter-button .dashicons {
+    font-size: 16px;
+}
+
+/* Enhanced Tab Icons */
+.las-tab-icon {
+    margin-right: 8px;
+    font-size: 16px;
+}
+
+/* Enhanced Field Wrappers */
+.las-enhanced-field-wrapper {
+    background: #ffffff;
+    border: 1px solid #e1e5e9;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.las-enhanced-field-wrapper:hover {
+    border-color: #c3c4c7;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+}
+
+.las-enhanced-field-wrapper.las-field-highlighted {
+    border-color: #007cba;
+    box-shadow: 0 0 0 2px rgba(0, 124, 186, 0.1), 0 4px 12px rgba(0, 124, 186, 0.15);
+    animation: highlightPulse 2s ease-out;
+}
+
+@keyframes highlightPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+.las-field-header {
+    display: flex;
+    align-items: flex-start;
+    padding: 16px 20px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e1e5e9;
+    gap: 12px;
+}
+
+.las-field-icon {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    background: #007cba;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+}
+
+.las-field-icon .dashicons {
+    font-size: 16px;
+}
+
+.las-field-title-wrapper {
+    flex-grow: 1;
+}
+
+.las-field-title {
+    margin: 0 0 4px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1d2327;
+    line-height: 1.3;
+}
+
+.las-field-description {
+    margin: 0;
+    font-size: 13px;
+    color: #646970;
+    line-height: 1.4;
+}
+
+.las-field-example {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.las-example-toggle {
+    background: #e1e5e9;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.las-example-toggle:hover {
+    background: #007cba;
+    color: #ffffff;
+}
+
+.las-example-content {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: #1d2327;
+    color: #ffffff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 100;
+    margin-top: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.las-example-content::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    right: 12px;
+    border: 4px solid transparent;
+    border-bottom-color: #1d2327;
+}
+
+.las-example-content code {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+}
+
+.las-field-content {
+    padding: 20px;
+}
+
+/* Enhanced Section Headers */
+.las-enhanced-section-header {
+    margin: 32px 0 24px 0;
+}
+
+.las-section-title-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.las-section-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #007cba 0%, #005a87 100%);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    flex-shrink: 0;
+}
+
+.las-section-icon .dashicons {
+    font-size: 20px;
+}
+
+.las-section-content {
+    flex-grow: 1;
+}
+
+.las-section-title {
+    margin: 0 0 4px 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #1d2327;
+    line-height: 1.2;
+}
+
+.las-section-description {
+    margin: 0;
+    font-size: 14px;
+    color: #646970;
+    line-height: 1.4;
+}
+
+.las-section-toggle {
+    background: #f8f9fa;
+    border: 1px solid #e1e5e9;
+    border-radius: 6px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.las-section-toggle:hover {
+    background: #007cba;
+    border-color: #007cba;
+    color: #ffffff;
+}
+
+.las-section-toggle[aria-expanded="false"] .dashicons {
+    transform: rotate(180deg);
+}
+
+.las-section-separator {
+    height: 3px;
+    background: linear-gradient(90deg, #007cba 0%, #005a87 50%, transparent 100%);
+    border-radius: 2px;
+}
+
+/* Search Highlighting */
+.las-search-highlight {
+    background: #fff3cd;
+    padding: 1px 2px;
+    border-radius: 2px;
+    font-weight: 600;
+}
+
+/* Filter States */
+.las-enhanced-field-wrapper.las-filtered-out {
+    display: none;
+}
+
+.las-enhanced-section-header.las-filtered-out {
+    display: none;
+}
+
+/* Collapsible Sections */
+.las-section-collapsible .las-section-content-wrapper {
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.las-section-collapsible.las-section-collapsed .las-section-content-wrapper {
+    max-height: 0;
+}
+
+/* Loading States for Search */
+.las-search-loading .las-search-icon::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 2px solid #e1e5e9;
+    border-top: 2px solid #007cba;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* Field Category Icons */
+.las-field-category-icon {
+    margin-right: 8px;
+    color: #007cba;
+    font-size: 16px;
+    vertical-align: middle;
+}
+
+.las-categorized-field[data-category="colors"] .las-field-category-icon {
+    color: #e74c3c;
+}
+
+.las-categorized-field[data-category="typography"] .las-field-category-icon {
+    color: #9b59b6;
+}
+
+.las-categorized-field[data-category="layout"] .las-field-category-icon {
+    color: #3498db;
+}
+
+.las-categorized-field[data-category="advanced"] .las-field-category-icon {
+    color: #f39c12;
+}
+
+/* Search No Results */
+.las-search-no-results {
+    padding: 20px;
+    text-align: center;
+    color: #646970;
+    font-style: italic;
+}
+
+.las-search-more-results {
+    padding: 8px 16px;
+    text-align: center;
+    color: #646970;
+    font-size: 12px;
+    border-top: 1px solid #f0f0f1;
+    background: #f8f9fa;
+}
+
+/* Enhanced Form Table Integration */
+.las-fresh-settings-wrap .form-table th {
+    position: relative;
+}
+
+.las-fresh-settings-wrap .form-table .las-categorized-field {
+    transition: all 0.3s ease;
+}
+
+.las-fresh-settings-wrap .form-table .las-categorized-field:hover {
+    background: rgba(0, 124, 186, 0.02);
+}
+
+.las-fresh-settings-wrap .form-table .las-categorized-field.las-field-highlighted {
+    background: rgba(0, 124, 186, 0.05);
+    border-left: 3px solid #007cba;
+    padding-left: 17px;
+    margin-left: -20px;
+}
+
+/* Improved Section Visibility */
+.las-fresh-settings-wrap .form-table h2.las-filtered-out,
+.las-fresh-settings-wrap .form-table h3.las-filtered-out {
+    display: none;
+}
+
+.las-fresh-settings-wrap .form-table tr.las-filtered-out {
+    display: none;
+}
+
+/* Search Input States */
+.las-search-input:not(:placeholder-shown) {
+    padding-right: 40px;
+}
+
+.las-search-wrapper.las-search-active .las-search-input {
+    border-color: #007cba;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(0, 124, 186, 0.1);
+}
+
+/* Responsive Design for Search */
+@media (max-width: 768px) {
+    .las-settings-header {
+        padding: 16px;
+    }
+    
+    .las-search-wrapper {
+        max-width: none;
+    }
+    
+    .las-settings-filters {
+        justify-content: center;
+    }
+    
+    .las-filter-button {
+        font-size: 12px;
+        padding: 6px 12px;
+    }
+    
+    .las-field-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .las-field-example {
+        align-self: flex-end;
+    }
+    
+    .las-section-title-wrapper {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .las-search-results {
+        left: -10px;
+        right: -10px;
+    }
+    
+    .las-field-category-icon {
+        font-size: 14px;
+    }
+}
+
+/* Modern Notification System */
+.las-notifications-container {
+    position: fixed;
+    top: 32px;
+    right: 20px;
+    z-index: 999999;
+    max-width: 400px;
+    pointer-events: none;
+}
+
+.las-notification {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 12px;
+    overflow: hidden;
+    transform: translateX(100%);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: auto;
+    position: relative;
+    border: 1px solid #e1e5e9;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.las-notification.las-notification-visible {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.las-notification.las-notification-dismissing {
+    transform: translateX(100%) scale(0.9);
+    opacity: 0;
+}
+
+.las-notification-content {
+    display: flex;
+    align-items: flex-start;
+    padding: 16px 20px;
+    position: relative;
+}
+
+.las-notification-icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    margin-right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.las-notification-icon .dashicons {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+}
+
+.las-notification-body {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.las-notification-message {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #1d2327;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.las-notification-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.las-notification-action {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    outline: none;
+}
+
+.las-notification-action-primary {
+    background: #007cba;
+    color: white;
+}
+
+.las-notification-action-primary:hover {
+    background: #005a87;
+    transform: translateY(-1px);
+}
+
+.las-notification-action-secondary {
+    background: #f6f7f7;
+    color: #646970;
+    border: 1px solid #e1e5e9;
+}
+
+.las-notification-action-secondary:hover {
+    background: #ffffff;
+    border-color: #c3c4c7;
+    transform: translateY(-1px);
+}
+
+.las-notification-dismiss {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    color: #646970;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    line-height: 1;
+    transition: all 0.2s ease;
+}
+
+.las-notification-dismiss:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #1d2327;
+    transform: scale(1.1);
+}
+
+.las-notification-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: rgba(0, 0, 0, 0.1);
+    transition: width linear;
+}
+
+/* Notification Type Styles */
+.las-notification-success {
+    border-left: 4px solid #00a32a;
+}
+
+.las-notification-success .las-notification-icon .dashicons {
+    color: #00a32a;
+}
+
+.las-notification-success .las-notification-progress {
+    background: #00a32a;
+}
+
+.las-notification-error {
+    border-left: 4px solid #d63638;
+}
+
+.las-notification-error .las-notification-icon .dashicons {
+    color: #d63638;
+}
+
+.las-notification-error .las-notification-progress {
+    background: #d63638;
+}
+
+.las-notification-warning {
+    border-left: 4px solid #dba617;
+}
+
+.las-notification-warning .las-notification-icon .dashicons {
+    color: #dba617;
+}
+
+.las-notification-warning .las-notification-progress {
+    background: #dba617;
+}
+
+.las-notification-info {
+    border-left: 4px solid #007cba;
+}
+
+.las-notification-info .las-notification-icon .dashicons {
+    color: #007cba;
+}
+
+.las-notification-info .las-notification-progress {
+    background: #007cba;
+}
+
+/* Paused state for notifications */
+.las-notifications-paused .las-notification-progress {
+    animation-play-state: paused;
+}
+
+/* Loading States and Progress Indicators */
+.las-loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999998;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.las-loading-overlay.visible {
+    opacity: 1;
+}
+
+.las-loading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    background: #ffffff;
+    padding: 32px;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    border: 1px solid #e1e5e9;
+}
+
+.las-loading-message {
+    font-size: 16px;
+    font-weight: 500;
+    color: #1d2327;
+    text-align: center;
+}
+
+.las-loading-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid #e1e5e9;
+    border-top: 4px solid #007cba;
+    border-radius: 50%;
+    animation: las-spin 1s linear infinite;
+    box-shadow: 0 4px 16px rgba(0, 124, 186, 0.2);
+}
+
+@keyframes las-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.las-progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e1e5e9;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.las-progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #007cba 0%, #005a87 100%);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    position: relative;
+}
+
+.las-progress-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: las-progress-shine 2s infinite;
+}
+
+@keyframes las-progress-shine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* Button Loading States */
+.las-button-loading {
+    position: relative;
+    color: transparent !important;
+    pointer-events: none;
+}
+
+.las-button-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: las-spin 1s linear infinite;
+}
+
+/* Field Loading States */
+.las-field-loading {
+    position: relative;
+}
+
+.las-field-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    width: 16px;
+    height: 16px;
+    margin-top: -8px;
+    border: 2px solid #e1e5e9;
+    border-top: 2px solid #007cba;
+    border-radius: 50%;
+    animation: las-spin 1s linear infinite;
+}
+
+/* Toast-style notifications for quick feedback */
+.las-toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #1d2327;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 999999;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.las-toast.las-toast-visible {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.las-toast-success {
+    background: #00a32a;
+}
+
+.las-toast-error {
+    background: #d63638;
+}
+
+.las-toast-warning {
+    background: #dba617;
+}
+
+.las-toast-info {
+    background: #007cba;
+}
+
+/* Inline error messages */
+.las-inline-error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(214, 54, 56, 0.1);
+    border: 1px solid rgba(214, 54, 56, 0.2);
+    border-radius: 6px;
+    color: #d63638;
+    font-size: 13px;
+    margin-top: 8px;
+    animation: las-shake 0.5s ease-in-out;
+}
+
+.las-inline-error .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+@keyframes las-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* Success states */
+.las-inline-success {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(0, 163, 42, 0.1);
+    border: 1px solid rgba(0, 163, 42, 0.2);
+    border-radius: 6px;
+    color: #00a32a;
+    font-size: 13px;
+    margin-top: 8px;
+    animation: las-success-pulse 0.6s ease-out;
+}
+
+@keyframes las-success-pulse {
+    0% { transform: scale(0.95); opacity: 0; }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Validation states for form fields */
+.las-field-error input,
+.las-field-error select,
+.las-field-error textarea {
+    border-color: #d63638 !important;
+    box-shadow: 0 0 0 2px rgba(214, 54, 56, 0.1) !important;
+}
+
+.las-field-success input,
+.las-field-success select,
+.las-field-success textarea {
+    border-color: #00a32a !important;
+    box-shadow: 0 0 0 2px rgba(0, 163, 42, 0.1) !important;
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    .las-notification,
+    .las-loading-spinner,
+    .las-progress-bar-fill::after,
+    .las-button-loading::after,
+    .las-field-loading::after,
+    .las-toast {
+        animation: none !important;
+        transition: none !important;
+    }
+    
+    .las-fresh-settings-wrap *,
+    .las-fresh-settings-wrap *::before,
+    .las-fresh-settings-wrap *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}/*
+ Additional Modern UI Enhancement Styles */
+
+/* Field Focus States */
+.las-fresh-settings-wrap .field-row.field-focused {
+    background: #ffffff;
+    border-color: #007cba;
+    box-shadow: 0 0 0 2px rgba(0, 124, 186, 0.1), 0 4px 16px rgba(0, 124, 186, 0.1);
+    transform: translateY(-1px);
+}
+
+/* Enhanced Slider States */
+.las-fresh-settings-wrap .las-slider-container.slider-hover {
+    background: #ffffff;
+    border-color: #007cba;
+    box-shadow: 0 4px 16px rgba(0, 124, 186, 0.15);
+    transform: translateY(-2px);
+}
+
+.las-fresh-settings-wrap .las-slider-container.slider-active {
+    background: #ffffff;
+    border-color: #005a87;
+    box-shadow: 0 6px 20px rgba(0, 124, 186, 0.2);
+    transform: translateY(-3px);
+}
+
+.las-fresh-settings-wrap .las-slider-container.slider-active .las-slider-value {
+    background: rgba(0, 124, 186, 0.2);
+    color: #005a87;
+    font-weight: 800;
+    transform: scale(1.1);
+}
+
+/* Tab Animation Classes */
+.las-fresh-settings-wrap .ui-tabs .ui-tabs-panel.tab-fade-out {
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: all 0.2s ease-out;
+}
+
+.las-fresh-settings-wrap .ui-tabs .ui-tabs-panel.tab-fade-in {
+    animation: tabFadeIn 0.4s ease-out;
+}
+
+@keyframes tabFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Modern Color Picker Enhancements */
+.las-fresh-settings-wrap .las-modern-color-picker.color-changed {
+    animation: colorChangeFlash 0.3s ease-out;
+}
+
+@keyframes colorChangeFlash {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 20px rgba(0, 124, 186, 0.3);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* AJAX Loading States */
+.las-fresh-settings-wrap.ajax-loading {
+    position: relative;
+}
+
+.las-fresh-settings-wrap.ajax-loading::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+}
+
+.las-fresh-settings-wrap.ajax-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    margin: -20px 0 0 -20px;
+    border: 4px solid #e1e5e9;
+    border-top: 4px solid #007cba;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 1001;
+}
+
+/* Button Loading States */
+.las-fresh-settings-wrap .button.las-loading {
+    position: relative;
+    color: transparent !important;
+    pointer-events: none;
+}
+
+.las-fresh-settings-wrap .button.las-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.las-fresh-settings-wrap .button-primary.las-loading::after {
+    border-top-color: white;
+}
+
+/* Reduced Animations for Performance */
+.las-reduced-animations * {
+    animation-duration: 0.1s !important;
+    transition-duration: 0.1s !important;
+}
+
+.las-reduced-animations .las-fresh-settings-wrap {
+    animation: none !important;
+}
+
+.las-reduced-animations .ui-tabs .ui-tabs-panel {
+    animation: none !important;
+}
+
+/* Enhanced Focus Indicators for Accessibility */
+.las-fresh-settings-wrap *:focus-visible {
+    outline: 3px solid #007cba !important;
+    outline-offset: 2px !important;
+    border-radius: 4px;
+}
+
+/* High Contrast Mode Adjustments */
+@media (prefers-contrast: high) {
+    .las-fresh-settings-wrap {
+        border: 3px solid !important;
+    }
+    
+    .las-fresh-settings-wrap .field-row {
+        border: 2px solid !important;
+    }
+    
+    .las-fresh-settings-wrap input,
+    .las-fresh-settings-wrap select,
+    .las-fresh-settings-wrap textarea {
+        border: 3px solid !important;
+    }
+    
+    .las-fresh-settings-wrap .button {
+        border: 3px solid !important;
+        font-weight: bold !important;
+    }
+}
+
+/* Enhanced Mobile Responsiveness */
+@media (max-width: 480px) {
+    .las-fresh-settings-wrap {
+        padding: 12px;
+        margin-top: 12px;
+        border-radius: 8px;
+    }
+    
+    .las-fresh-settings-wrap .ui-tabs .ui-tabs-nav .ui-tabs-anchor {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+    
+    .las-fresh-settings-wrap .ui-tabs .ui-tabs-panel {
+        padding: 12px;
+    }
+    
+    .las-fresh-settings-wrap .form-table th,
+    .las-fresh-settings-wrap .form-table td {
+        display: block;
+        width: 100%;
+        padding: 8px 0;
+    }
+    
+    .las-fresh-settings-wrap .form-table th {
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+    
+    .las-slider-container {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .las-slider-input {
+        width: 100% !important;
+        max-width: 120px;
+        margin: 0 auto;
+    }
+    
+    .las-slider {
+        max-width: none;
+        margin: 8px 0;
+    }
+    
+    .las-slider-value {
+        text-align: center;
+        min-width: auto;
+    }
+}
+
+/* Print Optimizations */
+@media print {
+    .las-fresh-settings-wrap * {
+        animation: none !important;
+        transition: none !important;
+        box-shadow: none !important;
+        transform: none !important;
+    }
+    
+    .las-fresh-settings-wrap {
+        background: white !important;
+        color: black !important;
+    }
+    
+    .las-fresh-settings-wrap .ui-tabs .ui-tabs-nav {
+        display: none !important;
+    }
+    
+    .las-fresh-settings-wrap .ui-tabs .ui-tabs-panel {
+        display: block !important;
+        border: 1px solid #ccc !important;
+        page-break-inside: avoid;
+    }
+    
+    .las-fresh-settings-wrap .field-row {
+        background: white !important;
+        border: 1px solid #ccc !important;
+        page-break-inside: avoid;
+        margin-bottom: 8px;
+    }
+}
+
+/* Smooth Scrolling for Tab Navigation */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Enhanced Visual Hierarchy */
+.las-fresh-settings-wrap .form-table th {
+    position: relative;
+}
+
+.las-fresh-settings-wrap .form-table th::after {
+    content: '';
+    position: absolute;
+    bottom: 8px;
+    left: 0;
+    width: 30px;
+    height: 2px;
+    background: linear-gradient(90deg, #007cba, transparent);
+    border-radius: 1px;
+}
+
+/* Improved Error States */
+.las-fresh-settings-wrap .field-error {
+    border-color: #dc3232 !important;
+    box-shadow: 0 0 0 2px rgba(220, 50, 50, 0.1) !important;
+}
+
+.las-fresh-settings-wrap .field-error:focus {
+    box-shadow: 0 0 0 3px rgba(220, 50, 50, 0.2) !important;
+}
+
+/* Success States */
+.las-fresh-settings-wrap .field-success {
+    border-color: #00a000 !important;
+    box-shadow: 0 0 0 2px rgba(0, 160, 0, 0.1) !important;
+}
+
+.las-fresh-settings-wrap .field-success:focus {
+    box-shadow: 0 0 0 3px rgba(0, 160, 0, 0.2) !important;
+}
+
+/* Enhanced Disabled States */
+.las-fresh-settings-wrap input:disabled,
+.las-fresh-settings-wrap select:disabled,
+.las-fresh-settings-wrap textarea:disabled {
+    background: #f6f7f7 !important;
+    color: #a7aaad !important;
+    border-color: #dcdcde !important;
+    cursor: not-allowed !important;
+    opacity: 0.6;
+}
+
+.las-fresh-settings-wrap .button:disabled {
+    background: #f6f7f7 !important;
+    color: #a7aaad !important;
+    border-color: #dcdcde !important;
+    cursor: not-allowed !important;
+    opacity: 0.6;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Improved Focus Management */
+.las-fresh-settings-wrap .skip-link {
+    position: absolute;
+    left: -9999px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+.las-fresh-settings-wrap .skip-link:focus {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 8px 16px;
+    background: #007cba;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    z-index: 999999;
+}
+/* Enhance
+d State Management Styles */
+.las-theme-modern {
+    --las-primary-color: #007cba;
+    --las-secondary-color: #646970;
+    --las-success-color: #00a32a;
+    --las-warning-color: #dba617;
+    --las-error-color: #d63638;
+    --las-border-radius: 8px;
+    --las-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.las-theme-classic {
+    --las-primary-color: #0073aa;
+    --las-secondary-color: #555;
+    --las-success-color: #46b450;
+    --las-warning-color: #ffb900;
+    --las-error-color: #dc3232;
+    --las-border-radius: 4px;
+    --las-shadow: 0 1px 3px rgba(0, 0, 0, 0.13);
+}
+
+.las-theme-minimal {
+    --las-primary-color: #333;
+    --las-secondary-color: #666;
+    --las-success-color: #28a745;
+    --las-warning-color: #ffc107;
+    --las-error-color: #dc3545;
+    --las-border-radius: 2px;
+    --las-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Animation Speed Classes */
+.las-anim-slow * {
+    transition-duration: 0.5s !important;
+}
+
+.las-anim-normal * {
+    transition-duration: 0.3s !important;
+}
+
+.las-anim-fast * {
+    transition-duration: 0.15s !important;
+}
+
+.las-anim-none * {
+    transition: none !important;
+}
+
+/* Compact Mode */
+.las-compact-mode .las-fresh-settings-wrap {
+    padding: 15px;
+}
+
+.las-compact-mode .field-row {
+    margin-bottom: 15px;
+}
+
+.las-compact-mode .ui-tabs .ui-tabs-nav .ui-tabs-anchor {
+    padding: 8px 16px;
+    font-size: 13px;
+}
+
+.las-compact-mode .las-settings-header {
+    margin-bottom: 15px;
+}
+
+/* Enhanced Notifications */
+.las-notifications-container {
+    position: fixed;
+    top: 32px;
+    right: 20px;
+    z-index: 999999;
+    max-width: 400px;
+    pointer-events: none;
+}
+
+.las-notification {
+    background: #fff;
+    border-radius: var(--las-border-radius);
+    box-shadow: var(--las-shadow);
+    margin-bottom: 10px;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s ease;
+    pointer-events: auto;
+    border-left: 4px solid var(--las-primary-color);
+    overflow: hidden;
+    position: relative;
+}
+
+.las-notification.las-notification-visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.las-notification.las-notification-dismissing {
+    opacity: 0;
+    transform: translateX(100%);
+}
+
+.las-notification-content {
+    padding: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.las-notification-icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.las-notification-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.las-notification-message {
+    font-size: 14px;
+    line-height: 1.4;
+    color: #1d2327;
+    margin-bottom: 8px;
+}
+
+.las-notification-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.las-notification-action {
+    background: transparent;
+    border: 1px solid var(--las-primary-color);
+    color: var(--las-primary-color);
+    padding: 4px 12px;
+    border-radius: calc(var(--las-border-radius) / 2);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.las-notification-action:hover {
+    background: var(--las-primary-color);
+    color: #fff;
+}
+
+.las-notification-action-primary {
+    background: var(--las-primary-color);
+    color: #fff;
+}
+
+.las-notification-action-primary:hover {
+    background: #005a87;
+}
+
+.las-notification-dismiss {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: transparent;
+    border: none;
+    font-size: 18px;
+    line-height: 1;
+    color: #646970;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.las-notification-dismiss:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: #1d2327;
+}
+
+.las-notification-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: var(--las-primary-color);
+    opacity: 0.3;
+    transition: width linear;
+}
+
+/* Notification Type Colors */
+.las-notification-success {
+    border-left-color: var(--las-success-color);
+}
+
+.las-notification-success .las-notification-icon {
+    color: var(--las-success-color);
+}
+
+.las-notification-success .las-notification-progress {
+    background: var(--las-success-color);
+}
+
+.las-notification-warning {
+    border-left-color: var(--las-warning-color);
+}
+
+.las-notification-warning .las-notification-icon {
+    color: var(--las-warning-color);
+}
+
+.las-notification-warning .las-notification-progress {
+    background: var(--las-warning-color);
+}
+
+.las-notification-error {
+    border-left-color: var(--las-error-color);
+}
+
+.las-notification-error .las-notification-icon {
+    color: var(--las-error-color);
+}
+
+.las-notification-error .las-notification-progress {
+    background: var(--las-error-color);
+}
+
+.las-notification-info {
+    border-left-color: var(--las-primary-color);
+}
+
+.las-notification-info .las-notification-icon {
+    color: var(--las-primary-color);
+}
+
+.las-notification-info .las-notification-progress {
+    background: var(--las-primary-color);
+}
+
+/* Paused notifications (when window loses focus) */
+.las-notifications-paused .las-notification-progress {
+    animation-play-state: paused;
+}
+
+/* State Management Indicators */
+.las-state-indicator {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--las-primary-color);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: var(--las-border-radius);
+    font-size: 12px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    z-index: 999998;
+}
+
+.las-state-indicator.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.las-state-indicator.syncing {
+    background: var(--las-warning-color);
+}
+
+.las-state-indicator.offline {
+    background: var(--las-error-color);
+}
+
+.las-state-indicator.synced {
+    background: var(--las-success-color);
+}
+
+/* Enhanced Tab State Persistence */
+.las-tab-state-restored {
+    animation: tabRestored 0.5s ease;
+}
+
+@keyframes tabRestored {
+    0% {
+        opacity: 0.5;
+        transform: scale(0.98);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Preference Controls */
+.las-preferences-panel {
+    background: #fff;
+    border: 1px solid #e1e5e9;
+    border-radius: var(--las-border-radius);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.las-preferences-panel h3 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    color: #1d2327;
+    font-size: 16px;
+}
+
+.las-preference-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f1;
+}
+
+.las-preference-row:last-child {
+    border-bottom: none;
+}
+
+.las-preference-label {
+    font-weight: 500;
+    color: #1d2327;
+}
+
+.las-preference-description {
+    font-size: 13px;
+    color: #646970;
+    margin-top: 4px;
+}
+
+.las-preference-control {
+    flex-shrink: 0;
+}
+
+/* Enhanced Search Highlighting */
+.las-search-highlight {
+    background: #fff3cd;
+    color: #856404;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 500;
+}
+
+/* Loading States */
+.las-loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.las-loading-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.las-loading-content {
+    text-align: center;
+    padding: 40px;
+    background: #fff;
+    border-radius: var(--las-border-radius);
+    box-shadow: var(--las-shadow);
+    max-width: 300px;
+}
+
+.las-loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid var(--las-primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 16px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.las-loading-message {
+    color: #1d2327;
+    font-size: 14px;
+    margin: 0;
+}
+
+/* Responsive Design for State Management */
+@media (max-width: 768px) {
+    .las-notifications-container {
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+    
+    .las-notification {
+        margin-bottom: 8px;
+    }
+    
+    .las-notification-content {
+        padding: 12px;
+    }
+    
+    .las-state-indicator {
+        bottom: 10px;
+        right: 10px;
+        left: 10px;
+        text-align: center;
+    }
+    
+    .las-preferences-panel {
+        padding: 16px;
+    }
+    
+    .las-preference-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+}
+
+/* Dark Mode Support (if WordPress admin uses dark mode) */
+@media (prefers-color-scheme: dark) {
+    .las-notification {
+        background: #1d2327;
+        color: #f0f0f1;
+    }
+    
+    .las-notification-message {
+        color: #f0f0f1;
+    }
+    
+    .las-notification-dismiss {
+        color: #a7aaad;
+    }
+    
+    .las-notification-dismiss:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #f0f0f1;
+    }
+    
+    .las-preferences-panel {
+        background: #1d2327;
+        border-color: #3c434a;
+        color: #f0f0f1;
+    }
+    
+    .las-preference-label {
+        color: #f0f0f1;
+    }
+    
+    .las-preference-description {
+        color: #a7aaad;
+    }
+    
+    .las-loading-content {
+        background: #1d2327;
+        color: #f0f0f1;
+    }
+    
+    .las-loading-message {
+        color: #f0f0f1;
+    }
+}/*
+ Toggle Switch Styles for Preferences */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.3s;
+    border-radius: 24px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+input:checked + .slider {
+    background-color: var(--las-primary-color);
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px var(--las-primary-color);
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+/* Preference Controls */
+.las-preference-control select {
+    min-width: 120px;
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #fff;
+}
+
+.las-preference-control button {
+    margin-left: 8px;
+}
+
+/* State Indicator Styles */
+.las-sync-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #646970;
+    margin-left: 12px;
+}
+
+.las-sync-status .dashicons {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+}
+
+.las-sync-status.syncing {
+    color: var(--las-warning-color);
+}
+
+.las-sync-status.synced {
+    color: var(--las-success-color);
+}
+
+.las-sync-status.offline {
+    color: var(--las-error-color);
+}
+
+.las-sync-status.error {
+    color: var(--las-error-color);
+}
+
+/* Enhanced Form Validation */
+.las-field-error {
+    border-color: var(--las-error-color) !important;
+    box-shadow: 0 0 0 1px var(--las-error-color) !important;
+}
+
+.las-field-warning {
+    border-color: var(--las-warning-color) !important;
+    box-shadow: 0 0 0 1px var(--las-warning-color) !important;
+}
+
+.las-validation-message {
+    font-size: 12px;
+    margin-top: 4px;
+    padding: 4px 8px;
+    border-radius: 3px;
+    display: none;
+}
+
+.las-validation-message.error {
+    background: #ffeaea;
+    color: var(--las-error-color);
+    border: 1px solid #ffcdd2;
+}
+
+.las-validation-message.warning {
+    background: #fff8e1;
+    color: #f57c00;
+    border: 1px solid #ffecb3;
+}
+
+.las-validation-message.visible {
+    display: block;
+}
+/* P
+erformance optimization styles */
+.las-lazy-loading {
+    min-height: 60px;
+    background: #f9f9f9;
+    border: 1px dashed #ddd;
+    border-radius: 4px;
+    position: relative;
+    opacity: 0.7;
+}
+
+.las-lazy-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: #666;
+    font-style: italic;
+}
+
+.las-lazy-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ddd;
+    border-top: 2px solid #0073aa;
+    border-radius: 50%;
+    animation: las-spin 1s linear infinite;
+    margin-right: 10px;
+}
+
+@keyframes las-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.las-lazy-loaded {
+    animation: las-fade-in 0.3s ease-in-out;
+}
+
+@keyframes las-fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Field state indicators for performance feedback */
+.las-field-loading {
+    position: relative;
+    opacity: 0.7;
+}
+
+.las-field-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #ddd;
+    border-top: 2px solid #0073aa;
+    border-radius: 50%;
+    animation: las-spin 1s linear infinite;
+    transform: translateY(-50%);
+}
+
+.las-field-success {
+    border-color: #46b450 !important;
+    box-shadow: 0 0 0 1px #46b450;
+    transition: all 0.2s ease;
+}
+
+.las-field-error {
+    border-color: #dc3232 !important;
+    box-shadow: 0 0 0 1px #dc3232;
+}
+
+.las-inline-error {
+    color: #dc3232;
+    font-size: 12px;
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.las-inline-error .dashicons {
+    font-size: 14px;
+    margin-right: 5px;
+}
+
+/* Cache performance indicator */
+.las-cache-stats {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    z-index: 999999;
+    display: none;
+}
+
+.las-cache-stats.visible {
+    display: block;
+}
+
+/* Performance mode indicators */
+body.las-performance-mode .las-field-row {
+    transition: none !important;
+}
+
+body.las-performance-mode .las-notification {
+    animation-duration: 0.1s !important;
+}
+
+/* Resource cleanup indicators */
+.las-cleanup-notice {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+    padding: 10px 15px;
+    border-radius: 4px;
+    margin: 10px 0;
+    font-size: 13px;
+}

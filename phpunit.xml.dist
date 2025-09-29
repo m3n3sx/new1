@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<phpunit
+    bootstrap="tests/bootstrap.php"
+    backupGlobals="false"
+    colors="true"
+    convertErrorsToExceptions="true"
+    convertNoticesToExceptions="true"
+    convertWarningsToExceptions="true"
+    >
+    <testsuites>
+        <testsuite name="live-admin-styler">
+            <directory prefix="Test" suffix=".php">./tests/php/</directory>
+        </testsuite>
+        <testsuite name="state-management">
+            <file>./tests/php/TestStateManagement.php</file>
+        </testsuite>
+        <testsuite name="file-cleanup">
+            <file>./tests/php/TestFileCleanup.php</file>
+        </testsuite>
+        <testsuite name="css-output">
+            <file>./tests/php/TestOutputCss.php</file>
+        </testsuite>
+    </testsuites>
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">./includes</directory>
+            <file>./live-admin-styler.php</file>
+        </whitelist>
+    </filter>
+    <logging>
+        <log type="coverage-html" target="./tests/coverage/html"/>
+        <log type="coverage-text" target="php://stdout" showUncoveredFiles="false"/>
+    </logging>
+</phpunit>

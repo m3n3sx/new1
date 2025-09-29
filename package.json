@@ -1,0 +1,60 @@
+{
+  "name": "live-admin-styler",
+  "version": "1.1.0",
+  "description": "WordPress plugin for customizing admin panel appearance",
+  "main": "js/admin-settings.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:php": "phpunit",
+    "test:php:coverage": "phpunit --coverage-html tests/coverage/php",
+    "test:all": "npm run test:php && npm run test",
+    "lint:js": "eslint js/ assets/js/ tests/js/",
+    "lint:php": "phpcs --standard=WordPress includes/ live-admin-styler.php",
+    "build": "npm run test:all && npm run lint:js"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/tests/js/**/*.js"
+    ],
+    "collectCoverageFrom": [
+      "js/**/*.js",
+      "assets/js/**/*.js",
+      "!**/node_modules/**",
+      "!**/tests/**"
+    ],
+    "coverageDirectory": "tests/coverage/js",
+    "coverageReporters": [
+      "html",
+      "text",
+      "lcov"
+    ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/tests/js/setup.js"
+    ],
+    "moduleNameMapping": {
+      "^@/(.*)$": "<rootDir>/$1"
+    }
+  },
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-wordpress": "^2.0.0",
+    "jquery": "^3.6.0"
+  },
+  "keywords": [
+    "wordpress",
+    "plugin",
+    "admin",
+    "styling",
+    "customization"
+  ],
+  "author": "Live Admin Styler Team",
+  "license": "GPL-2.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/live-admin-styler.git"
+  }
+}
