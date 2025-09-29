@@ -193,4 +193,4 @@ Ta wtyczka jest licencjonowana na warunkach GPL v2 lub nowszej.
 
 ---
 
-**Live Admin Styler v1.2.0** - Profesjonalne narzędzie do personalizacji panelu administratora WordPress.
+**Live Admin Styler v1.2.0** - Profesjonalne narzędzie do personalizacji panelu administratora WordPress.# jajebie
