@@ -764,6 +764,311 @@ describe('LivePreviewManager', () => {
         expect(key1).not.toBe(key3);
         expect(key2).not.toBe(key3);
         
+        // Test with object values
+        const objKey1 = LivePreviewManager.generateCacheKey('setting', { a: 1, b: 2 });
+        const objKey2 = LivePreviewManager.generateCacheKey('setting', { a: 1, b: 3 });
+        expect(objKey1).not.toBe(objKey2);
+    });
+
+    test('should handle AJAX success responses correctly', () => {
+        const setting = 'admin_menu_bg_color';
+        const cacheKey = 'test_cache_key';
+        
+        // Test successful response with CSS data
+        const successResponse = {
+            success: true,
+            data: {
+                css: 'body { background: red; }',
+                performance: { execution_time_ms: 100 }
+            }
+        };
+        
+        LivePreviewManager.handleAjaxSuccess(successResponse, setting, cacheKey);
+        
+        expect(LivePreviewManager.setCachedCSS).toHaveBeenCalledWith(cacheKey, 'body { background: red; }');
+        expect(LivePreviewManager.errorCount).toBe(0);
+        expect(LivePreviewManager.retryCount).toBe(0);
+    });
+
+    test('should handle AJAX error responses correctly', () => {
+        const setting = 'admin_menu_bg_color';
+        
+        LivePreviewManager.handleAjaxError({ status: 500 }, 'error', 'Internal Server Error', setting);
+        
+        expect(LivePreviewManager.errorCount).toBe(1);
+        expect(LivePreviewManager.handleError).toHaveBeenCalled();
+    });
+
+    test('should retry operations correctly', () => {
+        const setting = 'admin_menu_bg_color';
+        const value = '#ff0000';
+        
+        LivePreviewManager.lastOperation = { setting, value };
+        LivePreviewManager.retryCount = 0;
+        
+        const result = LivePreviewManager.retryLastOperation();
+        
+        expect(result).toBe(true);
+        expect(LivePreviewManager.retryCount).toBe(1);
+        expect(LivePreviewManager.handleFieldChange).toHaveBeenCalledWith(setting, value);
+    });
+
+    test('should not retry beyond maximum attempts', () => {
+        const setting = 'admin_menu_bg_color';
+        const value = '#ff0000';
+        
+        LivePreviewManager.lastOperation = { setting, value };
+        LivePreviewManager.retryCount = LivePreviewManager.maxRetries;
+        
+        const result = LivePreviewManager.retryLastOperation();
+        
+        expect(result).toBe(false);
+    });
+
+    test('should update debounce delay within valid range', () => {
+        LivePreviewManager.updateDebounceDelay(200);
+        expect(LivePreviewManager.debounceDelay).toBe(200);
+        
+        // Test minimum boundary
+        LivePreviewManager.updateDebounceDelay(10);
+        expect(LivePreviewManager.debounceDelay).toBe(50);
+        
+        // Test maximum boundary
+        LivePreviewManager.updateDebounceDelay(2000);
+        expect(LivePreviewManager.debounceDelay).toBe(1000);
+    });
+
+    test('should provide cache statistics', () => {
+        LivePreviewManager.cacheHits = 10;
+        LivePreviewManager.cacheMisses = 5;
+        
+        const stats = LivePreviewManager.getCacheStats();
+        
+        expect(stats.hits).toBe(10);
+        expect(stats.misses).toBe(5);
+        expect(stats.hitRate).toBeCloseTo(0.667, 3);
+        expect(stats.size).toBeDefined();
+    });
+
+    test('should handle network errors gracefully', () => {
+        const setting = 'admin_menu_bg_color';
+        
+        // Test timeout error
+        LivePreviewManager.handleAjaxError({ status: 0 }, 'timeout', '', setting);
+        expect(LivePreviewManager.handleError).toHaveBeenCalledWith(
+            expect.stringContaining('timeout')
+        );
+        
+        // Test network error
+        LivePreviewManager.handleAjaxError({ status: 0 }, 'error', 'Network Error', setting);
+        expect(LivePreviewManager.handleError).toHaveBeenCalledWith(
+            expect.stringContaining('Network error')
+        );
+    });
+
+    test('should temporarily disable after too many errors', () => {
+        const setting = 'admin_menu_bg_color';
+        
+        // Trigger maximum errors
+        for (let i = 0; i < LivePreviewManager.maxErrors; i++) {
+            LivePreviewManager.handleAjaxError({ status: 500 }, 'error', 'Server Error', setting);
+        }
+        
+        expect(LivePreviewManager.errorCount).toBe(LivePreviewManager.maxErrors);
+        expect(LivePreviewManager.temporarilyDisable).toHaveBeenCalled();
+    });
+
+    test('should apply full styles correctly', () => {
+        const cssData = 'body { background: blue; }';
+        
+        // Mock existing style element
+        const existingStyle = { parentNode: { removeChild: jest.fn() } };
+        document.getElementById.mockReturnValueOnce(existingStyle);
+        
+        // Mock new style element creation
+        const newStyle = { id: '', type: '', innerHTML: '' };
+        document.createElement.mockReturnValueOnce(newStyle);
+        document.getElementById.mockReturnValueOnce(null); // For new element check
+        
+        LivePreviewManager.applyFullStyles(cssData);
+        
+        expect(existingStyle.parentNode.removeChild).toHaveBeenCalledWith(existingStyle);
+        expect(document.createElement).toHaveBeenCalledWith('style');
+        expect(newStyle.innerHTML).toBe(cssData);
+    });
+
+    test('should show and hide loading states correctly', () => {
+        const setting = 'admin_menu_bg_color';
+        const mockField = global.testUtils.createMockElement();
+        const mockFieldRow = global.testUtils.createMockElement();
+        
+        global.$.mockReturnValue(mockField);
+        mockField.closest.mockReturnValue(mockFieldRow);
+        
+        LivePreviewManager.showLoadingState(setting);
+        
+        expect(mockField.addClass).toHaveBeenCalledWith('las-field-loading');
+        expect(mockFieldRow.addClass).toHaveBeenCalledWith('las-loading');
+        
+        LivePreviewManager.hideLoadingState(setting);
+        
+        expect(mockField.removeClass).toHaveBeenCalledWith('las-field-loading');
+        expect(mockFieldRow.removeClass).toHaveBeenCalledWith('las-loading');
+    });
+
+    test('should show success and error states correctly', () => {
+        const setting = 'admin_menu_bg_color';
+        const mockField = global.testUtils.createMockElement();
+        const mockFieldRow = global.testUtils.createMockElement();
+        
+        global.$.mockReturnValue(mockField);
+        mockField.closest.mockReturnValue(mockFieldRow);
+        
+        LivePreviewManager.showSuccessState(setting);
+        
+        expect(mockFieldRow.removeClass).toHaveBeenCalledWith('las-field-error las-field-loading');
+        expect(mockFieldRow.addClass).toHaveBeenCalledWith('las-field-success');
+        
+        const errorMessage = 'Test error';
+        LivePreviewManager.showErrorState(setting, errorMessage);
+        
+        expect(mockFieldRow.removeClass).toHaveBeenCalledWith('las-field-success las-field-loading');
+        expect(mockFieldRow.addClass).toHaveBeenCalledWith('las-field-error');
+    });
+
+    test('should process AJAX queue correctly', () => {
+        const queueItem = {
+            setting: 'admin_menu_bg_color',
+            value: '#ff0000',
+            cacheKey: 'test_key'
+        };
+        
+        LivePreviewManager.ajaxQueue = [queueItem];
+        LivePreviewManager.isProcessingQueue = false;
+        
+        LivePreviewManager.processAjaxQueue();
+        
+        expect(LivePreviewManager.isProcessingQueue).toBe(true);
+        expect(LivePreviewManager.performAjaxRequest).toHaveBeenCalledWith(
+            queueItem.setting,
+            queueItem.value,
+            queueItem.cacheKey
+        );
+    });
+
+    test('should handle empty AJAX queue', () => {
+        LivePreviewManager.ajaxQueue = [];
+        LivePreviewManager.isProcessingQueue = true;
+        
+        LivePreviewManager.processAjaxQueue();
+        
+        expect(LivePreviewManager.isProcessingQueue).toBe(false);
+    });
+
+    test('should validate AJAX data before requests', () => {
+        // Test with valid data
+        expect(LivePreviewManager.validateAjaxData()).toBe(true);
+        
+        // Test with invalid ajaxurl
+        const originalAjaxUrl = lasAdminData.ajaxurl;
+        lasAdminData.ajaxurl = null;
+        expect(LivePreviewManager.validateAjaxData()).toBe(false);
+        lasAdminData.ajaxurl = originalAjaxUrl;
+        
+        // Test with invalid nonce
+        const originalNonce = lasAdminData.nonce;
+        lasAdminData.nonce = '';
+        expect(LivePreviewManager.validateAjaxData()).toBe(false);
+        lasAdminData.nonce = originalNonce;
+    });
+
+    test('should handle malformed responses gracefully', () => {
+        const setting = 'admin_menu_bg_color';
+        const cacheKey = 'test_key';
+        
+        // Test null response
+        LivePreviewManager.handleAjaxSuccess(null, setting, cacheKey);
+        expect(LivePreviewManager.handleError).toHaveBeenCalledWith(
+            'Invalid response format - not an object',
+            null
+        );
+        
+        // Test response without success property
+        LivePreviewManager.handleAjaxSuccess({}, setting, cacheKey);
+        expect(LivePreviewManager.handleError).toHaveBeenCalledWith(
+            'Response missing success property',
+            {}
+        );
+    });
+
+    test('should generate user-friendly error messages', () => {
+        const testCases = [
+            { input: 'Invalid response format', expected: 'Received invalid response from server' },
+            { input: 'AJAX error occurred', expected: 'Communication error with server' },
+            { input: 'timeout error', expected: 'Request timed out' },
+            { input: 'parsererror occurred', expected: 'Error processing server response' },
+            { input: 'Unknown technical error', expected: 'An unexpected error occurred during live preview' }
+        ];
+        
+        testCases.forEach(testCase => {
+            const result = LivePreviewManager.getUserFriendlyErrorMessage(testCase.input);
+            expect(result).toBe(testCase.expected);
+        });
+    });
+
+    test('should cleanup resources properly', () => {
+        LivePreviewManager.debounceTimer = setTimeout(() => {}, 1000);
+        LivePreviewManager.cssCache.set('test', 'data');
+        LivePreviewManager.tempStyleElement = { parentNode: { removeChild: jest.fn() } };
+        
+        LivePreviewManager.cleanup();
+        
+        expect(LivePreviewManager.cssCache.size).toBe(0);
+        expect(LivePreviewManager.tempStyleElement.parentNode.removeChild).toHaveBeenCalled();
+    });
+
+    test('should handle concurrent field changes', () => {
+        const settings = ['admin_menu_bg_color', 'admin_menu_text_color'];
+        const values = ['#ff0000', '#ffffff'];
+        
+        settings.forEach((setting, index) => {
+            LivePreviewManager.handleFieldChange(setting, values[index]);
+        });
+        
+        // Should handle all changes
+        expect(LivePreviewManager.handleFieldChange).toHaveBeenCalledTimes(2);
+        
+        // Last operation should be the most recent
+        expect(LivePreviewManager.lastOperation.setting).toBe('admin_menu_text_color');
+        expect(LivePreviewManager.lastOperation.value).toBe('#ffffff');
+    });
+
+    test('should handle performance metrics correctly', () => {
+        const setting = 'admin_menu_bg_color';
+        const cacheKey = 'test_key';
+        const response = {
+            success: true,
+            data: {
+                css: 'body { background: red; }',
+                performance: {
+                    execution_time_ms: 1500,
+                    memory_usage: 2048000,
+                    cache_recommended: true
+                }
+            }
+        };
+        
+        LivePreviewManager.handleAjaxSuccess(response, setting, cacheKey);
+        
+        // Should show warning for slow generation
+        expect(global.ErrorManager.showWarning).toHaveBeenCalledWith(
+            'Slow preview generation: 1500ms'
+        );
+    });
+});toBe(key2);
+        expect(key1).not.toBe(key3);
+        expect(key2).not.toBe(key3);
+        
         // Test with object value
         const objKey = LivePreviewManager.generateCacheKey('setting', { a: 1, b: 2 });
         expect(objKey).toBeDefined();

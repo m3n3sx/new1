@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error Handling Integration Test</title>
+    <link rel="stylesheet" href="../assets/css/design-system.css">
+    <link rel="stylesheet" href="../assets/css/graceful-degradation.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: var(--las-neutral-50, #fafafa);
+        }
+        
+        .test-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .test-button {
+            background: var(--las-primary-500, #2271b1);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0.25rem;
+        }
+        
+        .status-display {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--las-neutral-100, #f5f5f5);
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.875rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .error-boundary-test {
+            border: 2px dashed #ccc;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Error Handling & Graceful Degradation Integration Test</h1>
+    
+    <div class="test-section">
+        <h2>Error Manager Status</h2>
+        <p>Tests the error manager initialization and basic functionality.</p>
+        <button class="test-button" onclick="checkErrorManager()">Check Error Manager</button>
+        <button class="test-button" onclick="testFeatureDetection()">Test Feature Detection</button>
+        <div class="status-display" id="error-manager-status">
+            Click buttons to test error manager functionality...
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Error Simulation</h2>
+        <p>Simulate different types of errors to test handling.</p>
+        <button class="test-button" onclick="simulateJSError()">Simulate JS Error</button>
+        <button class="test-button" onclick="simulatePromiseError()">Simulate Promise Error</button>
+        <button class="test-button" onclick="simulateComponentError()">Simulate Component Error</button>
+        <div class="status-display" id="error-simulation-status">
+            Error simulation results will appear here...
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Component Error Boundaries</h2>
+        <p>Test error boundaries for components.</p>
+        
+        <div class="error-boundary-test">
+            <div data-component="theme-manager" class="las-theme-manager">
+                <button class="las-theme-toggle test-button">Toggle Theme</button>
+                <div class="theme-status">Current theme: <span id="current-theme">light</span></div>
+            </div>
+        </div>
+        
+        <div class="error-boundary-test">
+            <div data-component="color-picker" class="las-color-picker">
+                <input type="color" value="#2271b1" aria-label="Choose color">
+                <div class="las-color-preview" style="width: 44px; height: 44px; background: #2271b1; border-radius: 4px; display: inline-block; margin-left: 0.5rem;"></div>
+            </div>
+        </div>
+        
+        <button class="test-button" onclick="testErrorBoundaries()">Test Error Boundaries</button>
+        <div class="status-display" id="error-boundary-status">
+            Error boundary test results will appear here...
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Progressive Enhancement</h2>
+        <p>Test progressive enhancement features.</p>
+        
+        <div data-component="navigation" class="las-navigation">
+            <div class="las-tabs">
+                <button class="las-tab active" role="tab">Tab 1</button>
+                <button class="las-tab" role="tab">Tab 2</button>
+                <button class="las-tab" role="tab">Tab 3</button>
+            </div>
+            <div class="las-tab-panels">
+                <div class="las-tab-panel active">Content for Tab 1</div>
+                <div class="las-tab-panel">Content for Tab 2</div>
+                <div class="las-tab-panel">Content for Tab 3</div>
+            </div>
+        </div>
+        
+        <button class="test-button" onclick="testProgressiveEnhancement()">Test Enhancement</button>
+        <div class="status-display" id="enhancement-status">
+            Progressive enhancement results will appear here...
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Graceful Degradation</h2>
+        <p>Test fallback mechanisms and graceful degradation.</p>
+        
+        <div class="las-card" style="margin-bottom: 1rem;">
+            <h3>Glass Morphism Card</h3>
+            <p>This card should fall back to solid background if backdrop-filter is not supported.</p>
+        </div>
+        
+        <div class="las-loading las-skeleton" style="height: 20px; margin-bottom: 0.5rem;"></div>
+        <div class="las-loading las-skeleton" style="height: 20px; width: 80%; margin-bottom: 0.5rem;"></div>
+        
+        <button class="test-button" onclick="testGracefulDegradation()">Test Degradation</button>
+        <button class="test-button" onclick="simulateSlowConnection()">Simulate Slow Connection</button>
+        <div class="status-display" id="degradation-status">
+            Graceful degradation results will appear here...
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Error Report</h2>
+        <p>Generate comprehensive error report.</p>
+        <button class="test-button" onclick="generateErrorReport()">Generate Report</button>
+        <button class="test-button" onclick="clearErrors()">Clear Errors</button>
+        <div class="status-display" id="error-report">
+            Error report will appear here...
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../assets/js/error-manager.js"></script>
+    <script src="../assets/js/progressive-enhancement.js"></script>
+    <script src="validate-error-handling.js"></script>
+    <script>
+        // Test functions
+        function checkErrorManager() {
+            const status = document.getElementById('error-manager-status');
+            if (window.lasErrorManager) {
+                status.innerHTML = `
+                    ✅ Error Manager loaded<br>
+                    📊 Feature Support: ${Object.keys(window.lasErrorManager.featureSupport).length} features detected<br>
+                    🔢 Current Errors: ${window.lasErrorManager.errors.length}<br>
+                    🕒 Initialized: ${new Date().toLocaleTimeString()}
+                `;
+            } else {
+                status.innerHTML = '❌ Error Manager not found';
+            }
+        }
+        
+        function testFeatureDetection() {
+            const status = document.getElementById('error-manager-status');
+            if (window.lasErrorManager) {
+                const features = window.lasErrorManager.featureSupport;
+                status.innerHTML = Object.entries(features)
+                    .map(([feature, supported]) => 
+                        `${supported ? '✅' : '❌'} ${feature}`
+                    ).join('<br>');
+            }
+        }
+        
+        function simulateJSError() {
+            try {
+                throw new Error('Simulated JavaScript error for testing');
+            } catch (error) {
+                // Error should be caught by global handler
+                updateErrorStatus('JavaScript error simulated');
+            }
+        }
+        
+        function simulatePromiseError() {
+            Promise.reject(new Error('Simulated promise rejection'))
+                .catch(() => {
+                    updateErrorStatus('Promise rejection simulated');
+                });
+        }
+        
+        function simulateComponentError() {
+            if (window.lasErrorManager) {
+                window.lasErrorManager.handleError({
+                    type: 'component',
+                    componentId: 'test-component',
+                    message: 'Simulated component error',
+                    timestamp: new Date().toISOString()
+                });
+                updateErrorStatus('Component error simulated');
+            }
+        }
+        
+        function updateErrorStatus(message) {
+            const status = document.getElementById('error-simulation-status');
+            const timestamp = new Date().toLocaleTimeString();
+            status.innerHTML += `${timestamp}: ${message}<br>`;
+            status.scrollTop = status.scrollHeight;
+        }
+        
+        function testErrorBoundaries() {
+            const status = document.getElementById('error-boundary-status');
+            if (window.lasErrorManager) {
+                window.lasErrorManager.setupComponentErrorBoundaries();
+                status.innerHTML = '✅ Error boundaries set up for components';
+            } else {
+                status.innerHTML = '❌ Error Manager not available';
+            }
+        }
+        
+        function testProgressiveEnhancement() {
+            const status = document.getElementById('enhancement-status');
+            if (window.lasProgressiveEnhancement) {
+                const report = window.lasProgressiveEnhancement.getEnhancementReport();
+                status.innerHTML = `
+                    📊 Enhancement Report:<br>
+                    Enhanced: ${report.enhancedComponents}<br>
+                    Basic: ${report.basicComponents}<br>
+                    Failed: ${report.failedComponents}<br>
+                    Total: ${report.totalComponents}
+                `;
+            } else {
+                status.innerHTML = '❌ Progressive Enhancement not available';
+            }
+        }
+        
+        function testGracefulDegradation() {
+            const status = document.getElementById('degradation-status');
+            if (window.lasErrorManager) {
+                // Test fallback message
+                window.lasErrorManager.showFallbackMessage('Testing graceful degradation');
+                
+                // Check CSS support
+                const hasBackdrop = window.lasErrorManager.supportsCSSFeature('backdrop-filter', 'blur(10px)');
+                const hasGrid = window.lasErrorManager.supportsCSSFeature('display', 'grid');
+                
+                status.innerHTML = `
+                    🔧 Degradation Test Results:<br>
+                    Backdrop Filter: ${hasBackdrop ? '✅ Supported' : '❌ Fallback active'}<br>
+                    CSS Grid: ${hasGrid ? '✅ Supported' : '❌ Flexbox fallback'}<br>
+                    Fallback message shown: ✅
+                `;
+            }
+        }
+        
+        function simulateSlowConnection() {
+            const loaders = document.querySelectorAll('.las-loading');
+            loaders.forEach(loader => {
+                loader.classList.add('las-skeleton');
+                setTimeout(() => {
+                    loader.classList.remove('las-loading', 'las-skeleton');
+                    loader.classList.add('las-loaded');
+                    loader.textContent = 'Content loaded!';
+                }, 2000);
+            });
+            
+            document.getElementById('degradation-status').innerHTML = 
+                '⏳ Simulating slow connection... Content will load in 2 seconds';
+        }
+        
+        function generateErrorReport() {
+            const reportDiv = document.getElementById('error-report');
+            if (window.lasErrorManager) {
+                const report = window.lasErrorManager.getErrorReport();
+                reportDiv.innerHTML = `
+                    <strong>Error Report (${new Date().toLocaleString()})</strong><br><br>
+                    <strong>Errors (${report.errors.length}):</strong><br>
+                    ${report.errors.slice(-5).map(error => 
+                        `${error.timestamp}: ${error.type} - ${error.message}`
+                    ).join('<br>')}<br><br>
+                    <strong>Feature Support:</strong><br>
+                    ${Object.entries(report.featureSupport)
+                        .map(([feature, supported]) => 
+                            `${feature}: ${supported ? '✅' : '❌'}`
+                        ).join('<br>')}<br><br>
+                    <strong>Browser:</strong> ${navigator.userAgent.substring(0, 100)}...
+                `;
+            }
+        }
+        
+        function clearErrors() {
+            if (window.lasErrorManager) {
+                window.lasErrorManager.clearErrors();
+                document.getElementById('error-report').innerHTML = 'Error log cleared.';
+                updateErrorStatus('Error log cleared');
+            }
+        }
+        
+        // Initialize demo
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                checkErrorManager();
+                testFeatureDetection();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

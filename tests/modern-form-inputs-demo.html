@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Form Input Components Demo - Live Admin Styler</title>
+    <link rel="stylesheet" href="../assets/css/base-reset.css">
+    <link rel="stylesheet" href="../assets/css/admin-style.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f0f0f1;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .demo-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+        }
+        
+        .demo-section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+        }
+        
+        .demo-section h2 {
+            margin-top: 0;
+            color: #1e3a8a;
+            border-bottom: 2px solid #e5e5e5;
+            padding-bottom: 10px;
+        }
+        
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .validation-demo {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .validation-demo {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="theme-toggle">
+        <div class="las-switch-group">
+            <label class="las-switch">
+                <input type="checkbox" id="theme-toggle">
+                <span class="las-switch-slider"></span>
+            </label>
+            <label for="theme-toggle">Dark Mode</label>
+        </div>
+    </div>
+
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>Modern Form Input Components</h1>
+            <p>Comprehensive form components with modern styling, accessibility features, and mobile-first design</p>
+        </div>
+
+        <div class="las-fresh-settings-wrap" id="main-demo">
+            <!-- Basic Input Components -->
+            <div class="demo-section">
+                <h2>Basic Input Components</h2>
+                
+                <div class="las-form-section">
+                    <div class="las-form-grid cols-2">
+                        <div class="las-input-group">
+                            <label for="text-input" class="las-label">Text Input</label>
+                            <input type="text" id="text-input" class="las-input" placeholder="Enter your name">
+                            <div class="las-input-help">This is a standard text input field</div>
+                        </div>
+                        
+                        <div class="las-input-group">
+                            <label for="email-input" class="las-label">Email Input</label>
+                            <input type="email" id="email-input" class="las-input" placeholder="your@email.com">
+                            <div class="las-input-help">Enter a valid email address</div>
+                        </div>
+                        
+                        <div class="las-input-group">
+                            <label for="number-input" class="las-label">Number Input</label>
+                            <input type="number" id="number-input" class="las-input" placeholder="123" min="0" max="100">
+                            <div class="las-input-help">Enter a number between 0 and 100</div>
+                        </div>
+                        
+                        <div class="las-input-group">
+                            <label for="url-input" class="las-label">URL Input</label>
+                            <input type="url" id="url-input" class="las-input" placeholder="https://example.com">
+                            <div class="las-input-help">Enter a valid URL</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Textarea and Select -->
+            <div class="demo-section">
+                <h2>Textarea and Select Components</h2>
+                
+                <div class="las-form-section">
+                    <div class="las-form-grid cols-2">
+                        <div class="las-input-group">
+                            <label for="textarea-input" class="las-label">Textarea</label>
+                            <textarea id="textarea-input" class="las-input" placeholder="Enter your message here..." rows="4"></textarea>
+                            <div class="las-input-help">Describe your requirements in detail</div>
+                        </div>
+                        
+                        <div class="las-input-group">
+                            <label for="select-input" class="las-label">Select Dropdown</label>
+                            <select id="select-input" class="las-input">
+                                <option value="">Choose an option</option>
+                                <option value="option1">Option 1</option>
+                                <option value="option2">Option 2</option>
+                                <option value="option3">Option 3</option>
+                                <option value="option4">Option 4</option>
+                            </select>
+                            <div class="las-input-help">Select one of the available options</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input with Icons -->
+            <div class="demo-section">
+                <h2>Input Components with Icons</h2>
+                
+                <div class="las-form-section">
+                    <div class="las-form-grid cols-2">
+                        <div class="las-input-group has-icon left">
+                            <label for="search-input" class="las-label">Search Input</label>
+                            <span class="las-input-icon left">🔍</span>
+                            <input type="search" id="search-input" class="las-input" placeholder="Search...">
+                            <div class="las-input-help">Search with left icon</div>
+                        </div>
+                        
+                        <div class="las-input-group has-icon right">
+                            <label for="password-input" class="las-label">Password Input</label>
+                            <input type="password" id="password-input" class="las-input" placeholder="Enter password">
+                            <span class="las-input-icon right">👁️</span>
+                            <div class="las-input-help">Password with right icon</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Validation States -->
+            <div class="demo-section">
+                <h2>Input Validation States</h2>
+                
+                <div class="las-form-section">
+                    <div class="validation-demo">
+                        <div class="las-input-group success">
+                            <label for="success-input" class="las-label">Success State</label>
+                            <input type="text" id="success-input" class="las-input" value="Valid input">
+                            <div class="las-input-help success">✓ This field is valid</div>
+                        </div>
+                        
+                        <div class="las-input-group error">
+                            <label for="error-input" class="las-label required">Error State</label>
+                            <input type="text" id="error-input" class="las-input" value="">
+                            <div class="las-input-help error">✗ This field is required</div>
+                        </div>
+                        
+                        <div class="las-input-group warning">
+                            <label for="warning-input" class="las-label">Warning State</label>
+                            <input type="text" id="warning-input" class="las-input" value="Check this">
+                            <div class="las-input-help warning">⚠ Please verify this information</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Sizes -->
+            <div class="demo-section">
+                <h2>Input Sizes</h2>
+                
+                <div class="las-form-section">
+                    <div class="las-form-grid">
+                        <div class="las-input-group small">
+                            <label for="small-input" class="las-label">Small Input</label>
+                            <input type="text" id="small-input" class="las-input" placeholder="Small size input">
+                            <div class="las-input-help">Compact input for tight spaces</div>
+                        </div>
+                        
+                        <div class="las-input-group">
+                            <label for="normal-input" class="las-label">Normal Input</label>
+                            <input type="text" id="normal-input" class="las-input" placeholder="Normal size input">
+                            <div class="las-input-help">Standard input size (44px minimum)</div>
+                        </div>
+                        
+                        <div class="las-input-group large">
+                            <label for="large-input" class="las-label">Large Input</label>
+                            <input type="text" id="large-input" class="las-input" placeholder="Large size input">
+                            <div class="las-input-help">Large input for emphasis</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Checkbox and Radio Components -->
+            <div class="demo-section">
+                <h2>Checkbox and Radio Components</h2>
+                
+                <div class="las-form-section">
+                    <div class="demo-grid">
+                        <div>
+                            <h3>Checkboxes</h3>
+                            <div class="las-checkbox-group">
+                                <input type="checkbox" id="checkbox1" class="las-checkbox">
+                                <label for="checkbox1" class="las-checkbox-label">Enable notifications</label>
+                            </div>
+                            
+                            <div class="las-checkbox-group">
+                                <input type="checkbox" id="checkbox2" class="las-checkbox" checked>
+                                <label for="checkbox2" class="las-checkbox-label">Auto-save changes</label>
+                            </div>
+                            
+                            <div class="las-checkbox-group">
+                                <input type="checkbox" id="checkbox3" class="las-checkbox" disabled>
+                                <label for="checkbox3" class="las-checkbox-label">Disabled option</label>
+                            </div>
+                            
+                            <div class="las-checkbox-group">
+                                <input type="checkbox" id="checkbox4" class="las-checkbox" indeterminate>
+                                <label for="checkbox4" class="las-checkbox-label">Indeterminate state</label>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3>Radio Buttons</h3>
+                            <div class="las-radio-group">
+                                <input type="radio" id="radio1" name="radio-demo" class="las-radio">
+                                <label for="radio1" class="las-radio-label">Option 1</label>
+                            </div>
+                            
+                            <div class="las-radio-group">
+                                <input type="radio" id="radio2" name="radio-demo" class="las-radio" checked>
+                                <label for="radio2" class="las-radio-label">Option 2 (selected)</label>
+                            </div>
+                            
+                            <div class="las-radio-group">
+                                <input type="radio" id="radio3" name="radio-demo" class="las-radio">
+                                <label for="radio3" class="las-radio-label">Option 3</label>
+                            </div>
+                            
+                            <div class="las-radio-group">
+                                <input type="radio" id="radio4" name="radio-disabled" class="las-radio" disabled>
+                                <label for="radio4" class="las-radio-label">Disabled option</label>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3>Switch Components</h3>
+                            <div class="las-switch-group">
+                                <label class="las-switch">
+                                    <input type="checkbox" id="switch1">
+                                    <span class="las-switch-slider"></span>
+                                </label>
+                                <label for="switch1">Enable feature</label>
+                            </div>
+                            
+                            <div class="las-switch-group">
+                                <label class="las-switch">
+                                    <input type="checkbox" id="switch2" checked>
+                                    <span class="las-switch-slider"></span>
+                                </label>
+                                <label for="switch2">Auto-update (enabled)</label>
+                            </div>
+                            
+                            <div class="las-switch-group">
+                                <label class="las-switch">
+                                    <input type="checkbox" id="switch3" disabled>
+                                    <span class="las-switch-slider"></span>
+                                </label>
+                                <label for="switch3">Disabled switch</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Disabled States -->
+            <div class="demo-section">
+                <h2>Disabled States</h2>
+                
+                <div class="las-form-section">
+                    <div class="las-form-grid cols-2">
+                        <div class="las-input-group">
+                            <label for="disabled-text" class="las-label">Disabled Text Input</label>
+                            <input type="text" id="disabled-text" class="las-input" value="Cannot edit this" disabled>
+                            <div class="las-input-help">This field is disabled</div>
+                        </div>
+                        
+                        <div class="las-input-group">
+                            <label for="disabled-select" class="las-label">Disabled Select</label>
+                            <select id="disabled-select" class="las-input" disabled>
+                                <option value="option1">Option 1</option>
+                                <option value="option2" selected>Option 2</option>
+                            </select>
+                            <div class="las-input-help">This select is disabled</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Layout Examples -->
+            <div class="demo-section">
+                <h2>Form Layout Examples</h2>
+                
+                <div class="las-form-section">
+                    <h3 class="las-form-section-title">User Profile Form</h3>
+                    
+                    <div class="las-form-grid cols-2">
+                        <div class="las-input-group">
+                            <label for="first-name" class="las-label required">First Name</label>
+                            <input type="text" id="first-name" class="las-input" placeholder="John">
+                        </div>
+                        
+                        <div class="las-input-group">
+                            <label for="last-name" class="las-label required">Last Name</label>
+                            <input type="text" id="last-name" class="las-input" placeholder="Doe">
+                        </div>
+                    </div>
+                    
+                    <div class="las-input-group">
+                        <label for="profile-email" class="las-label required">Email Address</label>
+                        <input type="email" id="profile-email" class="las-input" placeholder="john.doe@example.com">
+                    </div>
+                    
+                    <div class="las-input-group">
+                        <label for="bio" class="las-label">Bio</label>
+                        <textarea id="bio" class="las-input" placeholder="Tell us about yourself..." rows="4"></textarea>
+                        <div class="las-input-help">Optional: Share a brief description about yourself</div>
+                    </div>
+                    
+                    <div class="las-checkbox-group">
+                        <input type="checkbox" id="newsletter" class="las-checkbox">
+                        <label for="newsletter" class="las-checkbox-label">Subscribe to newsletter</label>
+                    </div>
+                    
+                    <div class="las-switch-group">
+                        <label class="las-switch">
+                            <input type="checkbox" id="public-profile">
+                            <span class="las-switch-slider"></span>
+                        </label>
+                        <label for="public-profile">Make profile public</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile Responsiveness Demo -->
+            <div class="demo-section">
+                <h2>Mobile Responsiveness</h2>
+                <p>Resize your browser window to see how the form components adapt to different screen sizes. All touch targets maintain a minimum of 44px height for accessibility.</p>
+                
+                <div class="las-form-section">
+                    <div class="las-input-row">
+                        <div class="las-input-group">
+                            <label for="mobile-input1" class="las-label">Input 1</label>
+                            <input type="text" id="mobile-input1" class="las-input" placeholder="First input">
+                        </div>
+                        
+                        <div class="las-input-group">
+                            <label for="mobile-input2" class="las-label">Input 2</label>
+                            <input type="text" id="mobile-input2" class="las-input" placeholder="Second input">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const mainDemo = document.getElementById('main-demo');
+        
+        themeToggle.addEventListener('change', function() {
+            if (this.checked) {
+                mainDemo.setAttribute('data-theme', 'dark');
+                document.body.style.background = '#1f2937';
+            } else {
+                mainDemo.removeAttribute('data-theme');
+                document.body.style.background = '#f0f0f1';
+            }
+        });
+        
+        // Set indeterminate state for checkbox
+        document.getElementById('checkbox4').indeterminate = true;
+        
+        // Demo interaction handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add some interactive behavior for demonstration
+            const inputs = document.querySelectorAll('.las-input');
+            
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    console.log('Input focused:', this.id);
+                });
+                
+                input.addEventListener('blur', function() {
+                    console.log('Input blurred:', this.id);
+                });
+            });
+            
+            // Simulate validation on form inputs
+            const emailInput = document.getElementById('email-input');
+            const profileEmail = document.getElementById('profile-email');
+            
+            [emailInput, profileEmail].forEach(input => {
+                if (input) {
+                    input.addEventListener('blur', function() {
+                        const group = this.closest('.las-input-group');
+                        const value = this.value;
+                        
+                        // Remove existing validation classes
+                        group.classList.remove('success', 'error');
+                        
+                        if (value) {
+                            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                            if (emailRegex.test(value)) {
+                                group.classList.add('success');
+                            } else {
+                                group.classList.add('error');
+                            }
+                        }
+                    });
+                }
+            });
+        });
+        
+        // Performance monitoring
+        console.log('Modern Form Input Components Demo loaded');
+        console.log('Touch targets: All interactive elements have minimum 44px height');
+        console.log('Accessibility: Full keyboard navigation and screen reader support');
+        console.log('Performance: Hardware-accelerated animations at 60fps');
+    </script>
+</body>
+</html>

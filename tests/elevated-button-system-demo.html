@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elevated Button System Demo - Live Admin Styler</title>
+    <link rel="stylesheet" href="../assets/css/base-reset.css">
+    <link rel="stylesheet" href="../assets/css/admin-style.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--las-neutral-100);
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        
+        .demo-section {
+            background: white;
+            border-radius: var(--las-radius-lg);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--las-shadow-sm);
+        }
+        
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .demo-row {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .theme-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+        }
+        
+        h1, h2, h3 {
+            color: var(--las-neutral-800);
+            margin-bottom: 1rem;
+        }
+        
+        p {
+            color: var(--las-neutral-600);
+            margin-bottom: 1rem;
+        }
+        
+        .code-block {
+            background: var(--las-neutral-100);
+            border-radius: var(--las-radius-md);
+            padding: 1rem;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.875rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--las-radius-full);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .status-success {
+            background: var(--las-success-100);
+            color: var(--las-success-700);
+        }
+        
+        .status-warning {
+            background: var(--las-warning-100);
+            color: var(--las-warning-700);
+        }
+        
+        .demo-card {
+            border: 1px solid var(--las-neutral-200);
+            border-radius: var(--las-radius-md);
+            padding: 1rem;
+            background: var(--las-neutral-50);
+        }
+        
+        .accessibility-info {
+            background: var(--las-info-50);
+            border: 1px solid var(--las-info-200);
+            border-radius: var(--las-radius-md);
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .accessibility-info h4 {
+            color: var(--las-info-700);
+            margin-bottom: 0.5rem;
+        }
+        
+        .accessibility-info p {
+            color: var(--las-info-600);
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="las-fresh-settings-wrap">
+        <!-- Theme Toggle -->
+        <button class="las-button las-button-ghost theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark/light theme">
+            🌓 Toggle Theme
+        </button>
+
+        <h1>Elevated Button System Demo</h1>
+        <p>Comprehensive demonstration of the elevated button system with variants, animations, and accessibility features.</p>
+
+        <!-- Button Variants -->
+        <div class="demo-section">
+            <h2>Button Variants</h2>
+            <p>Three main button variants with enhanced elevation and smooth animations.</p>
+            
+            <div class="demo-row">
+                <button class="las-button las-button-primary" aria-label="Primary action button">
+                    Primary Button
+                </button>
+                <button class="las-button las-button-secondary" aria-label="Secondary action button">
+                    Secondary Button
+                </button>
+                <button class="las-button las-button-ghost" aria-label="Ghost action button">
+                    Ghost Button
+                </button>
+            </div>
+            
+            <div class="accessibility-info">
+                <h4>Accessibility Features:</h4>
+                <p>• All buttons meet WCAG 2.1 AA touch target requirements (44px minimum)<br>
+                • Proper ARIA labels for screen readers<br>
+                • Enhanced focus indicators with 3px outline<br>
+                • Keyboard navigation support (Tab, Enter, Space)</p>
+            </div>
+        </div>
+
+        <!-- Button Sizes -->
+        <div class="demo-section">
+            <h2>Button Sizes</h2>
+            <p>Different button sizes while maintaining accessibility standards.</p>
+            
+            <div class="demo-row">
+                <button class="las-button las-button-sm las-button-primary" aria-label="Small primary button">
+                    Small (36px)
+                </button>
+                <button class="las-button las-button-primary" aria-label="Default primary button">
+                    Default (44px)
+                </button>
+                <button class="las-button las-button-lg las-button-primary" aria-label="Large primary button">
+                    Large (52px)
+                </button>
+            </div>
+            
+            <div class="code-block">
+&lt;button class="las-button las-button-sm las-button-primary"&gt;Small&lt;/button&gt;
+&lt;button class="las-button las-button-primary"&gt;Default&lt;/button&gt;
+&lt;button class="las-button las-button-lg las-button-primary"&gt;Large&lt;/button&gt;
+            </div>
+        </div>
+
+        <!-- Button States -->
+        <div class="demo-section">
+            <h2>Button States</h2>
+            <p>Interactive states with smooth transitions and visual feedback.</p>
+            
+            <div class="demo-grid">
+                <div class="demo-card">
+                    <h3>Normal State</h3>
+                    <button class="las-button las-button-primary" aria-label="Normal state button">
+                        Normal
+                    </button>
+                </div>
+                
+                <div class="demo-card">
+                    <h3>Hover State</h3>
+                    <p style="font-size: 0.875rem;">Hover over buttons to see elevation increase and transform effects.</p>
+                    <button class="las-button las-button-secondary" aria-label="Hover state demonstration">
+                        Hover Me
+                    </button>
+                </div>
+                
+                <div class="demo-card">
+                    <h3>Active State</h3>
+                    <p style="font-size: 0.875rem;">Click and hold to see active state with ripple effect.</p>
+                    <button class="las-button las-button-primary" aria-label="Active state demonstration">
+                        Click & Hold
+                    </button>
+                </div>
+                
+                <div class="demo-card">
+                    <h3>Disabled State</h3>
+                    <button class="las-button las-button-primary" disabled aria-label="Disabled button example">
+                        Disabled
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ripple Effect Demo -->
+        <div class="demo-section">
+            <h2>Ripple Effect Animation</h2>
+            <p>Touch-friendly ripple animations that provide visual feedback on interaction.</p>
+            
+            <div class="demo-row">
+                <button class="las-button las-button-primary" aria-label="Primary button with ripple effect">
+                    Click for Ripple
+                </button>
+                <button class="las-button las-button-secondary" aria-label="Secondary button with ripple effect">
+                    Secondary Ripple
+                </button>
+                <button class="las-button las-button-ghost" aria-label="Ghost button with ripple effect">
+                    Ghost Ripple
+                </button>
+            </div>
+            
+            <div class="accessibility-info">
+                <h4>Performance Features:</h4>
+                <p>• Ripple animations use transform and opacity for 60fps performance<br>
+                • GPU acceleration with will-change property<br>
+                • Efficient CSS containment for layout performance<br>
+                • Respects prefers-reduced-motion for accessibility</p>
+            </div>
+        </div>
+
+        <!-- Button Groups -->
+        <div class="demo-section">
+            <h2>Button Groups</h2>
+            <p>Connected button groups for related actions.</p>
+            
+            <div class="las-button-group" role="group" aria-label="Text formatting options">
+                <button class="las-button las-button-secondary" aria-label="Bold text">
+                    <strong>B</strong>
+                </button>
+                <button class="las-button las-button-secondary" aria-label="Italic text">
+                    <em>I</em>
+                </button>
+                <button class="las-button las-button-secondary" aria-label="Underline text">
+                    <u>U</u>
+                </button>
+            </div>
+            
+            <div style="margin-top: 1rem;">
+                <div class="las-button-group" role="group" aria-label="View options">
+                    <button class="las-button las-button-primary" aria-label="List view">
+                        List
+                    </button>
+                    <button class="las-button las-button-secondary" aria-label="Grid view">
+                        Grid
+                    </button>
+                    <button class="las-button las-button-secondary" aria-label="Card view">
+                        Cards
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Icon Buttons -->
+        <div class="demo-section">
+            <h2>Icon Buttons</h2>
+            <p>Square icon buttons with proper touch targets.</p>
+            
+            <div class="demo-row">
+                <button class="las-button las-button-icon las-button-primary" aria-label="Settings">
+                    ⚙️
+                </button>
+                <button class="las-button las-button-icon las-button-secondary" aria-label="Search">
+                    🔍
+                </button>
+                <button class="las-button las-button-icon las-button-ghost" aria-label="More options">
+                    ⋯
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div class="demo-section">
+            <h2>Loading State</h2>
+            <p>Loading buttons with spinner animation.</p>
+            
+            <div class="demo-row">
+                <button class="las-button las-button-primary las-button-loading" aria-label="Saving data" aria-describedby="loading-description">
+                    Saving...
+                </button>
+                <button class="las-button las-button-secondary" onclick="toggleLoading(this)" aria-label="Toggle loading state">
+                    Toggle Loading
+                </button>
+            </div>
+            <div id="loading-description" style="font-size: 0.875rem; color: var(--las-neutral-600);">
+                Loading button shows spinner and prevents interaction
+            </div>
+        </div>
+
+        <!-- Accessibility Testing -->
+        <div class="demo-section">
+            <h2>Accessibility Testing</h2>
+            <p>Test keyboard navigation and screen reader compatibility.</p>
+            
+            <div class="demo-grid">
+                <div class="demo-card">
+                    <h3>Keyboard Navigation</h3>
+                    <p style="font-size: 0.875rem;">Use Tab to navigate, Enter/Space to activate.</p>
+                    <button class="las-button las-button-primary" aria-label="First keyboard navigation button">
+                        Button 1
+                    </button>
+                    <button class="las-button las-button-secondary" aria-label="Second keyboard navigation button">
+                        Button 2
+                    </button>
+                </div>
+                
+                <div class="demo-card">
+                    <h3>ARIA Labels</h3>
+                    <button class="las-button las-button-primary" 
+                            aria-label="Save current document" 
+                            aria-describedby="save-description">
+                        Save
+                    </button>
+                    <div id="save-description" style="font-size: 0.875rem; margin-top: 0.5rem;">
+                        This will save your current document permanently
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Indicators -->
+        <div class="demo-section">
+            <h2>Performance & Requirements Status</h2>
+            <div class="demo-grid">
+                <div class="demo-card">
+                    <h3>Requirements Compliance</h3>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        <div class="status-indicator status-success">
+                            ✓ 1.3 iOS-inspired animations
+                        </div>
+                        <div class="status-indicator status-success">
+                            ✓ 1.5 44px touch targets
+                        </div>
+                        <div class="status-indicator status-success">
+                            ✓ 5.3 Elevated styling
+                        </div>
+                        <div class="status-indicator status-success">
+                            ✓ 5.7 60fps performance
+                        </div>
+                        <div class="status-indicator status-success">
+                            ✓ 6.1 ARIA labels
+                        </div>
+                        <div class="status-indicator status-success">
+                            ✓ 6.2 Keyboard accessibility
+                        </div>
+                        <div class="status-indicator status-success">
+                            ✓ 6.5 Focus indicators
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="demo-card">
+                    <h3>Performance Features</h3>
+                    <ul style="font-size: 0.875rem; color: var(--las-neutral-600);">
+                        <li>Transform & opacity animations</li>
+                        <li>GPU acceleration (will-change)</li>
+                        <li>CSS containment</li>
+                        <li>Efficient ripple effects</li>
+                        <li>Reduced motion support</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme toggle functionality
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('las-theme', newTheme);
+        }
+
+        // Initialize theme from localStorage or system preference
+        function initTheme() {
+            const stored = localStorage.getItem('las-theme');
+            if (stored) {
+                document.documentElement.setAttribute('data-theme', stored);
+            } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        }
+
+        // Toggle loading state
+        function toggleLoading(button) {
+            const loadingButton = document.querySelector('.las-button-loading');
+            if (loadingButton.classList.contains('las-button-loading')) {
+                loadingButton.classList.remove('las-button-loading');
+                loadingButton.textContent = 'Save Complete';
+                button.textContent = 'Start Loading';
+            } else {
+                loadingButton.classList.add('las-button-loading');
+                loadingButton.textContent = 'Saving...';
+                button.textContent = 'Toggle Loading';
+            }
+        }
+
+        // Performance monitoring
+        function monitorPerformance() {
+            if ('performance' in window) {
+                const observer = new PerformanceObserver((list) => {
+                    for (const entry of list.getEntries()) {
+                        if (entry.entryType === 'measure') {
+                            console.log(`Performance: ${entry.name} took ${entry.duration}ms`);
+                        }
+                    }
+                });
+                observer.observe({ entryTypes: ['measure'] });
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            monitorPerformance();
+            
+            // Add click handlers for performance testing
+            document.querySelectorAll('.las-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    if (!button.disabled && !button.classList.contains('las-button-loading')) {
+                        performance.mark('button-click-start');
+                        
+                        setTimeout(() => {
+                            performance.mark('button-click-end');
+                            performance.measure('button-interaction', 'button-click-start', 'button-click-end');
+                        }, 100);
+                    }
+                });
+            });
+        });
+
+        // Keyboard navigation testing
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                console.log('Tab navigation:', document.activeElement);
+            }
+        });
+    </script>
+</body>
+</html>

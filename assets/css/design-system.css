@@ -1,0 +1,247 @@
+/* Live Admin Styler - Design System Architecture */
+
+/* =============================================================================
+   DESIGN SYSTEM IMPORTS & ORGANIZATION
+   
+   This file serves as the main entry point for the Live Admin Styler design
+   system. It imports all necessary CSS files in the correct order and provides
+   the architectural foundation for the modern UI redesign.
+   
+   Architecture follows the ITCSS (Inverted Triangle CSS) methodology:
+   1. Settings - Design tokens and CSS custom properties
+   2. Tools - Mixins and functions (handled via CSS custom properties)
+   3. Generic - Reset and normalize styles
+   4. Elements - Base HTML element styles
+   5. Objects - Layout and structural components
+   6. Components - UI components and patterns
+   7. Utilities - Helper classes and overrides
+   ============================================================================= */
+
+/* Import base reset and typography system */
+@import url('base-reset.css');
+
+/* Import color picker component styles */
+@import url('color-picker.css');
+
+/* Import loading states system */
+@import url('loading-states.css');
+
+/* Main design system styles are included in admin-style.css */
+/* This file serves as documentation and future expansion point */
+
+/* =============================================================================
+   DESIGN SYSTEM DOCUMENTATION
+   ============================================================================= */
+
+/*
+  COLOR SYSTEM:
+  - Primary: WordPress blue (#2271b1) with 50-900 scale
+  - Neutral: Grayscale from white to black with 50-900 scale
+  - Semantic: Success (green), Warning (amber), Error (red), Info (blue)
+  - Each color has 50-900 variants for comprehensive theming
+  
+  SPACING SYSTEM:
+  - Based on 8px grid system
+  - Scale: 4px, 8px, 16px, 24px, 32px, 48px, 64px, 80px, 96px
+  - Consistent spacing creates visual rhythm and hierarchy
+  
+  TYPOGRAPHY SYSTEM:
+  - Font stack: System fonts for optimal performance
+  - Scale: 12px, 13px, 14px, 16px, 18px, 20px, 24px, 30px
+  - Line heights: 1.25 (tight), 1.5 (normal), 1.75 (relaxed)
+  - Weights: 400 (normal), 500 (medium), 600 (semibold), 700 (bold)
+  
+  ELEVATION SYSTEM:
+  - Shadow levels: xs, sm, md, lg, xl, 2xl
+  - Consistent elevation creates depth and hierarchy
+  - Optimized for performance with minimal box-shadow usage
+  
+  BORDER RADIUS SYSTEM:
+  - Scale: 0, 4px, 8px, 12px, 16px, 20px, full (9999px)
+  - Consistent rounding creates cohesive visual language
+  
+  ANIMATION SYSTEM:
+  - Timing: 150ms (fast), 200ms (base), 300ms (slow), 500ms (slower)
+  - Easing: ease-out for most interactions, bounce for special effects
+  - Respects prefers-reduced-motion for accessibility
+  
+  BREAKPOINT SYSTEM:
+  - Mobile: 320px+ (default)
+  - Tablet: 768px+
+  - Desktop: 1024px+
+  - Large: 1440px+
+  - Mobile-first approach with progressive enhancement
+*/
+
+/* =============================================================================
+   COMPONENT ARCHITECTURE
+   ============================================================================= */
+
+/*
+  LAYOUT COMPONENTS:
+  - .las-container: Main grid container with responsive behavior
+  - .las-card: Glass morphism cards with hover effects
+  - .las-fresh-settings-wrap: Main wrapper with design system context
+  
+  NAVIGATION COMPONENTS:
+  - .ui-tabs: Enhanced tab navigation with modern styling
+  - .ui-tabs-nav: Tab navigation container
+  - .ui-tabs-panel: Tab content panels with animations
+  
+  FORM COMPONENTS:
+  - Input fields: Modern styling with focus states
+  - Buttons: Elevated design with ripple effects
+  - Checkboxes/Radio: Custom styled with animations
+  - Sliders: Enhanced jQuery UI sliders
+  - Color pickers: Custom accessible color selection
+  
+  FEEDBACK COMPONENTS:
+  - Loading states: Skeleton loaders and spinners
+  - Field states: Success, error, updating indicators
+  - Progress bars: Animated progress indicators
+  - Notices: Enhanced WordPress notices
+  
+  UTILITY COMPONENTS:
+  - Conditional containers: Styled conditional sections
+  - Typography: Comprehensive text styling
+  - Spacing: Consistent margin and padding utilities
+  - Visibility: Show/hide utilities with accessibility
+*/
+
+/* =============================================================================
+   THEMING SYSTEM
+   ============================================================================= */
+
+/*
+  LIGHT THEME (DEFAULT):
+  - Background: Light neutrals (50-100)
+  - Text: Dark neutrals (700-900)
+  - Primary: WordPress blue variants
+  - Glass morphism: White with transparency
+  
+  DARK THEME:
+  - Activated via [data-theme="dark"] attribute
+  - Background: Dark neutrals (800-900)
+  - Text: Light neutrals (100-300)
+  - Primary: Lighter blue variants for contrast
+  - Glass morphism: Dark with transparency
+  
+  AUTOMATIC DETECTION:
+  - Respects prefers-color-scheme media query
+  - Manual override stored in localStorage
+  - Smooth transitions between themes (200ms)
+  - No flash of unstyled content (FOUC)
+*/
+
+/* =============================================================================
+   ACCESSIBILITY FEATURES
+   ============================================================================= */
+
+/*
+  WCAG 2.1 AA COMPLIANCE:
+  - Color contrast ratios meet or exceed 4.5:1
+  - Focus indicators are clearly visible (2px outline)
+  - Touch targets are minimum 44px for mobile
+  - Text is scalable up to 200% without horizontal scrolling
+  
+  KEYBOARD NAVIGATION:
+  - All interactive elements are keyboard accessible
+  - Focus management with proper tab order
+  - Skip links for screen readers
+  - ARIA labels and descriptions throughout
+  
+  SCREEN READER SUPPORT:
+  - Semantic HTML structure
+  - Proper heading hierarchy
+  - Alternative text for images
+  - Status announcements for dynamic content
+  
+  MOTION PREFERENCES:
+  - Respects prefers-reduced-motion
+  - Animations can be disabled system-wide
+  - Essential motion is preserved for usability
+  
+  HIGH CONTRAST MODE:
+  - Supports prefers-contrast: high
+  - Enhanced borders and outlines
+  - Simplified color palette
+  - Improved text decoration
+*/
+
+/* =============================================================================
+   PERFORMANCE OPTIMIZATIONS
+   ============================================================================= */
+
+/*
+  CSS PERFORMANCE:
+  - CSS custom properties for efficient theming
+  - Minimal use of expensive properties (box-shadow, filter)
+  - will-change property used strategically
+  - CSS containment for layout performance
+  
+  ANIMATION PERFORMANCE:
+  - Transform and opacity for 60fps animations
+  - GPU acceleration for smooth interactions
+  - Debounced interactions to prevent jank
+  - Efficient keyframe animations
+  
+  LOADING PERFORMANCE:
+  - Critical CSS inlined where possible
+  - Non-critical CSS loaded asynchronously
+  - Minimal external dependencies
+  - Optimized for WordPress admin environment
+  
+  BROWSER COMPATIBILITY:
+  - Progressive enhancement approach
+  - Fallbacks for modern CSS features
+  - Graceful degradation for older browsers
+  - Feature detection with @supports queries
+*/
+
+/* =============================================================================
+   FUTURE EXPANSION POINTS
+   ============================================================================= */
+
+/*
+  PLANNED ENHANCEMENTS:
+  - Additional color themes (high contrast, custom branding)
+  - More animation presets and micro-interactions
+  - Enhanced responsive components with container queries
+  - Additional utility classes for rapid development
+  
+  COMPONENT LIBRARY:
+  - Modular component system for reusability
+  - Documentation for each component
+  - Usage examples and best practices
+  - Integration with WordPress block editor
+  
+  CUSTOMIZATION API:
+  - CSS custom property API for theme customization
+  - JavaScript hooks for dynamic theming
+  - Plugin integration points
+  - White-label customization options
+*/
+
+/* =============================================================================
+   MAINTENANCE NOTES
+   ============================================================================= */
+
+/*
+  VERSION CONTROL:
+  - All changes should maintain backward compatibility
+  - New features should be additive, not breaking
+  - Deprecated features should be marked and phased out gradually
+  - Version comments should be added for major changes
+  
+  TESTING REQUIREMENTS:
+  - Cross-browser testing (Chrome, Firefox, Safari, Edge)
+  - Accessibility testing with screen readers
+  - Performance testing on various devices
+  - Visual regression testing for UI consistency
+  
+  DOCUMENTATION:
+  - Component documentation should be updated with changes
+  - Design token changes should be documented
+  - Breaking changes should be clearly communicated
+  - Migration guides for major updates
+*/

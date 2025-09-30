@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Layout System Demo</title>
+    <link rel="stylesheet" href="../assets/css/base-reset.css">
+    <link rel="stylesheet" href="../assets/css/admin-style.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f0f0f1;
+        }
+        
+        .demo-info {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .breakpoint-indicator {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #2271b1;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 1000;
+        }
+        
+        .demo-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 16px;
+        }
+        
+        .demo-grid {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+        
+        .color-box {
+            height: 60px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 500;
+        }
+        
+        .mobile-tiny { background: #ef4444; }
+        .mobile { background: #f59e0b; }
+        .tablet { background: #10b981; }
+        .desktop { background: #3b82f6; }
+        .large { background: #8b5cf6; }
+    </style>
+</head>
+<body>
+    <div class="breakpoint-indicator" id="breakpointIndicator">
+        Loading...
+    </div>
+    
+    <div class="demo-info">
+        <h1>Responsive Layout System Demo</h1>
+        <p>This demo shows the responsive layout system in action. Resize your browser window to see the breakpoints change.</p>
+        <p><strong>Current viewport:</strong> <span id="viewportSize">Loading...</span></p>
+        <p><strong>Touch device:</strong> <span id="touchDevice">Loading...</span></p>
+    </div>
+    
+    <div class="las-fresh-settings-wrap">
+        <div class="las-container">
+            <aside class="las-sidebar">
+                <div class="las-card">
+                    <h3>Sidebar</h3>
+                    <p>This sidebar adapts to different screen sizes using CSS Grid.</p>
+                    <div class="las-hide-mobile">
+                        <p><em>This text is hidden on mobile devices.</em></p>
+                    </div>
+                </div>
+            </aside>
+            
+            <main class="las-main-content">
+                <div class="las-card">
+                    <h2>Main Content Area</h2>
+                    <p>The main content area uses CSS Grid and container queries for responsive behavior.</p>
+                    
+                    <div class="demo-grid">
+                        <div class="demo-card">
+                            <h4>Responsive Grid</h4>
+                            <p>This grid adapts based on available space using CSS Grid auto-fit.</p>
+                        </div>
+                        <div class="demo-card">
+                            <h4>Container Queries</h4>
+                            <p>Components can respond to their container size, not just viewport size.</p>
+                        </div>
+                        <div class="demo-card las-show-tablet-only">
+                            <h4>Tablet Only</h4>
+                            <p>This card only shows on tablet breakpoint.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="las-card">
+                    <h3>Breakpoint Visualization</h3>
+                    <div class="demo-grid">
+                        <div class="color-box mobile-tiny">
+                            <span class="las-show-mobile-only">Mobile Tiny (&lt; 320px)</span>
+                        </div>
+                        <div class="color-box mobile">
+                            <span>Mobile (320px - 767px)</span>
+                        </div>
+                        <div class="color-box tablet">
+                            <span>Tablet (768px - 1023px)</span>
+                        </div>
+                        <div class="color-box desktop">
+                            <span>Desktop (1024px - 1439px)</span>
+                        </div>
+                        <div class="color-box large">
+                            <span>Large (1440px+)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="las-card">
+                    <h3>Responsive Utilities</h3>
+                    <div class="las-flex-responsive">
+                        <button class="las-button las-button-primary las-touch-target">
+                            Touch-Friendly Button
+                        </button>
+                        <div class="las-text-responsive">
+                            This text size adapts to screen size.
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script src="../assets/js/responsive-manager.js"></script>
+    <script>
+        // Update UI with responsive information
+        function updateResponsiveInfo() {
+            const manager = window.lasResponsiveManager;
+            if (!manager) return;
+            
+            const info = manager.getBreakpointInfo();
+            const viewport = manager.getViewportSize();
+            
+            // Update breakpoint indicator
+            const indicator = document.getElementById('breakpointIndicator');
+            indicator.textContent = `${info.current} (${viewport.width}×${viewport.height})`;
+            indicator.className = `breakpoint-indicator ${info.current}`;
+            
+            // Update viewport size
+            document.getElementById('viewportSize').textContent = 
+                `${viewport.width}px × ${viewport.height}px`;
+            
+            // Update touch device status
+            document.getElementById('touchDevice').textContent = 
+                info.isTouchDevice ? 'Yes' : 'No';
+        }
+        
+        // Listen for breakpoint changes
+        window.addEventListener('las-breakpoint-change', (event) => {
+            console.log('Breakpoint changed:', event.detail);
+            updateResponsiveInfo();
+        });
+        
+        // Listen for window resize
+        window.addEventListener('resize', () => {
+            setTimeout(updateResponsiveInfo, 100);
+        });
+        
+        // Initial update
+        setTimeout(updateResponsiveInfo, 100);
+        
+        // Theme toggle for testing
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 't' || e.key === 'T') {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                console.log('Theme switched to:', newTheme);
+            }
+        });
+        
+        console.log('Responsive Layout Demo loaded. Press "T" to toggle theme.');
+    </script>
+</body>
+</html>

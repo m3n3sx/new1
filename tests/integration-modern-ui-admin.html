@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern UI Admin Integration Test</title>
+    
+    <!-- WordPress Admin Styles (simulated) -->
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f1f1f1;
+        }
+        
+        .wp-core-ui .button {
+            background: #f7f7f7;
+            border: 1px solid #ccc;
+            padding: 8px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .wp-core-ui .button-primary {
+            background: #0073aa;
+            color: white;
+            border-color: #0073aa;
+        }
+        
+        .notice {
+            background: #fff;
+            border-left: 4px solid #0073aa;
+            padding: 12px;
+            margin: 15px 0;
+        }
+        
+        .notice.error {
+            border-left-color: #dc3232;
+        }
+        
+        .notice.updated {
+            border-left-color: #46b450;
+        }
+    </style>
+    
+    <!-- Modern UI Styles -->
+    <link rel="stylesheet" href="../assets/css/base-reset.css">
+    <link rel="stylesheet" href="../assets/css/design-system.css">
+    <link rel="stylesheet" href="../assets/css/admin-style.css">
+    <link rel="stylesheet" href="../assets/css/accessibility.css">
+    <link rel="stylesheet" href="../assets/css/loading-states.css">
+</head>
+<body>
+    <div class="wrap las-fresh-settings-wrap las-container" data-las-modern-ui>
+        <!-- Modern Header Section -->
+        <div class="las-header">
+            <div class="las-header-content">
+                <h1 class="las-page-title">Modern UI Integration Test</h1>
+                <p class="las-page-description">Testing the integration of modern UI components with WordPress admin structure</p>
+            </div>
+            
+            <!-- Theme Toggle Button -->
+            <div class="las-header-actions">
+                <button type="button" 
+                        class="las-button las-button-secondary las-theme-toggle" 
+                        data-las-theme-toggle
+                        aria-label="Toggle theme">
+                    <span class="las-theme-toggle-icon">🌙</span>
+                    <span class="las-theme-toggle-text">Dark Mode</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Modern Notification System -->
+        <div class="las-notifications" id="las-notifications" aria-live="polite" aria-atomic="true">
+            <div class="las-notification las-notification-success" role="alert">
+                <div class="las-notification-icon">
+                    <span class="dashicons dashicons-yes-alt">✓</span>
+                </div>
+                <div class="las-notification-content">
+                    <p>Modern UI integration successful!</p>
+                </div>
+                <button type="button" class="las-notification-dismiss" aria-label="Dismiss notification">
+                    <span class="dashicons dashicons-no-alt">×</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Modern Search and Filter System -->
+        <div class="las-toolbar">
+            <div class="las-search-container">
+                <div class="las-input-group">
+                    <span class="las-input-icon">
+                        <span class="dashicons dashicons-search">🔍</span>
+                    </span>
+                    <input type="text" 
+                           id="las-settings-search" 
+                           class="las-input las-search-input" 
+                           placeholder="Search settings..." 
+                           autocomplete="off"
+                           aria-label="Search settings" />
+                    <button type="button" 
+                            id="las-search-clear" 
+                            class="las-input-clear" 
+                            title="Clear search"
+                            aria-label="Clear search">
+                        <span class="dashicons dashicons-no-alt">×</span>
+                    </button>
+                </div>
+                
+                <!-- Search Results Dropdown -->
+                <div class="las-search-results" id="las-search-results" style="display: none;" role="listbox">
+                    <div class="las-search-results-header">
+                        <span class="las-search-results-count" aria-live="polite"></span>
+                        <button type="button" 
+                                class="las-search-results-close"
+                                aria-label="Close search results">
+                            <span class="dashicons dashicons-no-alt">×</span>
+                        </button>
+                    </div>
+                    <div class="las-search-results-content" role="group"></div>
+                </div>
+            </div>
+            
+            <!-- Modern Filter Buttons -->
+            <div class="las-filter-group" role="group" aria-label="Filter settings by category">
+                <button type="button" class="las-button las-button-ghost las-filter-button active" data-filter="all">
+                    <span class="dashicons dashicons-admin-settings">⚙️</span>
+                    <span>All</span>
+                </button>
+                <button type="button" class="las-button las-button-ghost las-filter-button" data-filter="layout">
+                    <span class="dashicons dashicons-layout">📐</span>
+                    <span>Layout</span>
+                </button>
+                <button type="button" class="las-button las-button-ghost las-filter-button" data-filter="colors">
+                    <span class="dashicons dashicons-art">🎨</span>
+                    <span>Colors</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Modern Tab Navigation -->
+        <div class="las-tabs-container" data-active-tab="general">
+            <nav class="las-tabs" role="tablist" aria-label="Settings navigation">
+                <button type="button" 
+                        class="las-tab active" 
+                        role="tab" 
+                        aria-selected="true"
+                        aria-controls="las-tab-general"
+                        data-tab="general">
+                    <span class="las-tab-icon dashicons dashicons-admin-settings">⚙️</span>
+                    <span class="las-tab-text">General</span>
+                </button>
+                <button type="button" 
+                        class="las-tab" 
+                        role="tab" 
+                        aria-selected="false"
+                        aria-controls="las-tab-menu"
+                        data-tab="menu">
+                    <span class="las-tab-icon dashicons dashicons-menu">📋</span>
+                    <span class="las-tab-text">Menu</span>
+                </button>
+                <button type="button" 
+                        class="las-tab" 
+                        role="tab" 
+                        aria-selected="false"
+                        aria-controls="las-tab-advanced"
+                        data-tab="advanced">
+                    <span class="las-tab-icon dashicons dashicons-admin-tools">🔧</span>
+                    <span class="las-tab-text">Advanced</span>
+                </button>
+            </nav>
+
+            <!-- Modern Settings Form -->
+            <div class="las-settings-content">
+                <form method="post" action="#" id="las-fresh-settings-form" class="las-form">
+                    
+                    <!-- Tab Panels with Modern Cards -->
+                    <div class="las-tab-panel active" 
+                         id="las-tab-general" 
+                         role="tabpanel" 
+                         aria-labelledby="tab-general"
+                         tabindex="0">
+                        <div class="las-card">
+                            <div class="las-card-header">
+                                <h3 class="las-card-title">General Settings</h3>
+                                <p class="las-card-description">Configure basic layout and appearance options</p>
+                            </div>
+                            <div class="las-card-content">
+                                <div class="las-input-group">
+                                    <label class="las-label" for="test-input">Test Input</label>
+                                    <input type="text" id="test-input" class="las-input" placeholder="Enter some text...">
+                                </div>
+                                
+                                <div class="las-input-group">
+                                    <label class="las-label" for="test-select">Test Select</label>
+                                    <select id="test-select" class="las-select">
+                                        <option value="option1">Option 1</option>
+                                        <option value="option2">Option 2</option>
+                                        <option value="option3">Option 3</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="las-tab-panel" 
+                         id="las-tab-menu" 
+                         role="tabpanel" 
+                         aria-labelledby="tab-menu"
+                         tabindex="0">
+                        <div class="las-card">
+                            <div class="las-card-header">
+                                <h3 class="las-card-title">Menu Settings</h3>
+                                <p class="las-card-description">Customize the admin menu appearance</p>
+                            </div>
+                            <div class="las-card-content">
+                                <div class="las-input-group">
+                                    <label class="las-label" for="menu-color">Menu Color</label>
+                                    <input type="color" id="menu-color" class="las-input" value="#2271b1">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="las-tab-panel" 
+                         id="las-tab-advanced" 
+                         role="tabpanel" 
+                         aria-labelledby="tab-advanced"
+                         tabindex="0">
+                        <div class="las-card">
+                            <div class="las-card-header">
+                                <h3 class="las-card-title">Advanced Settings</h3>
+                                <p class="las-card-description">Advanced configuration options</p>
+                            </div>
+                            <div class="las-card-content">
+                                <div class="las-input-group">
+                                    <label class="las-label" for="custom-css">Custom CSS</label>
+                                    <textarea id="custom-css" class="las-input" rows="5" placeholder="Enter custom CSS..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Modern Submit Button -->
+                    <div class="las-form-actions">
+                        <button type="submit" class="las-button las-button-primary las-button-large">
+                            <span class="las-button-text">Save All Changes</span>
+                            <span class="las-button-loading" style="display: none;">
+                                <span class="las-spinner"></span>
+                                Saving...
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- WordPress Compatibility Test -->
+        <div class="las-card" style="margin-top: 2rem;">
+            <div class="las-card-header">
+                <h3 class="las-card-title">WordPress Compatibility Test</h3>
+                <p class="las-card-description">Testing coexistence with WordPress admin styles</p>
+            </div>
+            <div class="las-card-content">
+                <p>WordPress core buttons:</p>
+                <button type="button" class="button">WordPress Button</button>
+                <button type="button" class="button button-primary">WordPress Primary</button>
+                
+                <p style="margin-top: 1rem;">Modern UI buttons:</p>
+                <button type="button" class="las-button las-button-secondary">Modern Secondary</button>
+                <button type="button" class="las-button las-button-primary">Modern Primary</button>
+                
+                <div class="notice" style="margin-top: 1rem;">
+                    <p>WordPress notice - should coexist with modern notifications</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ARIA Live Region -->
+    <div id="las-aria-live" aria-live="polite" aria-atomic="true" style="position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden;"></div>
+
+    <!-- Scripts -->
+    <script src="../assets/js/theme-manager.js"></script>
+    <script src="../assets/js/responsive-manager.js"></script>
+    <script src="../assets/js/navigation-manager.js"></script>
+    <script src="../assets/js/accessibility-manager.js"></script>
+    <script src="../assets/js/loading-manager.js"></script>
+    
+    <script>
+        // Simulate WordPress admin environment
+        window.lasAdminData = {
+            ajax_url: '/wp-admin/admin-ajax.php',
+            nonce: 'test-nonce',
+            jquery_ui: {
+                core: true,
+                tabs: true,
+                widget: true
+            },
+            strings: {
+                loading: 'Loading...',
+                saved: 'Settings saved successfully',
+                error: 'An error occurred'
+            }
+        };
+        
+        // Initialize modern UI components
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Initializing Modern UI Integration Test...');
+            
+            // Initialize managers
+            if (typeof ThemeManager !== 'undefined') {
+                window.themeManager = new ThemeManager();
+                console.log('ThemeManager initialized');
+            }
+            
+            if (typeof ResponsiveManager !== 'undefined') {
+                window.responsiveManager = new ResponsiveManager();
+                console.log('ResponsiveManager initialized');
+            }
+            
+            if (typeof NavigationManager !== 'undefined') {
+                window.navigationManager = new NavigationManager();
+                console.log('NavigationManager initialized');
+            }
+            
+            if (typeof AccessibilityManager !== 'undefined') {
+                window.accessibilityManager = new AccessibilityManager();
+                console.log('AccessibilityManager initialized');
+            }
+            
+            if (typeof LoadingManager !== 'undefined') {
+                window.loadingManager = new LoadingManager();
+                console.log('LoadingManager initialized');
+            }
+            
+            // Test theme toggle
+            document.querySelector('.las-theme-toggle').addEventListener('click', function() {
+                if (window.themeManager) {
+                    window.themeManager.toggleTheme();
+                    
+                    const currentTheme = window.themeManager.getCurrentTheme();
+                    const icon = this.querySelector('.las-theme-toggle-icon');
+                    const text = this.querySelector('.las-theme-toggle-text');
+                    
+                    if (currentTheme === 'dark') {
+                        icon.textContent = '☀️';
+                        text.textContent = 'Light Mode';
+                    } else {
+                        icon.textContent = '🌙';
+                        text.textContent = 'Dark Mode';
+                    }
+                }
+            });
+            
+            // Test tab navigation
+            document.querySelectorAll('.las-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.dataset.tab;
+                    
+                    // Update active states
+                    document.querySelectorAll('.las-tab').forEach(t => {
+                        t.classList.remove('active');
+                        t.setAttribute('aria-selected', 'false');
+                    });
+                    document.querySelectorAll('.las-tab-panel').forEach(p => {
+                        p.classList.remove('active');
+                    });
+                    
+                    this.classList.add('active');
+                    this.setAttribute('aria-selected', 'true');
+                    document.getElementById('las-tab-' + tabId).classList.add('active');
+                    
+                    // Announce to screen readers
+                    document.getElementById('las-aria-live').textContent = 'Switched to ' + tabId + ' tab';
+                });
+            });
+            
+            // Test search functionality
+            const searchInput = document.getElementById('las-settings-search');
+            const searchResults = document.getElementById('las-search-results');
+            
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                
+                if (query.length > 2) {
+                    // Simple search simulation
+                    const results = ['General Settings', 'Menu Color', 'Custom CSS'].filter(item => 
+                        item.toLowerCase().includes(query)
+                    );
+                    
+                    const resultsContent = searchResults.querySelector('.las-search-results-content');
+                    resultsContent.innerHTML = '';
+                    
+                    if (results.length > 0) {
+                        results.forEach(result => {
+                            const div = document.createElement('div');
+                            div.className = 'las-search-result';
+                            div.textContent = result;
+                            resultsContent.appendChild(div);
+                        });
+                        searchResults.querySelector('.las-search-results-count').textContent = results.length + ' results found';
+                    } else {
+                        resultsContent.innerHTML = '<div class="las-search-no-results">No results found</div>';
+                        searchResults.querySelector('.las-search-results-count').textContent = 'No results';
+                    }
+                    
+                    searchResults.style.display = 'block';
+                } else {
+                    searchResults.style.display = 'none';
+                }
+            });
+            
+            // Test form submission
+            document.getElementById('las-fresh-settings-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const button = this.querySelector('.las-button-primary');
+                const text = button.querySelector('.las-button-text');
+                const loading = button.querySelector('.las-button-loading');
+                
+                text.style.display = 'none';
+                loading.style.display = 'inline-flex';
+                button.disabled = true;
+                
+                setTimeout(() => {
+                    text.style.display = 'inline';
+                    loading.style.display = 'none';
+                    button.disabled = false;
+                    
+                    // Show success notification
+                    const notification = document.createElement('div');
+                    notification.className = 'las-notification las-notification-success';
+                    notification.innerHTML = `
+                        <div class="las-notification-icon"><span>✓</span></div>
+                        <div class="las-notification-content"><p>Settings saved successfully!</p></div>
+                        <button type="button" class="las-notification-dismiss"><span>×</span></button>
+                    `;
+                    
+                    document.getElementById('las-notifications').appendChild(notification);
+                    
+                    setTimeout(() => {
+                        notification.remove();
+                    }, 3000);
+                }, 2000);
+            });
+            
+            console.log('Modern UI Integration Test initialized successfully');
+        });
+    </script>
+</body>
+</html>

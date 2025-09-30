@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAS Emergency UI Test</title>
+    <style>
+        /* Emergency styles - exactly what should be applied */
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f1f1f1 !important;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        
+        .las-fresh-settings-wrap,
+        .wrap.las-fresh-settings-wrap,
+        div.wrap.las-fresh-settings-wrap {
+            background: #fafafa !important;
+            background-color: #fafafa !important;
+            color: #171717 !important;
+            min-height: 100vh !important;
+            padding: 20px !important;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            display: block !important;
+            margin: 0;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        [data-theme="dark"] .las-fresh-settings-wrap {
+            background: #171717 !important;
+            color: #fafafa !important;
+        }
+        
+        .las-header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+        
+        .las-page-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+            color: inherit;
+        }
+        
+        .las-page-description {
+            color: #666;
+            margin: 0;
+        }
+        
+        .las-tabs-container {
+            background: transparent;
+            margin: 20px 0;
+        }
+        
+        .las-tabs {
+            display: flex;
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .las-tab {
+            flex: 1;
+            padding: 12px 16px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            transition: all 0.2s ease;
+        }
+        
+        .las-tab.active {
+            background: white;
+            color: #2271b1;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .las-tab:hover:not(.active) {
+            background: rgba(255,255,255,0.5);
+            color: #333;
+        }
+        
+        .las-tab-panel {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .debug-info {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .test-button {
+            background: #2271b1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        .test-button:hover {
+            background: #1e40af;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap las-fresh-settings-wrap las-container" data-las-modern-ui data-theme="light">
+        <!-- Modern Header Section -->
+        <div class="las-header">
+            <div class="las-header-content">
+                <h1 class="las-page-title">Live Admin Styler - Emergency Test</h1>
+                <p class="las-page-description">Test strony aby sprawdzić czy style działają poprawnie</p>
+            </div>
+        </div>
+
+        <div class="debug-info">
+            <h3>🔍 Informacje Debug:</h3>
+            <p>Motyw: <span id="theme-info">light</span></p>
+            <p>Tło kontenera: <span id="bg-info">sprawdzanie...</span></p>
+            <p>Kolor tekstu: <span id="color-info">sprawdzanie...</span></p>
+            <p>Klasy body: <span id="body-classes">sprawdzanie...</span></p>
+        </div>
+
+        <div>
+            <button class="test-button" onclick="toggleTheme()">Przełącz motyw</button>
+            <button class="test-button" onclick="checkStyles()">Sprawdź style</button>
+            <button class="test-button" onclick="forceLight()">Wymuś jasny</button>
+            <button class="test-button" onclick="forceDark()">Wymuś ciemny</button>
+        </div>
+
+        <!-- Modern Tab Navigation -->
+        <div class="las-tabs-container">
+            <nav class="las-tabs">
+                <button class="las-tab active">Układ i Ogólne</button>
+                <button class="las-tab">Menu Boczne</button>
+                <button class="las-tab">Górny Pasek</button>
+                <button class="las-tab">Obszar Treści</button>
+            </nav>
+            
+            <div class="las-tab-panel">
+                <h2>Test zawartości</h2>
+                <p>To jest test zawartości aby sprawdzić czy wszystko wygląda poprawnie.</p>
+                <p>Tło powinno być jasne w jasnym motywie i ciemne w ciemnym motywie.</p>
+                <p>Tekst powinien być zawsze czytelny i kontrastowy.</p>
+                
+                <div style="margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.05); border-radius: 6px;">
+                    <strong>Przykład sekcji ustawień:</strong><br>
+                    Tutaj byłyby normalne pola formularza i opcje konfiguracji wtyczki.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function checkStyles() {
+            const container = document.querySelector('.las-fresh-settings-wrap');
+            const computedStyle = window.getComputedStyle(container);
+            
+            document.getElementById('bg-info').textContent = computedStyle.backgroundColor;
+            document.getElementById('color-info').textContent = computedStyle.color;
+            document.getElementById('body-classes').textContent = document.body.className || 'brak';
+            
+            console.log('🎨 Background:', computedStyle.backgroundColor);
+            console.log('🎨 Color:', computedStyle.color);
+            console.log('🎨 Display:', computedStyle.display);
+            console.log('🎨 Visibility:', computedStyle.visibility);
+        }
+        
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme') || 'light';
+            const newTheme = current === 'light' ? 'dark' : 'light';
+            
+            html.setAttribute('data-theme', newTheme);
+            document.getElementById('theme-info').textContent = newTheme;
+            
+            console.log('🎨 Theme changed to:', newTheme);
+            setTimeout(checkStyles, 100);
+        }
+        
+        function forceLight() {
+            document.documentElement.setAttribute('data-theme', 'light');
+            document.getElementById('theme-info').textContent = 'light';
+            setTimeout(checkStyles, 100);
+        }
+        
+        function forceDark() {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.getElementById('theme-info').textContent = 'dark';
+            setTimeout(checkStyles, 100);
+        }
+        
+        // Auto-check on load
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(checkStyles, 100);
+        });
+        
+        // Check every 2 seconds for debugging
+        setInterval(checkStyles, 2000);
+    </script>
+</body>
+</html>

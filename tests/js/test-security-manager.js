@@ -74,9 +74,12 @@ describe('SecurityManager', function() {
         };
         window.$.post = mockAjax.post;
         
-        window.lasFreshData = {
+        window.lasAdminData = {
             ajax_url: '/wp-admin/admin-ajax.php',
-            nonce: 'test_nonce_123'
+            nonce: 'test_nonce_123',
+            auto_refresh_nonce: true,
+            retry_attempts: 3,
+            retry_delay: 1000
         };
         
         window.console = {
@@ -108,12 +111,12 @@ describe('SecurityManager', function() {
                 this.isRefreshing = true;
                 
                 return new Promise((resolve, reject) => {
-                    $.post(lasFreshData.ajax_url, {
+                    $.post(lasAdminData.ajax_url, {
                         action: 'las_refresh_nonce'
                     })
                     .done((response) => {
                         if (response.success && response.data.nonce) {
-                            lasFreshData.nonce = response.data.nonce;
+                            lasAdminData.nonce = response.data.nonce;
                             localStorage.setItem('las_last_nonce_refresh', Date.now().toString());
                             resolve(response.data.nonce);
                         } else {
@@ -159,16 +162,16 @@ describe('SecurityManager', function() {
             },
             
             getSecurityStatus: function() {
-                return $.post(lasFreshData.ajax_url, {
+                return $.post(lasAdminData.ajax_url, {
                     action: 'las_get_security_status',
-                    nonce: lasFreshData.nonce
+                    nonce: lasAdminData.nonce
                 });
             },
             
             clearSecurityLog: function() {
-                return $.post(lasFreshData.ajax_url, {
+                return $.post(lasAdminData.ajax_url, {
                     action: 'las_clear_security_log',
-                    nonce: lasFreshData.nonce
+                    nonce: lasAdminData.nonce
                 });
             },
             
@@ -197,7 +200,7 @@ describe('SecurityManager', function() {
             
             SecurityManager.refreshNonce().then(function(newNonce) {
                 expect(newNonce).toBe('new_nonce_456');
-                expect(lasFreshData.nonce).toBe('new_nonce_456');
+                expect(lasAdminData.nonce).toBe('new_nonce_456');
                 expect(localStorage.getItem('las_last_nonce_refresh')).toBeTruthy();
                 done();
             }).catch(done.fail);

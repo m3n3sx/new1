@@ -11,13 +11,15 @@ $plugin_root = dirname(__DIR__);
 $test_files = [
     'tests/php/TestStateManagement.php',
     'tests/php/TestFileCleanup.php', 
-    'tests/php/TestOutputCss.php'
+    'tests/php/TestOutputCss.php',
+    'tests/php/TestScriptLoading.php'
 ];
 
 $js_test_files = [
     'tests/js/test-state-management.js',
     'tests/js/test-live-preview.js',
     'tests/js/test-integration.js',
+    'tests/js/test-script-loading.js',
     'tests/js/setup.js'
 ];
 

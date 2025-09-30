@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Navigation System Demo</title>
+    <link rel="stylesheet" href="../assets/css/base-reset.css">
+    <link rel="stylesheet" href="../assets/css/design-system.css">
+    <link rel="stylesheet" href="../assets/css/admin-style.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--las-neutral-50);
+            padding: var(--las-space-lg);
+        }
+        
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: var(--las-radius-lg);
+            padding: var(--las-space-xl);
+            box-shadow: var(--las-shadow-lg);
+        }
+        
+        .demo-section {
+            margin-bottom: var(--las-space-2xl);
+        }
+        
+        .demo-title {
+            font-size: var(--las-font-size-2xl);
+            font-weight: var(--las-font-weight-bold);
+            color: var(--las-neutral-900);
+            margin-bottom: var(--las-space-lg);
+        }
+        
+        .demo-description {
+            color: var(--las-neutral-600);
+            margin-bottom: var(--las-space-lg);
+            line-height: var(--las-leading-relaxed);
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: var(--las-space-lg) 0;
+        }
+        
+        .feature-list li {
+            padding: var(--las-space-sm) 0;
+            border-bottom: 1px solid var(--las-neutral-200);
+            display: flex;
+            align-items: center;
+            gap: var(--las-space-sm);
+        }
+        
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .feature-check {
+            color: var(--las-success-500);
+            font-weight: bold;
+        }
+        
+        .keyboard-shortcuts {
+            background: var(--las-neutral-100);
+            padding: var(--las-space-lg);
+            border-radius: var(--las-radius-md);
+            margin: var(--las-space-lg) 0;
+        }
+        
+        .keyboard-shortcuts h4 {
+            margin: 0 0 var(--las-space-md) 0;
+            color: var(--las-neutral-800);
+        }
+        
+        .shortcut {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--las-space-xs) 0;
+        }
+        
+        .shortcut-key {
+            background: var(--las-neutral-200);
+            padding: var(--las-space-xs) var(--las-space-sm);
+            border-radius: var(--las-radius-sm);
+            font-family: monospace;
+            font-size: var(--las-font-size-sm);
+        }
+        
+        .test-controls {
+            background: var(--las-info-50);
+            padding: var(--las-space-lg);
+            border-radius: var(--las-radius-md);
+            margin: var(--las-space-lg) 0;
+        }
+        
+        .test-controls h4 {
+            margin: 0 0 var(--las-space-md) 0;
+            color: var(--las-info-700);
+        }
+        
+        .test-button {
+            background: var(--las-primary-500);
+            color: white;
+            border: none;
+            padding: var(--las-space-sm) var(--las-space-lg);
+            border-radius: var(--las-radius-md);
+            cursor: pointer;
+            margin-right: var(--las-space-sm);
+            margin-bottom: var(--las-space-sm);
+            transition: all var(--las-transition-base);
+        }
+        
+        .test-button:hover {
+            background: var(--las-primary-600);
+            transform: translateY(-1px);
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: var(--las-space-sm);
+        }
+        
+        .status-indicator.active {
+            background: var(--las-success-500);
+        }
+        
+        .status-indicator.inactive {
+            background: var(--las-neutral-300);
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-section">
+            <h1 class="demo-title">Modern Navigation System Demo</h1>
+            <p class="demo-description">
+                This demo showcases the modern navigation system with accessibility features, 
+                keyboard support, responsive behavior, and smooth transitions.
+            </p>
+            
+            <ul class="feature-list">
+                <li><span class="feature-check">✓</span> WCAG 2.1 AA compliant accessibility</li>
+                <li><span class="feature-check">✓</span> Full keyboard navigation support</li>
+                <li><span class="feature-check">✓</span> Responsive design with horizontal scrolling on mobile</li>
+                <li><span class="feature-check">✓</span> Smooth transitions and animations</li>
+                <li><span class="feature-check">✓</span> Touch/swipe support for mobile devices</li>
+                <li><span class="feature-check">✓</span> Screen reader announcements</li>
+                <li><span class="feature-check">✓</span> Focus management and trapping</li>
+                <li><span class="feature-check">✓</span> State persistence with localStorage</li>
+            </ul>
+        </div>
+        
+        <div class="demo-section">
+            <h2>Navigation Demo</h2>
+            <div id="las-settings-tabs">
+                <div class="las-tabs" role="tablist" aria-label="Settings navigation">
+                    <button class="las-tab" role="tab" data-panel="general" aria-selected="true" tabindex="0">
+                        <span class="las-tab-icon dashicons dashicons-admin-settings"></span>
+                        <span class="las-tab-text">General</span>
+                    </button>
+                    <button class="las-tab" role="tab" data-panel="menu" aria-selected="false" tabindex="-1">
+                        <span class="las-tab-icon dashicons dashicons-menu"></span>
+                        <span class="las-tab-text">Menu</span>
+                    </button>
+                    <button class="las-tab" role="tab" data-panel="adminbar" aria-selected="false" tabindex="-1">
+                        <span class="las-tab-icon dashicons dashicons-admin-generic"></span>
+                        <span class="las-tab-text">Admin Bar</span>
+                    </button>
+                    <button class="las-tab" role="tab" data-panel="content" aria-selected="false" tabindex="-1">
+                        <span class="las-tab-icon dashicons dashicons-admin-page"></span>
+                        <span class="las-tab-text">Content</span>
+                    </button>
+                    <button class="las-tab" role="tab" data-panel="logos" aria-selected="false" tabindex="-1">
+                        <span class="las-tab-icon dashicons dashicons-format-image"></span>
+                        <span class="las-tab-text">Logos</span>
+                    </button>
+                    <button class="las-tab" role="tab" data-panel="advanced" aria-selected="false" tabindex="-1">
+                        <span class="las-tab-icon dashicons dashicons-admin-tools"></span>
+                        <span class="las-tab-text">Advanced</span>
+                    </button>
+                </div>
+                
+                <div id="las-tab-general" class="las-tab-panel" role="tabpanel" aria-hidden="false">
+                    <h3>General Settings</h3>
+                    <p>This is the general settings panel. It contains various configuration options for the overall appearance and behavior of the admin interface.</p>
+                    <div style="height: 200px; background: var(--las-neutral-100); border-radius: var(--las-radius-md); display: flex; align-items: center; justify-content: center; color: var(--las-neutral-600);">
+                        General Settings Content
+                    </div>
+                </div>
+                
+                <div id="las-tab-menu" class="las-tab-panel" role="tabpanel" aria-hidden="true" style="display: none;">
+                    <h3>Menu Settings</h3>
+                    <p>Configure the appearance and behavior of the WordPress admin menu sidebar.</p>
+                    <div style="height: 200px; background: var(--las-primary-50); border-radius: var(--las-radius-md); display: flex; align-items: center; justify-content: center; color: var(--las-primary-600);">
+                        Menu Settings Content
+                    </div>
+                </div>
+                
+                <div id="las-tab-adminbar" class="las-tab-panel" role="tabpanel" aria-hidden="true" style="display: none;">
+                    <h3>Admin Bar Settings</h3>
+                    <p>Customize the WordPress admin bar at the top of the screen.</p>
+                    <div style="height: 200px; background: var(--las-success-50); border-radius: var(--las-radius-md); display: flex; align-items: center; justify-content: center; color: var(--las-success-600);">
+                        Admin Bar Settings Content
+                    </div>
+                </div>
+                
+                <div id="las-tab-content" class="las-tab-panel" role="tabpanel" aria-hidden="true" style="display: none;">
+                    <h3>Content Settings</h3>
+                    <p>Adjust the styling of the main content area and typography.</p>
+                    <div style="height: 200px; background: var(--las-warning-50); border-radius: var(--las-radius-md); display: flex; align-items: center; justify-content: center; color: var(--las-warning-600);">
+                        Content Settings Content
+                    </div>
+                </div>
+                
+                <div id="las-tab-logos" class="las-tab-panel" role="tabpanel" aria-hidden="true" style="display: none;">
+                    <h3>Logo Settings</h3>
+                    <p>Upload and configure custom logos for the admin interface.</p>
+                    <div style="height: 200px; background: var(--las-error-50); border-radius: var(--las-radius-md); display: flex; align-items: center; justify-content: center; color: var(--las-error-600);">
+                        Logo Settings Content
+                    </div>
+                </div>
+                
+                <div id="las-tab-advanced" class="las-tab-panel" role="tabpanel" aria-hidden="true" style="display: none;">
+                    <h3>Advanced Settings</h3>
+                    <p>Advanced configuration options and custom CSS.</p>
+                    <div style="height: 200px; background: var(--las-info-50); border-radius: var(--las-radius-md); display: flex; align-items: center; justify-content: center; color: var(--las-info-600);">
+                        Advanced Settings Content
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <div class="keyboard-shortcuts">
+                <h4>Keyboard Shortcuts</h4>
+                <div class="shortcut">
+                    <span>Navigate to next tab</span>
+                    <span class="shortcut-key">→ or ↓</span>
+                </div>
+                <div class="shortcut">
+                    <span>Navigate to previous tab</span>
+                    <span class="shortcut-key">← or ↑</span>
+                </div>
+                <div class="shortcut">
+                    <span>Go to first tab</span>
+                    <span class="shortcut-key">Home</span>
+                </div>
+                <div class="shortcut">
+                    <span>Go to last tab</span>
+                    <span class="shortcut-key">End</span>
+                </div>
+                <div class="shortcut">
+                    <span>Activate focused tab</span>
+                    <span class="shortcut-key">Enter or Space</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <div class="test-controls">
+                <h4>Test Controls</h4>
+                <button class="test-button" onclick="testKeyboardNavigation()">Test Keyboard Navigation</button>
+                <button class="test-button" onclick="testResponsiveResize()">Test Responsive Behavior</button>
+                <button class="test-button" onclick="testAccessibility()">Test Accessibility</button>
+                <button class="test-button" onclick="testStateManagement()">Test State Management</button>
+                <button class="test-button" onclick="resetDemo()">Reset Demo</button>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h3>Status</h3>
+            <div id="status-display">
+                <div><span class="status-indicator active"></span>Navigation Manager: Initialized</div>
+                <div><span class="status-indicator active"></span>Accessibility: Enabled</div>
+                <div><span class="status-indicator active"></span>Keyboard Support: Active</div>
+                <div><span class="status-indicator active"></span>Responsive Design: Active</div>
+                <div><span class="status-indicator inactive"></span>Touch Support: <span id="touch-status">Detecting...</span></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- WordPress Dashicons for icons -->
+    <style>
+        .dashicons {
+            font-family: dashicons;
+            display: inline-block;
+            line-height: 1;
+            font-weight: 400;
+            font-style: normal;
+            speak: never;
+            text-decoration: inherit;
+            text-transform: none;
+            text-rendering: auto;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            width: 20px;
+            height: 20px;
+            font-size: 20px;
+            vertical-align: top;
+            text-align: center;
+            transition: color .1s ease-in;
+        }
+        
+        .dashicons-admin-settings:before { content: "\f108"; }
+        .dashicons-menu:before { content: "\f333"; }
+        .dashicons-admin-generic:before { content: "\f111"; }
+        .dashicons-admin-page:before { content: "\f133"; }
+        .dashicons-format-image:before { content: "\f128"; }
+        .dashicons-admin-tools:before { content: "\f107"; }
+    </style>
+    
+    <script src="../assets/js/navigation-manager.js"></script>
+    <script>
+        // Initialize the navigation manager
+        let navigationManager;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            navigationManager = new NavigationManager({
+                container: '#las-settings-tabs',
+                tabSelector: '.las-tab',
+                panelSelector: '.las-tab-panel',
+                activeClass: 'las-tab-active'
+            });
+            
+            // Listen for tab changes
+            document.getElementById('las-settings-tabs').addEventListener('las-tab-change', function(e) {
+                console.log('Tab changed:', e.detail);
+                updateStatus('Tab changed to: ' + e.detail.tabId);
+            });
+            
+            // Detect touch support
+            const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            document.getElementById('touch-status').textContent = hasTouch ? 'Available' : 'Not Available';
+            const touchIndicator = document.querySelector('#status-display div:last-child .status-indicator');
+            touchIndicator.className = 'status-indicator ' + (hasTouch ? 'active' : 'inactive');
+        });
+        
+        function testKeyboardNavigation() {
+            updateStatus('Testing keyboard navigation...');
+            const firstTab = document.querySelector('.las-tab');
+            firstTab.focus();
+            
+            setTimeout(() => {
+                updateStatus('Focus the first tab and use arrow keys to navigate');
+            }, 1000);
+        }
+        
+        function testResponsiveResize() {
+            updateStatus('Testing responsive behavior...');
+            const container = document.querySelector('.demo-container');
+            container.style.maxWidth = '400px';
+            
+            setTimeout(() => {
+                container.style.maxWidth = '1200px';
+                updateStatus('Responsive test complete - tabs should adapt to screen size');
+            }, 3000);
+        }
+        
+        function testAccessibility() {
+            updateStatus('Testing accessibility features...');
+            const tabs = document.querySelectorAll('.las-tab');
+            let testResults = [];
+            
+            tabs.forEach((tab, index) => {
+                const hasRole = tab.getAttribute('role') === 'tab';
+                const hasAriaSelected = tab.hasAttribute('aria-selected');
+                const hasTabindex = tab.hasAttribute('tabindex');
+                
+                testResults.push(`Tab ${index + 1}: Role=${hasRole}, ARIA=${hasAriaSelected}, Tabindex=${hasTabindex}`);
+            });
+            
+            console.log('Accessibility test results:', testResults);
+            updateStatus('Accessibility test complete - check console for details');
+        }
+        
+        function testStateManagement() {
+            updateStatus('Testing state management...');
+            
+            // Switch to a different tab
+            navigationManager.goToTab('menu');
+            
+            setTimeout(() => {
+                // Check if state is saved
+                const savedTab = localStorage.getItem('las_active_tab');
+                updateStatus(`State management test: Active tab saved as "${savedTab}"`);
+            }, 1000);
+        }
+        
+        function resetDemo() {
+            updateStatus('Resetting demo...');
+            localStorage.removeItem('las_active_tab');
+            navigationManager.goToTab('general');
+            
+            setTimeout(() => {
+                updateStatus('Demo reset complete');
+            }, 500);
+        }
+        
+        function updateStatus(message) {
+            console.log('Demo Status:', message);
+            
+            // You could add a status display area here
+            const statusArea = document.createElement('div');
+            statusArea.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: var(--las-info-500);
+                color: white;
+                padding: var(--las-space-sm) var(--las-space-md);
+                border-radius: var(--las-radius-md);
+                box-shadow: var(--las-shadow-lg);
+                z-index: 1000;
+                max-width: 300px;
+                font-size: var(--las-font-size-sm);
+            `;
+            statusArea.textContent = message;
+            document.body.appendChild(statusArea);
+            
+            setTimeout(() => {
+                statusArea.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

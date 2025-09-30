@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAS Color Picker Integration Test</title>
+    <link rel="stylesheet" href="../assets/css/design-system.css">
+    <link rel="stylesheet" href="../assets/css/color-picker.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 2rem;
+            background: var(--las-neutral-50);
+            color: var(--las-neutral-900);
+            line-height: 1.6;
+        }
+        
+        .test-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .test-section {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--las-radius-lg);
+            box-shadow: var(--las-shadow-md);
+            margin-bottom: 2rem;
+        }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .test-item {
+            padding: 1.5rem;
+            border: 1px solid var(--las-neutral-200);
+            border-radius: var(--las-radius-md);
+            background: var(--las-neutral-50);
+        }
+        
+        .test-label {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--las-neutral-700);
+        }
+        
+        .color-info {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: var(--las-radius-sm);
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.875rem;
+        }
+        
+        .test-controls {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .control-button {
+            padding: 0.5rem 1rem;
+            background: var(--las-primary-500);
+            color: white;
+            border: none;
+            border-radius: var(--las-radius-md);
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+        
+        .control-button:hover {
+            background: var(--las-primary-600);
+        }
+        
+        .test-results {
+            position: fixed;
+            bottom: 1rem;
+            left: 1rem;
+            right: 1rem;
+            background: var(--las-neutral-800);
+            color: white;
+            padding: 1rem;
+            border-radius: var(--las-radius-md);
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.875rem;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .test-results.visible {
+            display: block;
+        }
+        
+        .accessibility-info {
+            background: var(--las-info);
+            color: white;
+            padding: 1rem;
+            border-radius: var(--las-radius-md);
+            margin-bottom: 2rem;
+        }
+        
+        .accessibility-info h3 {
+            margin: 0 0 0.5rem 0;
+        }
+        
+        .accessibility-info ul {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+        
+        .form-example {
+            display: grid;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: var(--las-neutral-700);
+        }
+        
+        .form-input {
+            padding: 0.75rem;
+            border: 2px solid var(--las-neutral-200);
+            border-radius: var(--las-radius-md);
+            font-size: 1rem;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--las-primary-500);
+            box-shadow: 0 0 0 3px rgba(34, 113, 177, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="test-controls">
+        <button class="control-button" onclick="toggleTheme()">Toggle Theme</button>
+        <button class="control-button" onclick="runTests()">Run Tests</button>
+        <button class="control-button" onclick="toggleResults()">Show Results</button>
+    </div>
+    
+    <div class="test-container">
+        <h1>Color Picker Integration Test</h1>
+        
+        <div class="accessibility-info">
+            <h3>🔍 Accessibility Testing Instructions</h3>
+            <ul>
+                <li>Use Tab key to navigate between color pickers</li>
+                <li>Press Enter or Space to open color picker</li>
+                <li>Use arrow keys to navigate color palette</li>
+                <li>Press Escape to close picker</li>
+                <li>Check contrast ratios in picker panel</li>
+                <li>Test with screen reader if available</li>
+            </ul>
+        </div>
+        
+        <div class="test-section">
+            <h2>Basic Color Pickers</h2>
+            <p>Test basic functionality with default settings</p>
+            
+            <div class="test-grid">
+                <div class="test-item">
+                    <div class="test-label">Primary Brand Color</div>
+                    <div id="color-picker-primary"></div>
+                    <div class="color-info" id="info-primary">
+                        Value: #2271b1<br>
+                        RGB: rgb(34, 113, 177)<br>
+                        Contrast vs White: Loading...
+                    </div>
+                </div>
+                
+                <div class="test-item">
+                    <div class="test-label">Secondary Color</div>
+                    <div id="color-picker-secondary"></div>
+                    <div class="color-info" id="info-secondary">
+                        Value: #d63638<br>
+                        RGB: rgb(214, 54, 56)<br>
+                        Contrast vs White: Loading...
+                    </div>
+                </div>
+                
+                <div class="test-item">
+                    <div class="test-label">Success Color</div>
+                    <div id="color-picker-success"></div>
+                    <div class="color-info" id="info-success">
+                        Value: #00a32a<br>
+                        RGB: rgb(0, 163, 42)<br>
+                        Contrast vs White: Loading...
+                    </div>
+                </div>
+                
+                <div class="test-item">
+                    <div class="test-label">Warning Color</div>
+                    <div id="color-picker-warning"></div>
+                    <div class="color-info" id="info-warning">
+                        Value: #dba617<br>
+                        RGB: rgb(219, 166, 23)<br>
+                        Contrast vs White: Loading...
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Advanced Color Picker</h2>
+            <p>Test with custom palette and all features enabled</p>
+            
+            <div class="test-item">
+                <div class="test-label">Custom Palette Color Picker</div>
+                <div id="color-picker-advanced"></div>
+                <div class="color-info" id="info-advanced">
+                    Value: #6366f1<br>
+                    RGB: rgb(99, 102, 241)<br>
+                    Features: Custom palette, contrast validation, tooltips
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Form Integration</h2>
+            <p>Test color pickers within a form context</p>
+            
+            <form class="form-example">
+                <div class="form-group">
+                    <label class="form-label" for="theme-name">Theme Name</label>
+                    <input type="text" id="theme-name" class="form-input" value="My Custom Theme">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Background Color</label>
+                    <div id="color-picker-bg"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Text Color</label>
+                    <div id="color-picker-text"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Accent Color</label>
+                    <div id="color-picker-accent"></div>
+                </div>
+            </form>
+        </div>
+        
+        <div class="test-section">
+            <h2>Minimal Color Picker</h2>
+            <p>Test with minimal features (no palette, no contrast validation)</p>
+            
+            <div class="test-item">
+                <div class="test-label">Simple Color Picker</div>
+                <div id="color-picker-minimal"></div>
+                <div class="color-info" id="info-minimal">
+                    Value: #333333<br>
+                    Features: Basic color input only
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-results" id="test-results">
+        <div id="test-output">Click "Run Tests" to start validation...</div>
+    </div>
+    
+    <script src="../assets/js/color-picker.js"></script>
+    <script src="validate-color-picker.js"></script>
+    <script>
+        // Initialize color pickers
+        const colorPickers = new Map();
+        
+        // Basic color pickers
+        const primaryPicker = new LASColorPicker(document.getElementById('color-picker-primary'), {
+            defaultColor: '#2271b1'
+        });
+        colorPickers.set('primary', primaryPicker);
+        
+        const secondaryPicker = new LASColorPicker(document.getElementById('color-picker-secondary'), {
+            defaultColor: '#d63638'
+        });
+        colorPickers.set('secondary', secondaryPicker);
+        
+        const successPicker = new LASColorPicker(document.getElementById('color-picker-success'), {
+            defaultColor: '#00a32a'
+        });
+        colorPickers.set('success', successPicker);
+        
+        const warningPicker = new LASColorPicker(document.getElementById('color-picker-warning'), {
+            defaultColor: '#dba617'
+        });
+        colorPickers.set('warning', warningPicker);
+        
+        // Advanced color picker with custom palette
+        const advancedPicker = new LASColorPicker(document.getElementById('color-picker-advanced'), {
+            defaultColor: '#6366f1',
+            palette: [
+                '#6366f1', '#8b5cf6', '#a855f7', '#c084fc',
+                '#e879f9', '#f472b6', '#fb7185', '#f87171',
+                '#fbbf24', '#facc15', '#a3e635', '#4ade80',
+                '#34d399', '#2dd4bf', '#22d3ee', '#38bdf8',
+                '#60a5fa', '#818cf8', '#a78bfa', '#c4b5fd'
+            ]
+        });
+        colorPickers.set('advanced', advancedPicker);
+        
+        // Form color pickers
+        const bgPicker = new LASColorPicker(document.getElementById('color-picker-bg'), {
+            defaultColor: '#ffffff'
+        });
+        colorPickers.set('bg', bgPicker);
+        
+        const textPicker = new LASColorPicker(document.getElementById('color-picker-text'), {
+            defaultColor: '#1f2937'
+        });
+        colorPickers.set('text', textPicker);
+        
+        const accentPicker = new LASColorPicker(document.getElementById('color-picker-accent'), {
+            defaultColor: '#3b82f6'
+        });
+        colorPickers.set('accent', accentPicker);
+        
+        // Minimal color picker
+        const minimalPicker = new LASColorPicker(document.getElementById('color-picker-minimal'), {
+            defaultColor: '#333333',
+            showPalette: false,
+            showContrast: false
+        });
+        colorPickers.set('minimal', minimalPicker);
+        
+        // Event listeners for color changes
+        colorPickers.forEach((picker, key) => {
+            picker.element.addEventListener('las-color-change', (e) => {
+                updateColorInfo(key, e.detail.color);
+                console.log(`${key} color changed to:`, e.detail.color);
+            });
+            
+            picker.element.addEventListener('las-color-picker-open', (e) => {
+                console.log(`${key} color picker opened`);
+            });
+            
+            picker.element.addEventListener('las-color-picker-close', (e) => {
+                console.log(`${key} color picker closed`);
+            });
+        });
+        
+        // Update color info displays
+        function updateColorInfo(key, color) {
+            const infoElement = document.getElementById(`info-${key}`);
+            if (infoElement) {
+                const rgb = hexToRgb(color);
+                const contrast = calculateContrast(color, '#ffffff');
+                
+                infoElement.innerHTML = `
+                    Value: ${color}<br>
+                    RGB: rgb(${rgb.r}, ${rgb.g}, ${rgb.b})<br>
+                    Contrast vs White: ${contrast.toFixed(2)}:1
+                `;
+            }
+        }
+        
+        // Helper functions
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+        
+        function getLuminance(rgb) {
+            const { r, g, b } = rgb;
+            const [rs, gs, bs] = [r, g, b].map(c => {
+                c = c / 255;
+                return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+            });
+            return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+        }
+        
+        function calculateContrast(color1, color2) {
+            const rgb1 = hexToRgb(color1);
+            const rgb2 = hexToRgb(color2);
+            const lum1 = getLuminance(rgb1);
+            const lum2 = getLuminance(rgb2);
+            const brightest = Math.max(lum1, lum2);
+            const darkest = Math.min(lum1, lum2);
+            return (brightest + 0.05) / (darkest + 0.05);
+        }
+        
+        // Theme toggle
+        let isDark = false;
+        function toggleTheme() {
+            isDark = !isDark;
+            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+            console.log('Theme toggled to:', isDark ? 'dark' : 'light');
+        }
+        
+        // Initialize with light theme
+        document.documentElement.setAttribute('data-theme', 'light');
+        
+        // Test runner
+        async function runTests() {
+            const resultsElement = document.getElementById('test-results');
+            const outputElement = document.getElementById('test-output');
+            
+            resultsElement.classList.add('visible');
+            outputElement.innerHTML = 'Running color picker validation tests...\n\n';
+            
+            // Capture console output
+            const originalLog = console.log;
+            console.log = function(...args) {
+                outputElement.innerHTML += args.join(' ') + '\n';
+                outputElement.scrollTop = outputElement.scrollHeight;
+                originalLog.apply(console, args);
+            };
+            
+            try {
+                const validator = new ColorPickerValidator();
+                await validator.runValidation();
+            } catch (error) {
+                outputElement.innerHTML += `\nError running tests: ${error.message}\n`;
+            }
+            
+            // Restore console
+            console.log = originalLog;
+        }
+        
+        // Toggle results display
+        function toggleResults() {
+            const resultsElement = document.getElementById('test-results');
+            resultsElement.classList.toggle('visible');
+        }
+        
+        // Initialize color info displays
+        colorPickers.forEach((picker, key) => {
+            updateColorInfo(key, picker.getValue());
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch (e.key) {
+                    case 't':
+                        e.preventDefault();
+                        toggleTheme();
+                        break;
+                    case 'r':
+                        e.preventDefault();
+                        runTests();
+                        break;
+                }
+            }
+        });
+        
+        console.log('🎨 Color Picker Integration Test loaded');
+        console.log('💡 Use Ctrl+T to toggle theme, Ctrl+R to run tests');
+        console.log('🔍 Test accessibility with Tab, Enter, Space, Arrow keys, and Escape');
+    </script>
+</body>
+</html>

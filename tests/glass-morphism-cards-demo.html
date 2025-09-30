@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glass Morphism Cards Demo - Live Admin Styler</title>
+    <link rel="stylesheet" href="../assets/css/base-reset.css">
+    <link rel="stylesheet" href="../assets/css/admin-style.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .demo-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: white;
+        }
+        
+        .demo-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .demo-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .demo-section {
+            margin-bottom: 3rem;
+        }
+        
+        .demo-section h2 {
+            color: white;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .theme-toggle {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50px;
+            padding: 0.5rem 1rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .performance-indicator {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        
+        .demo-code {
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ff00;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            overflow-x: auto;
+        }
+        
+        /* Dark theme styles */
+        [data-theme="dark"] body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container las-fresh-settings-wrap">
+        <div class="demo-header">
+            <h1>Glass Morphism Cards</h1>
+            <p>Modern card components with glass morphism effects and 60fps animations</p>
+        </div>
+        
+        <button class="theme-toggle" onclick="toggleTheme()">🌙 Toggle Theme</button>
+        
+        <div class="performance-indicator" id="fps-counter">
+            FPS: <span id="fps-value">--</span>
+        </div>
+        
+        <div class="demo-section">
+            <h2>Base Card Components</h2>
+            <div class="demo-grid">
+                <!-- Base Card -->
+                <div class="las-card">
+                    <div class="las-card__header">
+                        <h3 class="las-card__title">Base Card</h3>
+                        <p class="las-card__subtitle">Standard glass morphism card with backdrop blur</p>
+                    </div>
+                    <div class="las-card__body">
+                        <p>This is the base card component with glass morphism effects. It features backdrop blur, subtle shadows, and smooth hover animations.</p>
+                    </div>
+                    <div class="demo-code">
+&lt;div class="las-card"&gt;
+  &lt;div class="las-card__header"&gt;
+    &lt;h3 class="las-card__title"&gt;Title&lt;/h3&gt;
+  &lt;/div&gt;
+  &lt;div class="las-card__body"&gt;
+    Content here
+  &lt;/div&gt;
+&lt;/div&gt;
+                    </div>
+                </div>
+                
+                <!-- Elevated Card -->
+                <div class="las-card las-card--elevated">
+                    <div class="las-card__header">
+                        <h3 class="las-card__title">Elevated Card</h3>
+                        <p class="las-card__subtitle">Enhanced elevation for important content</p>
+                    </div>
+                    <div class="las-card__body">
+                        <p>The elevated card variant has enhanced shadows and more pronounced hover effects for highlighting important content.</p>
+                    </div>
+                    <div class="demo-code">
+&lt;div class="las-card las-card--elevated"&gt;
+  &lt;!-- content --&gt;
+&lt;/div&gt;
+                    </div>
+                </div>
+                
+                <!-- Flat Card -->
+                <div class="las-card las-card--flat">
+                    <div class="las-card__header">
+                        <h3 class="las-card__title">Flat Card</h3>
+                        <p class="las-card__subtitle">Minimal design for secondary content</p>
+                    </div>
+                    <div class="las-card__body">
+                        <p>The flat card variant uses minimal shadows and borders, perfect for secondary content areas.</p>
+                    </div>
+                    <div class="demo-code">
+&lt;div class="las-card las-card--flat"&gt;
+  &lt;!-- content --&gt;
+&lt;/div&gt;
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>Interactive Card Variants</h2>
+            <div class="demo-grid">
+                <!-- Interactive Card -->
+                <div class="las-card las-card--interactive" onclick="showAlert('Interactive card clicked!')">
+                    <div class="las-card__header">
+                        <h3 class="las-card__title">Interactive Card</h3>
+                        <p class="las-card__subtitle">Click me for interaction</p>
+                    </div>
+                    <div class="las-card__body">
+                        <p>This card is designed for clickable content with enhanced hover and active states.</p>
+                    </div>
+                    <div class="las-card__footer">
+                        <div class="las-card__actions">
+                            <button class="las-button las-button--primary">Primary Action</button>
+                            <button class="las-button las-button--secondary">Secondary</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Feature Card -->
+                <div class="las-card las-card--feature">
+                    <div class="las-card__header">
+                        <h3 class="las-card__title">Feature Card</h3>
+                        <p class="las-card__subtitle">Highlighting special features</p>
+                    </div>
+                    <div class="las-card__body">
+                        <p>Feature cards use gradient backgrounds and special effects to highlight important features or announcements.</p>
+                    </div>
+                    <div class="las-card__footer">
+                        <div class="las-card__actions">
+                            <button class="las-button las-button--primary">Learn More</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Settings Card -->
+                <div class="las-card las-card--settings">
+                    <div class="las-card__header">
+                        <h3 class="las-card__title">Settings Card</h3>
+                        <p class="las-card__subtitle">For form sections and settings</p>
+                    </div>
+                    <div class="las-card__body">
+                        <div class="form-group">
+                            <label for="demo-input">Setting Name</label>
+                            <input type="text" id="demo-input" class="las-modern-control" placeholder="Enter value">
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox"> Enable this feature
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>Compact and Specialized Cards</h2>
+            <div class="demo-grid">
+                <!-- Compact Card -->
+                <div class="las-card las-card--compact">
+                    <div class="las-card__header">
+                        <h3 class="las-card__title">Compact Card</h3>
+                    </div>
+                    <div class="las-card__body">
+                        <p>Compact cards use less padding for smaller content areas while maintaining the glass morphism effect.</p>
+                    </div>
+                </div>
+                
+                <!-- Card with all elements -->
+                <div class="las-card">
+                    <div class="las-card__header">
+                        <h3 class="las-card__title">Complete Card</h3>
+                        <p class="las-card__subtitle">With all structural elements</p>
+                    </div>
+                    <div class="las-card__body">
+                        <p>This card demonstrates all available structural elements including header, body, and footer sections.</p>
+                        <ul>
+                            <li>Glass morphism background</li>
+                            <li>Backdrop blur effects</li>
+                            <li>Smooth hover animations</li>
+                            <li>60fps performance</li>
+                        </ul>
+                    </div>
+                    <div class="las-card__footer">
+                        <small>Card footer content</small>
+                        <div class="las-card__actions">
+                            <button class="las-button las-button--primary">Save</button>
+                            <button class="las-button las-button--secondary">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Performance test card -->
+                <div class="las-card las-card--interactive" id="performance-test-card">
+                    <div class="las-card__header">
+                        <h3 class="las-card__title">Performance Test</h3>
+                        <p class="las-card__subtitle">Hover to test animation performance</p>
+                    </div>
+                    <div class="las-card__body">
+                        <p>This card is instrumented to measure animation performance. Hover over it to see the FPS counter update.</p>
+                        <div id="performance-stats" style="font-family: monospace; font-size: 0.9rem; margin-top: 1rem;">
+                            <div>Hover events: <span id="hover-count">0</span></div>
+                            <div>Animation frames: <span id="frame-count">0</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>Accessibility Features</h2>
+            <div class="demo-grid">
+                <div class="las-card">
+                    <div class="las-card__header">
+                        <h3 class="las-card__title">Accessibility Features</h3>
+                    </div>
+                    <div class="las-card__body">
+                        <ul>
+                            <li><strong>Keyboard Navigation:</strong> All interactive cards are keyboard accessible</li>
+                            <li><strong>Focus Indicators:</strong> Clear focus outlines for screen readers</li>
+                            <li><strong>Reduced Motion:</strong> Respects prefers-reduced-motion setting</li>
+                            <li><strong>Color Contrast:</strong> WCAG 2.1 AA compliant contrast ratios</li>
+                            <li><strong>Touch Targets:</strong> Minimum 44px touch targets for mobile</li>
+                            <li><strong>Semantic HTML:</strong> Proper heading hierarchy and structure</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="las-card">
+                    <div class="las-card__header">
+                        <h3 class="las-card__title">Browser Support</h3>
+                    </div>
+                    <div class="las-card__body">
+                        <ul>
+                            <li><strong>Modern Browsers:</strong> Full glass morphism with backdrop-filter</li>
+                            <li><strong>Fallback Support:</strong> Solid backgrounds for older browsers</li>
+                            <li><strong>Progressive Enhancement:</strong> Core functionality works everywhere</li>
+                            <li><strong>Performance:</strong> Hardware acceleration where supported</li>
+                        </ul>
+                        <div class="demo-code">
+/* Fallback for older browsers */
+@supports not (backdrop-filter: blur(10px)) {
+  .las-card {
+    background: var(--las-neutral-50);
+  }
+}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Theme toggle functionality
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            
+            const button = document.querySelector('.theme-toggle');
+            button.textContent = newTheme === 'dark' ? '☀️ Toggle Theme' : '🌙 Toggle Theme';
+        }
+        
+        // Performance monitoring
+        let frameCount = 0;
+        let lastTime = performance.now();
+        let hoverCount = 0;
+        
+        function updateFPS() {
+            frameCount++;
+            const currentTime = performance.now();
+            
+            if (currentTime - lastTime >= 1000) {
+                const fps = Math.round(frameCount * 1000 / (currentTime - lastTime));
+                document.getElementById('fps-value').textContent = fps;
+                frameCount = 0;
+                lastTime = currentTime;
+            }
+            
+            requestAnimationFrame(updateFPS);
+        }
+        
+        // Start FPS monitoring
+        updateFPS();
+        
+        // Performance test card instrumentation
+        const perfTestCard = document.getElementById('performance-test-card');
+        const hoverCountEl = document.getElementById('hover-count');
+        const frameCountEl = document.getElementById('frame-count');
+        
+        let animationFrameCount = 0;
+        
+        perfTestCard.addEventListener('mouseenter', () => {
+            hoverCount++;
+            hoverCountEl.textContent = hoverCount;
+            
+            // Count animation frames during hover
+            function countFrames() {
+                animationFrameCount++;
+                frameCountEl.textContent = animationFrameCount;
+                requestAnimationFrame(countFrames);
+            }
+            countFrames();
+        });
+        
+        // Alert function for interactive demo
+        function showAlert(message) {
+            alert(message);
+        }
+        
+        // Keyboard accessibility for interactive cards
+        document.querySelectorAll('.las-card--interactive').forEach(card => {
+            card.setAttribute('tabindex', '0');
+            card.setAttribute('role', 'button');
+            
+            card.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    card.click();
+                }
+            });
+        });
+        
+        // Log browser support information
+        console.log('Browser Support Check:');
+        console.log('backdrop-filter:', CSS.supports('backdrop-filter', 'blur(10px)'));
+        console.log('will-change:', CSS.supports('will-change', 'transform'));
+        console.log('contain:', CSS.supports('contain', 'layout style paint'));
+        console.log('prefers-reduced-motion:', window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    </script>
+</body>
+</html>

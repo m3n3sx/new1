@@ -7,15 +7,25 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:ui": "jest --testPathPattern=test-theme-manager-comprehensive|test-responsive-manager-comprehensive|test-visual-regression|test-accessibility-comprehensive|test-cross-browser-compatibility|test-wordpress-integration",
+    "test:ui:comprehensive": "jest --testPathPattern=test-comprehensive-ui-suite",
+    "test:theme": "jest --testPathPattern=test-theme-manager-comprehensive",
+    "test:responsive": "jest --testPathPattern=test-responsive-manager-comprehensive",
+    "test:visual": "jest --testPathPattern=test-visual-regression",
+    "test:a11y": "jest --testPathPattern=test-accessibility-comprehensive",
+    "test:browser": "jest --testPathPattern=test-cross-browser-compatibility",
+    "test:wp": "jest --testPathPattern=test-wordpress-integration",
     "test:php": "phpunit",
     "test:php:coverage": "phpunit --coverage-html tests/coverage/php",
     "test:all": "npm run test:php && npm run test",
+    "test:modern-ui": "npm run test:ui && npm run test:ui:comprehensive",
     "lint:js": "eslint js/ assets/js/ tests/js/",
     "lint:php": "phpcs --standard=WordPress includes/ live-admin-styler.php",
-    "build": "npm run test:all && npm run lint:js"
+    "build": "npm run test:all && npm run lint:js",
+    "validate:modern-ui": "npm run test:modern-ui && npm run lint:js"
   },
   "jest": {
-    "testEnvironment": "node",
+    "testEnvironment": "jsdom",
     "testMatch": [
       "**/tests/js/**/*.js"
     ],
@@ -36,12 +46,22 @@
     ],
     "moduleNameMapping": {
       "^@/(.*)$": "<rootDir>/$1"
-    }
+    },
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    },
+    "testTimeout": 10000
   },
   "devDependencies": {
-    "jest": "^29.0.0",
     "eslint": "^8.0.0",
     "eslint-config-wordpress": "^2.0.0",
+    "jest": "^29.0.0",
+    "jest-environment-jsdom": "^30.2.0",
     "jquery": "^3.6.0"
   },
   "keywords": [

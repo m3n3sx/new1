@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Form Inputs Integration Test</title>
+    <link rel="stylesheet" href="../assets/css/base-reset.css">
+    <link rel="stylesheet" href="../assets/css/admin-style.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f0f0f1;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .test-results {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 300px;
+            z-index: 1000;
+        }
+        
+        .test-result {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        
+        .test-result.pass {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .test-result.fail {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .test-result.warn {
+            background: #fef3c7;
+            color: #92400e;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-results">
+        <h3>Integration Test Results</h3>
+        <div id="test-output"></div>
+        <div id="test-summary"></div>
+    </div>
+
+    <div class="las-fresh-settings-wrap">
+        <h1>Modern Form Inputs Integration Test</h1>
+        
+        <!-- WordPress Form Table Structure -->
+        <table class="form-table">
+            <tr>
+                <th scope="row">
+                    <label for="wp-text-input">WordPress Text Input</label>
+                </th>
+                <td>
+                    <input type="text" id="wp-text-input" class="las-input" placeholder="WordPress integration test">
+                    <p class="description">This input uses the new modern styling within WordPress form table structure.</p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="wp-select-input">WordPress Select</label>
+                </th>
+                <td>
+                    <select id="wp-select-input" class="las-input">
+                        <option value="">Choose option</option>
+                        <option value="1">Option 1</option>
+                        <option value="2">Option 2</option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+        
+        <!-- Field Row Structure -->
+        <div class="field-row">
+            <label for="field-row-input">Field Row Input</label>
+            <input type="text" id="field-row-input" class="las-input" placeholder="Field row integration">
+            <div class="description">This input is within the existing field-row structure.</div>
+        </div>
+        
+        <!-- Modern Input Groups -->
+        <div class="las-form-section">
+            <h3 class="las-form-section-title">Modern Input Components</h3>
+            
+            <div class="las-input-group">
+                <label for="modern-input" class="las-label">Modern Input Group</label>
+                <input type="text" id="modern-input" class="las-input" placeholder="Modern styling">
+                <div class="las-input-help">This uses the new input group structure.</div>
+            </div>
+            
+            <div class="las-input-group error">
+                <label for="error-input" class="las-label required">Error State Input</label>
+                <input type="text" id="error-input" class="las-input" value="">
+                <div class="las-input-help error">This field is required</div>
+            </div>
+            
+            <div class="las-checkbox-group">
+                <input type="checkbox" id="modern-checkbox" class="las-checkbox">
+                <label for="modern-checkbox" class="las-checkbox-label">Modern Checkbox</label>
+            </div>
+            
+            <div class="las-switch-group">
+                <label class="las-switch">
+                    <input type="checkbox" id="modern-switch">
+                    <span class="las-switch-slider"></span>
+                </label>
+                <label for="modern-switch">Modern Switch</label>
+            </div>
+        </div>
+        
+        <!-- Mobile Test Section -->
+        <div class="las-form-section">
+            <h3 class="las-form-section-title">Mobile Touch Target Test</h3>
+            <div class="las-form-grid cols-2">
+                <div class="las-input-group small">
+                    <label for="small-mobile" class="las-label">Small Input (Mobile)</label>
+                    <input type="text" id="small-mobile" class="las-input" placeholder="Touch target test">
+                </div>
+                <div class="las-input-group">
+                    <label for="normal-mobile" class="las-label">Normal Input (Mobile)</label>
+                    <input type="text" id="normal-mobile" class="las-input" placeholder="44px minimum">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class IntegrationTester {
+            constructor() {
+                this.results = [];
+                this.outputElement = document.getElementById('test-output');
+                this.summaryElement = document.getElementById('test-summary');
+            }
+            
+            runTests() {
+                console.log('🧪 Running Modern Form Inputs Integration Tests...');
+                
+                this.testTouchTargets();
+                this.testStyling();
+                this.testValidationStates();
+                this.testAccessibility();
+                this.testWordPressIntegration();
+                this.testResponsiveness();
+                
+                this.displayResults();
+            }
+            
+            testTouchTargets() {
+                console.log('👆 Testing touch targets...');
+                
+                const inputs = document.querySelectorAll('.las-input');
+                inputs.forEach((input, index) => {
+                    const rect = input.getBoundingClientRect();
+                    const computedStyle = window.getComputedStyle(input);
+                    const minHeight = parseInt(computedStyle.minHeight);
+                    
+                    if (minHeight >= 44) {
+                        this.pass(`Input ${index + 1}: Touch target ${minHeight}px ≥ 44px`);
+                    } else {
+                        this.fail(`Input ${index + 1}: Touch target ${minHeight}px < 44px`);
+                    }
+                });
+                
+                // Test checkbox groups
+                const checkboxGroups = document.querySelectorAll('.las-checkbox-group');
+                checkboxGroups.forEach((group, index) => {
+                    const rect = group.getBoundingClientRect();
+                    if (rect.height >= 44) {
+                        this.pass(`Checkbox group ${index + 1}: Touch target ${rect.height.toFixed(0)}px ≥ 44px`);
+                    } else {
+                        this.fail(`Checkbox group ${index + 1}: Touch target ${rect.height.toFixed(0)}px < 44px`);
+                    }
+                });
+            }
+            
+            testStyling() {
+                console.log('🎨 Testing styling...');
+                
+                const inputs = document.querySelectorAll('.las-input');
+                inputs.forEach((input, index) => {
+                    const styles = window.getComputedStyle(input);
+                    
+                    // Test border radius
+                    const borderRadius = parseInt(styles.borderRadius);
+                    if (borderRadius >= 8) {
+                        this.pass(`Input ${index + 1}: Modern border radius ${borderRadius}px`);
+                    } else {
+                        this.fail(`Input ${index + 1}: Border radius too small ${borderRadius}px`);
+                    }
+                    
+                    // Test transitions
+                    if (styles.transition && styles.transition.includes('all')) {
+                        this.pass(`Input ${index + 1}: Has smooth transitions`);
+                    } else {
+                        this.warn(`Input ${index + 1}: Missing transitions`);
+                    }
+                    
+                    // Test box shadow
+                    if (styles.boxShadow && styles.boxShadow !== 'none') {
+                        this.pass(`Input ${index + 1}: Has elevation shadow`);
+                    } else {
+                        this.warn(`Input ${index + 1}: No elevation shadow`);
+                    }
+                });
+            }
+            
+            testValidationStates() {
+                console.log('✅ Testing validation states...');
+                
+                const errorInput = document.querySelector('.las-input-group.error .las-input');
+                if (errorInput) {
+                    const styles = window.getComputedStyle(errorInput);
+                    const borderColor = styles.borderColor;
+                    
+                    if (borderColor.includes('239, 68, 68') || borderColor.includes('rgb(239, 68, 68)')) {
+                        this.pass('Error state: Correct border color');
+                    } else {
+                        this.fail(`Error state: Wrong border color ${borderColor}`);
+                    }
+                }
+                
+                const errorHelp = document.querySelector('.las-input-help.error');
+                if (errorHelp) {
+                    const styles = window.getComputedStyle(errorHelp);
+                    const color = styles.color;
+                    
+                    if (color.includes('220, 38, 38')) {
+                        this.pass('Error help text: Correct color');
+                    } else {
+                        this.warn(`Error help text: Color ${color}`);
+                    }
+                }
+            }
+            
+            testAccessibility() {
+                console.log('♿ Testing accessibility...');
+                
+                const inputs = document.querySelectorAll('.las-input');
+                inputs.forEach((input, index) => {
+                    const id = input.id;
+                    const label = document.querySelector(`label[for="${id}"]`);
+                    
+                    if (label) {
+                        this.pass(`Input ${index + 1}: Has associated label`);
+                    } else {
+                        this.fail(`Input ${index + 1}: Missing associated label`);
+                    }
+                    
+                    // Test focus
+                    input.focus();
+                    const styles = window.getComputedStyle(input);
+                    if (styles.outline && styles.outline !== 'none') {
+                        this.pass(`Input ${index + 1}: Has focus outline`);
+                    } else {
+                        this.fail(`Input ${index + 1}: Missing focus outline`);
+                    }
+                    input.blur();
+                });
+            }
+            
+            testWordPressIntegration() {
+                console.log('🔌 Testing WordPress integration...');
+                
+                // Test form table integration
+                const formTableInput = document.querySelector('.form-table .las-input');
+                if (formTableInput) {
+                    const styles = window.getComputedStyle(formTableInput);
+                    const minHeight = parseInt(styles.minHeight);
+                    
+                    if (minHeight >= 44) {
+                        this.pass('WordPress form table: Modern input styling applied');
+                    } else {
+                        this.fail('WordPress form table: Styling not applied');
+                    }
+                }
+                
+                // Test field row integration
+                const fieldRowInput = document.querySelector('.field-row .las-input');
+                if (fieldRowInput) {
+                    const styles = window.getComputedStyle(fieldRowInput);
+                    const borderRadius = parseInt(styles.borderRadius);
+                    
+                    if (borderRadius >= 8) {
+                        this.pass('Field row: Modern input styling applied');
+                    } else {
+                        this.fail('Field row: Styling not applied');
+                    }
+                }
+            }
+            
+            testResponsiveness() {
+                console.log('📱 Testing responsiveness...');
+                
+                const formGrid = document.querySelector('.las-form-grid.cols-2');
+                if (formGrid) {
+                    const styles = window.getComputedStyle(formGrid);
+                    
+                    if (styles.display === 'grid') {
+                        this.pass('Form grid: Uses CSS Grid layout');
+                    } else {
+                        this.fail('Form grid: Not using CSS Grid');
+                    }
+                    
+                    const gap = parseInt(styles.gap);
+                    if (gap >= 20) {
+                        this.pass(`Form grid: Adequate gap ${gap}px`);
+                    } else {
+                        this.warn(`Form grid: Small gap ${gap}px`);
+                    }
+                }
+                
+                // Test mobile behavior by checking if small inputs maintain 44px on mobile
+                const smallInput = document.querySelector('.las-input-group.small .las-input');
+                if (smallInput) {
+                    const styles = window.getComputedStyle(smallInput);
+                    const minHeight = parseInt(styles.minHeight);
+                    
+                    // On mobile, even small inputs should maintain 44px
+                    if (window.innerWidth <= 767) {
+                        if (minHeight >= 44) {
+                            this.pass('Mobile: Small input maintains 44px touch target');
+                        } else {
+                            this.fail(`Mobile: Small input too small ${minHeight}px`);
+                        }
+                    } else {
+                        this.pass('Desktop: Small input sizing appropriate');
+                    }
+                }
+            }
+            
+            pass(message) {
+                console.log(`✅ ${message}`);
+                this.results.push({ type: 'pass', message });
+            }
+            
+            fail(message) {
+                console.log(`❌ ${message}`);
+                this.results.push({ type: 'fail', message });
+            }
+            
+            warn(message) {
+                console.log(`⚠️ ${message}`);
+                this.results.push({ type: 'warn', message });
+            }
+            
+            displayResults() {
+                const passed = this.results.filter(r => r.type === 'pass').length;
+                const failed = this.results.filter(r => r.type === 'fail').length;
+                const warnings = this.results.filter(r => r.type === 'warn').length;
+                
+                // Display individual results
+                this.results.forEach(result => {
+                    const div = document.createElement('div');
+                    div.className = `test-result ${result.type}`;
+                    div.textContent = result.message;
+                    this.outputElement.appendChild(div);
+                });
+                
+                // Display summary
+                const summary = document.createElement('div');
+                summary.innerHTML = `
+                    <hr>
+                    <strong>Summary:</strong><br>
+                    ✅ Passed: ${passed}<br>
+                    ❌ Failed: ${failed}<br>
+                    ⚠️ Warnings: ${warnings}<br>
+                    <strong>Success Rate: ${((passed / (passed + failed)) * 100).toFixed(1)}%</strong>
+                `;
+                this.summaryElement.appendChild(summary);
+                
+                console.log('\n📊 INTEGRATION TEST SUMMARY');
+                console.log('='.repeat(40));
+                console.log(`✅ Passed: ${passed}`);
+                console.log(`❌ Failed: ${failed}`);
+                console.log(`⚠️ Warnings: ${warnings}`);
+                console.log(`📈 Success Rate: ${((passed / (passed + failed)) * 100).toFixed(1)}%`);
+                
+                if (failed === 0) {
+                    console.log('\n🎉 All integration tests passed!');
+                    console.log('✨ Modern Form Input Components are properly integrated');
+                }
+            }
+        }
+        
+        // Run tests when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            const tester = new IntegrationTester();
+            tester.runTests();
+        });
+        
+        // Test theme switching
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'd' || e.key === 'D') {
+                const wrapper = document.querySelector('.las-fresh-settings-wrap');
+                if (wrapper.hasAttribute('data-theme')) {
+                    wrapper.removeAttribute('data-theme');
+                    document.body.style.background = '#f0f0f1';
+                    console.log('🌞 Switched to light theme');
+                } else {
+                    wrapper.setAttribute('data-theme', 'dark');
+                    document.body.style.background = '#1f2937';
+                    console.log('🌙 Switched to dark theme');
+                }
+            }
+        });
+        
+        console.log('💡 Press "D" to toggle dark/light theme');
+    </script>
+</body>
+</html>

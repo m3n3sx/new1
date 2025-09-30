@@ -18,10 +18,13 @@ if (typeof global.jQuery === 'undefined') {
     global.$ = global.jQuery;
 }
 
-// Mock WordPress AJAX data
-global.lasFreshData = {
+// Mock WordPress AJAX data - using unified variable name
+global.lasAdminData = {
     ajax_url: '/wp-admin/admin-ajax.php',
-    nonce: 'test_nonce_12345'
+    nonce: 'test_nonce_12345',
+    auto_refresh_nonce: true,
+    retry_attempts: 3,
+    retry_delay: 1000
 };
 
 global.lasAdminData = {

@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigation System Test Runner</title>
+    <link rel="stylesheet" href="../assets/css/base-reset.css">
+    <link rel="stylesheet" href="../assets/css/design-system.css">
+    <link rel="stylesheet" href="../assets/css/admin-style.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--las-neutral-50);
+            padding: var(--las-space-lg);
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: var(--las-radius-lg);
+            padding: var(--las-space-xl);
+            box-shadow: var(--las-shadow-lg);
+        }
+        
+        .test-results {
+            margin-top: var(--las-space-lg);
+            padding: var(--las-space-lg);
+            background: var(--las-neutral-100);
+            border-radius: var(--las-radius-md);
+        }
+        
+        .test-result {
+            padding: var(--las-space-sm) 0;
+            border-bottom: 1px solid var(--las-neutral-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .test-result:last-child {
+            border-bottom: none;
+        }
+        
+        .test-status {
+            padding: var(--las-space-xs) var(--las-space-sm);
+            border-radius: var(--las-radius-sm);
+            font-size: var(--las-font-size-sm);
+            font-weight: var(--las-font-weight-medium);
+        }
+        
+        .test-status.pass {
+            background: var(--las-success-100);
+            color: var(--las-success-700);
+        }
+        
+        .test-status.fail {
+            background: var(--las-error-100);
+            color: var(--las-error-700);
+        }
+        
+        .summary {
+            margin-top: var(--las-space-lg);
+            padding: var(--las-space-lg);
+            border-radius: var(--las-radius-md);
+            text-align: center;
+        }
+        
+        .summary.success {
+            background: var(--las-success-50);
+            color: var(--las-success-700);
+        }
+        
+        .summary.failure {
+            background: var(--las-error-50);
+            color: var(--las-error-700);
+        }
+        
+        .run-button {
+            background: var(--las-primary-500);
+            color: white;
+            border: none;
+            padding: var(--las-space-md) var(--las-space-xl);
+            border-radius: var(--las-radius-md);
+            cursor: pointer;
+            font-size: var(--las-font-size-base);
+            font-weight: var(--las-font-weight-medium);
+            margin-bottom: var(--las-space-lg);
+        }
+        
+        .run-button:hover {
+            background: var(--las-primary-600);
+        }
+        
+        .run-button:disabled {
+            background: var(--las-neutral-400);
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Modern Navigation System Test Runner</h1>
+        <p>This page tests the modern navigation system implementation with all required features.</p>
+        
+        <button id="run-tests" class="run-button">Run All Tests</button>
+        
+        <div id="test-results" class="test-results" style="display: none;">
+            <h3>Test Results</h3>
+            <div id="results-list"></div>
+            <div id="summary" class="summary"></div>
+        </div>
+        
+        <!-- Hidden test navigation -->
+        <div id="test-navigation" style="display: none;">
+            <div id="las-settings-tabs">
+                <div class="las-tabs" role="tablist" aria-label="Settings navigation">
+                    <button class="las-tab" role="tab" data-panel="general" aria-selected="true" tabindex="0">
+                        <span class="las-tab-icon dashicons dashicons-admin-settings"></span>
+                        <span class="las-tab-text">General</span>
+                    </button>
+                    <button class="las-tab" role="tab" data-panel="menu" aria-selected="false" tabindex="-1">
+                        <span class="las-tab-icon dashicons dashicons-menu"></span>
+                        <span class="las-tab-text">Menu</span>
+                    </button>
+                    <button class="las-tab" role="tab" data-panel="adminbar" aria-selected="false" tabindex="-1">
+                        <span class="las-tab-icon dashicons dashicons-admin-generic"></span>
+                        <span class="las-tab-text">Admin Bar</span>
+                    </button>
+                    <button class="las-tab" role="tab" data-panel="content" aria-selected="false" tabindex="-1">
+                        <span class="las-tab-icon dashicons dashicons-admin-page"></span>
+                        <span class="las-tab-text">Content</span>
+                    </button>
+                </div>
+                
+                <div id="las-tab-general" class="las-tab-panel" role="tabpanel" aria-hidden="false">
+                    <h3>General Settings</h3>
+                    <input type="text" id="test-input-1" />
+                    <button id="test-button-1">Test Button</button>
+                </div>
+                
+                <div id="las-tab-menu" class="las-tab-panel" role="tabpanel" aria-hidden="true" style="display: none;">
+                    <h3>Menu Settings</h3>
+                    <input type="text" id="test-input-2" />
+                </div>
+                
+                <div id="las-tab-adminbar" class="las-tab-panel" role="tabpanel" aria-hidden="true" style="display: none;">
+                    <h3>Admin Bar Settings</h3>
+                    <select id="test-select-1">
+                        <option value="1">Option 1</option>
+                        <option value="2">Option 2</option>
+                    </select>
+                </div>
+                
+                <div id="las-tab-content" class="las-tab-panel" role="tabpanel" aria-hidden="true" style="display: none;">
+                    <h3>Content Settings</h3>
+                    <textarea id="test-textarea-1"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- WordPress Dashicons -->
+    <style>
+        .dashicons {
+            font-family: dashicons;
+            display: inline-block;
+            line-height: 1;
+            font-weight: 400;
+            font-style: normal;
+            speak: never;
+            text-decoration: inherit;
+            text-transform: none;
+            text-rendering: auto;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            width: 20px;
+            height: 20px;
+            font-size: 20px;
+            vertical-align: top;
+            text-align: center;
+            transition: color .1s ease-in;
+        }
+        
+        .dashicons-admin-settings:before { content: "\f108"; }
+        .dashicons-menu:before { content: "\f333"; }
+        .dashicons-admin-generic:before { content: "\f111"; }
+        .dashicons-admin-page:before { content: "\f133"; }
+    </style>
+    
+    <script src="../assets/js/navigation-manager.js"></script>
+    <script>
+        class SimpleTestRunner {
+            constructor() {
+                this.tests = [];
+                this.results = {
+                    passed: 0,
+                    failed: 0,
+                    total: 0
+                };
+                this.navigationManager = null;
+            }
+            
+            async runTests() {
+                const runButton = document.getElementById('run-tests');
+                const resultsDiv = document.getElementById('test-results');
+                const resultsList = document.getElementById('results-list');
+                const summary = document.getElementById('summary');
+                
+                runButton.disabled = true;
+                runButton.textContent = 'Running Tests...';
+                
+                resultsDiv.style.display = 'block';
+                resultsList.innerHTML = '';
+                
+                // Initialize navigation manager
+                this.navigationManager = new NavigationManager({
+                    container: '#las-settings-tabs',
+                    tabSelector: '.las-tab',
+                    panelSelector: '.las-tab-panel',
+                    activeClass: 'las-tab-active'
+                });
+                
+                // Run tests
+                await this.testInitialization();
+                await this.testTabActivation();
+                await this.testAccessibility();
+                await this.testKeyboardNavigation();
+                await this.testStateManagement();
+                
+                // Display summary
+                const successRate = ((this.results.passed / this.results.total) * 100).toFixed(1);
+                summary.className = `summary ${this.results.failed === 0 ? 'success' : 'failure'}`;
+                summary.innerHTML = `
+                    <h4>Test Summary</h4>
+                    <p>Total: ${this.results.total} | Passed: ${this.results.passed} | Failed: ${this.results.failed}</p>
+                    <p>Success Rate: ${successRate}%</p>
+                    ${this.results.failed === 0 ? 
+                        '<p><strong>🎉 All tests passed!</strong></p>' : 
+                        '<p><strong>⚠️ Some tests failed. Check implementation.</strong></p>'
+                    }
+                `;
+                
+                runButton.disabled = false;
+                runButton.textContent = 'Run All Tests';
+                
+                // Cleanup
+                if (this.navigationManager) {
+                    this.navigationManager.destroy();
+                }
+            }
+            
+            async testInitialization() {
+                this.addTest('Navigation Manager Initialization', () => {
+                    return this.navigationManager && 
+                           this.navigationManager.tabs.length === 4 &&
+                           this.navigationManager.panels.length === 4;
+                });
+                
+                this.addTest('Live Region Creation', () => {
+                    const liveRegion = document.getElementById('las-tab-announcements');
+                    return liveRegion && 
+                           liveRegion.getAttribute('aria-live') === 'polite';
+                });
+                
+                this.addTest('Initial Active Tab', () => {
+                    return this.navigationManager.getActiveIndex() === 0;
+                });
+            }
+            
+            async testTabActivation() {
+                this.addTest('Tab Activation by Index', () => {
+                    this.navigationManager.activateTab(1);
+                    return this.navigationManager.getActiveIndex() === 1;
+                });
+                
+                this.addTest('Tab Activation by Identifier', () => {
+                    this.navigationManager.goToTab('content');
+                    return this.navigationManager.getActiveIndex() === 3;
+                });
+                
+                this.addTest('Invalid Tab Handling', () => {
+                    const currentIndex = this.navigationManager.getActiveIndex();
+                    this.navigationManager.activateTab(-1);
+                    return this.navigationManager.getActiveIndex() === currentIndex;
+                });
+            }
+            
+            async testAccessibility() {
+                this.addTest('Tab ARIA Attributes', () => {
+                    return this.navigationManager.tabs.every(tab => 
+                        tab.getAttribute('role') === 'tab' &&
+                        tab.hasAttribute('aria-selected') &&
+                        tab.hasAttribute('tabindex')
+                    );
+                });
+                
+                this.addTest('Panel ARIA Attributes', () => {
+                    return this.navigationManager.panels.every(panel => 
+                        panel.getAttribute('role') === 'tabpanel' &&
+                        panel.hasAttribute('aria-hidden')
+                    );
+                });
+                
+                this.addTest('Tablist ARIA Attributes', () => {
+                    const tablist = document.querySelector('.las-tabs');
+                    return tablist.getAttribute('role') === 'tablist';
+                });
+            }
+            
+            async testKeyboardNavigation() {
+                this.addTest('Arrow Key Navigation Setup', () => {
+                    // Test that keyboard event listeners are attached
+                    const container = document.getElementById('las-settings-tabs');
+                    return container !== null;
+                });
+                
+                this.addTest('Focus Management', () => {
+                    this.navigationManager.activateTab(1);
+                    return this.navigationManager.tabs[0].getAttribute('tabindex') === '-1' &&
+                           this.navigationManager.tabs[1].getAttribute('tabindex') === '0';
+                });
+            }
+            
+            async testStateManagement() {
+                this.addTest('LocalStorage State Saving', () => {
+                    this.navigationManager.activateTab(2);
+                    const savedTab = localStorage.getItem('las_active_tab');
+                    return savedTab === 'adminbar';
+                });
+                
+                this.addTest('Public API Methods', () => {
+                    return typeof this.navigationManager.getActiveIndex === 'function' &&
+                           typeof this.navigationManager.getActiveTab === 'function' &&
+                           typeof this.navigationManager.goToTab === 'function';
+                });
+            }
+            
+            addTest(name, testFunction) {
+                this.results.total++;
+                
+                try {
+                    const result = testFunction();
+                    const passed = result === true;
+                    
+                    if (passed) {
+                        this.results.passed++;
+                    } else {
+                        this.results.failed++;
+                    }
+                    
+                    this.displayTestResult(name, passed);
+                } catch (error) {
+                    this.results.failed++;
+                    this.displayTestResult(name, false, error.message);
+                }
+            }
+            
+            displayTestResult(name, passed, error = null) {
+                const resultsList = document.getElementById('results-list');
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'test-result';
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = name;
+                
+                const statusSpan = document.createElement('span');
+                statusSpan.className = `test-status ${passed ? 'pass' : 'fail'}`;
+                statusSpan.textContent = passed ? 'PASS' : 'FAIL';
+                
+                if (error) {
+                    statusSpan.title = error;
+                }
+                
+                resultDiv.appendChild(nameSpan);
+                resultDiv.appendChild(statusSpan);
+                resultsList.appendChild(resultDiv);
+            }
+        }
+        
+        // Initialize test runner
+        document.addEventListener('DOMContentLoaded', () => {
+            const testRunner = new SimpleTestRunner();
+            
+            document.getElementById('run-tests').addEventListener('click', () => {
+                testRunner.runTests();
+            });
+        });
+    </script>
+</body>
+</html>

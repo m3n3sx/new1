@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading States Integration Test</title>
+    
+    <!-- Design System CSS -->
+    <link rel="stylesheet" href="../assets/css/design-system.css">
+    <link rel="stylesheet" href="../assets/css/base-reset.css">
+    <link rel="stylesheet" href="../assets/css/loading-states.css">
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--las-neutral-50);
+            padding: var(--las-space-lg);
+            line-height: 1.6;
+        }
+
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: var(--las-radius-lg);
+            padding: var(--las-space-xl);
+            box-shadow: var(--las-shadow-md);
+        }
+
+        .test-section {
+            margin-bottom: var(--las-space-xl);
+            padding-bottom: var(--las-space-lg);
+            border-bottom: 1px solid var(--las-neutral-200);
+        }
+
+        .test-section:last-child {
+            border-bottom: none;
+        }
+
+        .test-controls {
+            display: flex;
+            gap: var(--las-space-sm);
+            margin-bottom: var(--las-space-lg);
+            flex-wrap: wrap;
+        }
+
+        .test-button {
+            padding: var(--las-space-sm) var(--las-space-md);
+            border: none;
+            border-radius: var(--las-radius-md);
+            background: var(--las-primary-500);
+            color: white;
+            cursor: pointer;
+            font-size: var(--las-font-size-sm);
+            transition: all var(--las-transition-base);
+            min-height: 44px;
+        }
+
+        .test-button:hover {
+            background: var(--las-primary-600);
+        }
+
+        .test-button.secondary {
+            background: var(--las-neutral-200);
+            color: var(--las-neutral-700);
+        }
+
+        .test-button.secondary:hover {
+            background: var(--las-neutral-300);
+        }
+
+        .test-area {
+            min-height: 150px;
+            padding: var(--las-space-lg);
+            background: var(--las-neutral-50);
+            border-radius: var(--las-radius-md);
+            border: 2px dashed var(--las-neutral-200);
+            position: relative;
+        }
+
+        .test-results {
+            background: var(--las-neutral-100);
+            border-radius: var(--las-radius-md);
+            padding: var(--las-space-md);
+            margin-top: var(--las-space-md);
+            font-family: monospace;
+            font-size: var(--las-font-size-sm);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: var(--las-space-xs);
+        }
+
+        .status-pass { background: var(--las-success); }
+        .status-fail { background: var(--las-error); }
+        .status-warn { background: var(--las-warning); }
+
+        h1, h2 {
+            color: var(--las-neutral-800);
+            margin-bottom: var(--las-space-md);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: var(--las-font-size-3xl);
+        }
+
+        .auto-test-controls {
+            text-align: center;
+            margin-bottom: var(--las-space-xl);
+        }
+
+        .auto-test-controls .test-button {
+            font-size: var(--las-font-size-base);
+            padding: var(--las-space-md) var(--las-space-xl);
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Loading States Integration Test</h1>
+        
+        <div class="auto-test-controls">
+            <button class="test-button" onclick="runAllTests()">🚀 Run All Tests</button>
+            <button class="test-button secondary" onclick="clearResults()">🧹 Clear Results</button>
+        </div>
+
+        <!-- Skeleton Loader Tests -->
+        <div class="test-section">
+            <h2>Skeleton Loader Tests</h2>
+            <div class="test-controls">
+                <button class="test-button" onclick="testSkeletonBasic()">Basic Skeleton</button>
+                <button class="test-button" onclick="testSkeletonTypes()">All Types</button>
+                <button class="test-button" onclick="testSkeletonRestore()">Restore Content</button>
+            </div>
+            <div id="skeleton-test-area" class="test-area">
+                <h3>Sample Content</h3>
+                <p>This is some sample content that will be replaced with skeleton loaders.</p>
+                <p>Multiple paragraphs to test different skeleton configurations.</p>
+                <button class="test-button">Sample Button</button>
+            </div>
+            <div id="skeleton-results" class="test-results"></div>
+        </div>
+
+        <!-- Spinner Tests -->
+        <div class="test-section">
+            <h2>Spinner Tests</h2>
+            <div class="test-controls">
+                <button class="test-button" onclick="testSpinnerBasic()">Basic Spinner</button>
+                <button class="test-button" onclick="testSpinnerSizes()">Different Sizes</button>
+                <button class="test-button" onclick="testSpinnerMessage()">With Message</button>
+            </div>
+            <div id="spinner-test-area" class="test-area">
+                <p>Spinner will appear in this area during tests.</p>
+            </div>
+            <div id="spinner-results" class="test-results"></div>
+        </div>
+
+        <!-- Overlay Tests -->
+        <div class="test-section">
+            <h2>Overlay Tests</h2>
+            <div class="test-controls">
+                <button class="test-button" onclick="testOverlayBasic()">Basic Overlay</button>
+                <button class="test-button" onclick="testOverlayMessage()">With Message</button>
+                <button class="test-button" onclick="testOverlayNoSpinner()">No Spinner</button>
+            </div>
+            <div id="overlay-test-area" class="test-area">
+                <h3>Overlay Target</h3>
+                <p>This area will have overlay loading states applied.</p>
+                <p>The overlay should cover this entire area with backdrop blur.</p>
+            </div>
+            <div id="overlay-results" class="test-results"></div>
+        </div>
+
+        <!-- Progress Tests -->
+        <div class="test-section">
+            <h2>Progress Indicator Tests</h2>
+            <div class="test-controls">
+                <button class="test-button" onclick="testProgressDeterminate()">Determinate</button>
+                <button class="test-button" onclick="testProgressIndeterminate()">Indeterminate</button>
+                <button class="test-button" onclick="testProgressUpdate()">Update Progress</button>
+            </div>
+            <div id="progress-test-area" class="test-area">
+                <p>Progress indicators will appear here.</p>
+            </div>
+            <div id="progress-results" class="test-results"></div>
+        </div>
+
+        <!-- Button Loading Tests -->
+        <div class="test-section">
+            <h2>Button Loading Tests</h2>
+            <div class="test-controls">
+                <button class="test-button" onclick="testButtonLoading()">Button Loading</button>
+                <button class="test-button" onclick="testButtonRestore()">Restore Button</button>
+            </div>
+            <div id="button-test-area" class="test-area">
+                <button id="test-button-1" class="test-button">Test Button 1</button>
+                <button id="test-button-2" class="test-button secondary">Test Button 2</button>
+            </div>
+            <div id="button-results" class="test-results"></div>
+        </div>
+
+        <!-- Async Wrapper Tests -->
+        <div class="test-section">
+            <h2>Async Wrapper Tests</h2>
+            <div class="test-controls">
+                <button class="test-button" onclick="testAsyncSuccess()">Async Success</button>
+                <button class="test-button" onclick="testAsyncError()">Async Error</button>
+                <button class="test-button" onclick="testAsyncSlow()">Slow Operation</button>
+            </div>
+            <div id="async-test-area" class="test-area">
+                <p>Async operations will show loading states here.</p>
+                <div id="async-result"></div>
+            </div>
+            <div id="async-results" class="test-results"></div>
+        </div>
+
+        <!-- Performance Tests -->
+        <div class="test-section">
+            <h2>Performance Tests</h2>
+            <div class="test-controls">
+                <button class="test-button" onclick="testPerformanceSingle()">Single Loading</button>
+                <button class="test-button" onclick="testPerformanceMultiple()">Multiple Loadings</button>
+                <button class="test-button" onclick="testMemoryUsage()">Memory Usage</button>
+            </div>
+            <div id="performance-test-area" class="test-area">
+                <p>Performance tests will run here.</p>
+            </div>
+            <div id="performance-results" class="test-results"></div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../assets/js/loading-manager.js"></script>
+    <script src="../assets/js/loading-integration.js"></script>
+    <script src="validate-loading-states.js"></script>
+
+    <script>
+        let loadingManager;
+        let testResults = {};
+        let activeLoadings = new Map();
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadingManager = new LoadingManager();
+            log('System', 'LoadingManager initialized');
+        });
+
+        // Utility functions
+        function log(section, message, status = 'info') {
+            const resultsDiv = document.getElementById(`${section.toLowerCase()}-results`);
+            if (resultsDiv) {
+                const timestamp = new Date().toLocaleTimeString();
+                const statusClass = status === 'pass' ? 'status-pass' : 
+                                  status === 'fail' ? 'status-fail' : 
+                                  status === 'warn' ? 'status-warn' : '';
+                
+                const statusIndicator = statusClass ? 
+                    `<span class="status-indicator ${statusClass}"></span>` : '';
+                
+                resultsDiv.innerHTML += `${statusIndicator}[${timestamp}] ${message}\n`;
+                resultsDiv.scrollTop = resultsDiv.scrollHeight;
+            }
+            console.log(`[${section}] ${message}`);
+        }
+
+        function clearResults() {
+            const resultsDivs = document.querySelectorAll('.test-results');
+            resultsDivs.forEach(div => div.innerHTML = '');
+            testResults = {};
+            
+            // Clear any active loadings
+            loadingManager.hideAllLoading();
+            activeLoadings.clear();
+        }
+
+        // Skeleton Tests
+        async function testSkeletonBasic() {
+            const area = document.getElementById('skeleton-test-area');
+            const originalContent = area.innerHTML;
+            
+            log('Skeleton', 'Testing basic skeleton loader...');
+            
+            const loadingId = loadingManager.showSkeleton(area);
+            
+            if (loadingId) {
+                log('Skeleton', 'Skeleton loader created successfully', 'pass');
+                activeLoadings.set(loadingId, 'skeleton');
+                
+                // Check if content changed
+                if (area.innerHTML !== originalContent) {
+                    log('Skeleton', 'Content replaced with skeleton', 'pass');
+                } else {
+                    log('Skeleton', 'Content not replaced', 'fail');
+                }
+                
+                // Restore after 2 seconds
+                setTimeout(() => {
+                    loadingManager.hideLoading(loadingId);
+                    activeLoadings.delete(loadingId);
+                    
+                    if (area.innerHTML === originalContent) {
+                        log('Skeleton', 'Original content restored', 'pass');
+                    } else {
+                        log('Skeleton', 'Original content not restored', 'fail');
+                    }
+                }, 2000);
+            } else {
+                log('Skeleton', 'Failed to create skeleton loader', 'fail');
+            }
+        }
+
+        async function testSkeletonTypes() {
+            const area = document.getElementById('skeleton-test-area');
+            const types = ['text', 'button', 'input', 'card', 'avatar'];
+            
+            log('Skeleton', 'Testing different skeleton types...');
+            
+            for (const type of types) {
+                const loadingId = loadingManager.showSkeleton(area, { type });
+                
+                if (area.innerHTML.includes(`las-skeleton-${type}`)) {
+                    log('Skeleton', `Type '${type}' created correctly`, 'pass');
+                } else {
+                    log('Skeleton', `Type '${type}' not created correctly`, 'fail');
+                }
+                
+                loadingManager.hideLoading(loadingId);
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        }
+
+        async function testSkeletonRestore() {
+            const area = document.getElementById('skeleton-test-area');
+            const originalContent = area.innerHTML;
+            
+            log('Skeleton', 'Testing content restoration...');
+            
+            // Create multiple skeletons
+            const ids = [];
+            for (let i = 0; i < 3; i++) {
+                const id = loadingManager.showSkeleton(area);
+                ids.push(id);
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
+            
+            // Hide all
+            ids.forEach(id => loadingManager.hideLoading(id));
+            
+            // Check restoration
+            setTimeout(() => {
+                if (area.innerHTML === originalContent) {
+                    log('Skeleton', 'Multiple skeletons restored correctly', 'pass');
+                } else {
+                    log('Skeleton', 'Multiple skeletons not restored correctly', 'fail');
+                }
+            }, 500);
+        }
+
+        // Spinner Tests
+        async function testSpinnerBasic() {
+            const area = document.getElementById('spinner-test-area');
+            
+            log('Spinner', 'Testing basic spinner...');
+            
+            const loadingId = loadingManager.showSpinner(area);
+            
+            if (area.innerHTML.includes('las-spinner')) {
+                log('Spinner', 'Spinner created successfully', 'pass');
+            } else {
+                log('Spinner', 'Spinner not created', 'fail');
+            }
+            
+            setTimeout(() => {
+                loadingManager.hideLoading(loadingId);
+                log('Spinner', 'Spinner removed', 'pass');
+            }, 2000);
+        }
+
+        async function testSpinnerSizes() {
+            const area = document.getElementById('spinner-test-area');
+            const sizes = ['small', 'default', 'large'];
+            
+            log('Spinner', 'Testing spinner sizes...');
+            
+            for (const size of sizes) {
+                const loadingId = loadingManager.showSpinner(area, { size });
+                
+                const expectedClass = size === 'default' ? 'las-spinner' : `las-spinner ${size}`;
+                if (area.innerHTML.includes('las-spinner')) {
+                    log('Spinner', `Size '${size}' created`, 'pass');
+                } else {
+                    log('Spinner', `Size '${size}' not created`, 'fail');
+                }
+                
+                loadingManager.hideLoading(loadingId);
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        }
+
+        async function testSpinnerMessage() {
+            const area = document.getElementById('spinner-test-area');
+            const message = 'Loading test data...';
+            
+            log('Spinner', 'Testing spinner with message...');
+            
+            const loadingId = loadingManager.showSpinner(area, { message });
+            
+            if (area.innerHTML.includes(message)) {
+                log('Spinner', 'Message displayed correctly', 'pass');
+            } else {
+                log('Spinner', 'Message not displayed', 'fail');
+            }
+            
+            setTimeout(() => {
+                loadingManager.hideLoading(loadingId);
+            }, 2000);
+        }
+
+        // Overlay Tests
+        async function testOverlayBasic() {
+            const area = document.getElementById('overlay-test-area');
+            
+            log('Overlay', 'Testing basic overlay...');
+            
+            const loadingId = loadingManager.showOverlay(area);
+            
+            const overlay = area.querySelector('.las-loading-overlay');
+            if (overlay) {
+                log('Overlay', 'Overlay created successfully', 'pass');
+                
+                if (overlay.getAttribute('role') === 'status') {
+                    log('Overlay', 'Overlay has correct ARIA role', 'pass');
+                } else {
+                    log('Overlay', 'Overlay missing ARIA role', 'fail');
+                }
+            } else {
+                log('Overlay', 'Overlay not created', 'fail');
+            }
+            
+            setTimeout(() => {
+                loadingManager.hideLoading(loadingId);
+                
+                setTimeout(() => {
+                    const overlayAfter = area.querySelector('.las-loading-overlay');
+                    if (!overlayAfter) {
+                        log('Overlay', 'Overlay removed successfully', 'pass');
+                    } else {
+                        log('Overlay', 'Overlay not removed', 'fail');
+                    }
+                }, 300);
+            }, 2000);
+        }
+
+        async function testOverlayMessage() {
+            const area = document.getElementById('overlay-test-area');
+            const message = 'Processing your request...';
+            
+            log('Overlay', 'Testing overlay with message...');
+            
+            const loadingId = loadingManager.showOverlay(area, { message });
+            
+            const overlay = area.querySelector('.las-loading-overlay');
+            if (overlay && overlay.textContent.includes(message)) {
+                log('Overlay', 'Message displayed in overlay', 'pass');
+            } else {
+                log('Overlay', 'Message not displayed in overlay', 'fail');
+            }
+            
+            setTimeout(() => {
+                loadingManager.hideLoading(loadingId);
+            }, 2000);
+        }
+
+        async function testOverlayNoSpinner() {
+            const area = document.getElementById('overlay-test-area');
+            
+            log('Overlay', 'Testing overlay without spinner...');
+            
+            const loadingId = loadingManager.showOverlay(area, { 
+                spinner: false, 
+                message: 'Please wait...' 
+            });
+            
+            const overlay = area.querySelector('.las-loading-overlay');
+            const spinner = overlay ? overlay.querySelector('.las-spinner') : null;
+            
+            if (overlay && !spinner) {
+                log('Overlay', 'Overlay without spinner created', 'pass');
+            } else {
+                log('Overlay', 'Overlay without spinner not created correctly', 'fail');
+            }
+            
+            setTimeout(() => {
+                loadingManager.hideLoading(loadingId);
+            }, 2000);
+        }
+
+        // Progress Tests
+        async function testProgressDeterminate() {
+            const area = document.getElementById('progress-test-area');
+            
+            log('Progress', 'Testing determinate progress...');
+            
+            const loadingId = loadingManager.showProgress(area, { value: 50 });
+            
+            const progressBar = area.querySelector('.las-progress-bar');
+            if (progressBar && progressBar.style.width === '50%') {
+                log('Progress', 'Determinate progress created with correct value', 'pass');
+            } else {
+                log('Progress', 'Determinate progress not created correctly', 'fail');
+            }
+            
+            setTimeout(() => {
+                loadingManager.hideLoading(loadingId);
+            }, 2000);
+        }
+
+        async function testProgressIndeterminate() {
+            const area = document.getElementById('progress-test-area');
+            
+            log('Progress', 'Testing indeterminate progress...');
+            
+            const loadingId = loadingManager.showProgress(area, { value: null });
+            
+            const progress = area.querySelector('.las-progress');
+            if (progress && progress.classList.contains('las-progress-indeterminate')) {
+                log('Progress', 'Indeterminate progress created', 'pass');
+            } else {
+                log('Progress', 'Indeterminate progress not created', 'fail');
+            }
+            
+            setTimeout(() => {
+                loadingManager.hideLoading(loadingId);
+            }, 2000);
+        }
+
+        async function testProgressUpdate() {
+            const area = document.getElementById('progress-test-area');
+            
+            log('Progress', 'Testing progress updates...');
+            
+            const loadingId = loadingManager.showProgress(area, { value: 0 });
+            
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 20;
+                loadingManager.updateProgress(loadingId, progress);
+                log('Progress', `Updated to ${progress}%`);
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        loadingManager.hideLoading(loadingId);
+                        log('Progress', 'Progress update test completed', 'pass');
+                    }, 500);
+                }
+            }, 300);
+        }
+
+        // Button Tests
+        async function testButtonLoading() {
+            const button1 = document.getElementById('test-button-1');
+            const button2 = document.getElementById('test-button-2');
+            
+            log('Button', 'Testing button loading states...');
+            
+            const id1 = loadingManager.showButtonLoading(button1);
+            const id2 = loadingManager.showButtonLoading(button2);
+            
+            if (button1.classList.contains('loading') && button1.disabled) {
+                log('Button', 'Button 1 loading state applied', 'pass');
+            } else {
+                log('Button', 'Button 1 loading state not applied', 'fail');
+            }
+            
+            if (button2.classList.contains('loading') && button2.disabled) {
+                log('Button', 'Button 2 loading state applied', 'pass');
+            } else {
+                log('Button', 'Button 2 loading state not applied', 'fail');
+            }
+            
+            activeLoadings.set(id1, 'button1');
+            activeLoadings.set(id2, 'button2');
+        }
+
+        async function testButtonRestore() {
+            log('Button', 'Testing button state restoration...');
+            
+            // Hide all button loadings
+            for (const [id, type] of activeLoadings.entries()) {
+                if (type.startsWith('button')) {
+                    loadingManager.hideLoading(id);
+                    activeLoadings.delete(id);
+                }
+            }
+            
+            setTimeout(() => {
+                const button1 = document.getElementById('test-button-1');
+                const button2 = document.getElementById('test-button-2');
+                
+                if (!button1.classList.contains('loading') && !button1.disabled) {
+                    log('Button', 'Button 1 state restored', 'pass');
+                } else {
+                    log('Button', 'Button 1 state not restored', 'fail');
+                }
+                
+                if (!button2.classList.contains('loading') && !button2.disabled) {
+                    log('Button', 'Button 2 state restored', 'pass');
+                } else {
+                    log('Button', 'Button 2 state not restored', 'fail');
+                }
+            }, 100);
+        }
+
+        // Async Tests
+        async function testAsyncSuccess() {
+            const area = document.getElementById('async-test-area');
+            const resultDiv = document.getElementById('async-result');
+            
+            log('Async', 'Testing successful async operation...');
+            
+            try {
+                const result = await loadingManager.wrapAsync(
+                    () => new Promise(resolve => 
+                        setTimeout(() => resolve('Success!'), 1500)
+                    ),
+                    area,
+                    { type: 'overlay', message: 'Processing...' }
+                );
+                
+                resultDiv.innerHTML = `<span style="color: var(--las-success);">✓ ${result}</span>`;
+                log('Async', 'Async success test completed', 'pass');
+            } catch (error) {
+                log('Async', `Async success test failed: ${error.message}`, 'fail');
+            }
+        }
+
+        async function testAsyncError() {
+            const area = document.getElementById('async-test-area');
+            const resultDiv = document.getElementById('async-result');
+            
+            log('Async', 'Testing async error handling...');
+            
+            try {
+                await loadingManager.wrapAsync(
+                    () => new Promise((resolve, reject) => 
+                        setTimeout(() => reject(new Error('Test error')), 1000)
+                    ),
+                    area,
+                    { type: 'skeleton', type: 'card' }
+                );
+                
+                log('Async', 'Async error test should have thrown', 'fail');
+            } catch (error) {
+                resultDiv.innerHTML = `<span style="color: var(--las-error);">✗ ${error.message}</span>`;
+                log('Async', 'Async error handled correctly', 'pass');
+            }
+        }
+
+        async function testAsyncSlow() {
+            const area = document.getElementById('async-test-area');
+            const resultDiv = document.getElementById('async-result');
+            
+            log('Async', 'Testing slow async operation...');
+            
+            try {
+                const result = await loadingManager.wrapAsync(
+                    () => new Promise(resolve => 
+                        setTimeout(() => resolve('Slow operation completed'), 3000)
+                    ),
+                    area,
+                    { type: 'progress', value: null }
+                );
+                
+                resultDiv.innerHTML = `<span style="color: var(--las-success);">✓ ${result}</span>`;
+                log('Async', 'Slow async operation completed', 'pass');
+            } catch (error) {
+                log('Async', `Slow async operation failed: ${error.message}`, 'fail');
+            }
+        }
+
+        // Performance Tests
+        async function testPerformanceSingle() {
+            const area = document.getElementById('performance-test-area');
+            
+            log('Performance', 'Testing single loading performance...');
+            
+            const startTime = performance.now();
+            const loadingId = loadingManager.showSkeleton(area);
+            
+            setTimeout(() => {
+                loadingManager.hideLoading(loadingId);
+                const endTime = performance.now();
+                const duration = endTime - startTime;
+                
+                if (duration < 50) {
+                    log('Performance', `Single loading fast: ${duration.toFixed(2)}ms`, 'pass');
+                } else {
+                    log('Performance', `Single loading slow: ${duration.toFixed(2)}ms`, 'warn');
+                }
+            }, 10);
+        }
+
+        async function testPerformanceMultiple() {
+            log('Performance', 'Testing multiple loading performance...');
+            
+            const startTime = performance.now();
+            const loadingIds = [];
+            
+            // Create multiple test elements
+            const testElements = [];
+            for (let i = 0; i < 10; i++) {
+                const el = document.createElement('div');
+                el.textContent = `Test element ${i}`;
+                el.style.cssText = 'padding: 10px; margin: 5px; background: #f0f0f0;';
+                document.getElementById('performance-test-area').appendChild(el);
+                testElements.push(el);
+                
+                const id = loadingManager.showSkeleton(el);
+                loadingIds.push(id);
+            }
+            
+            setTimeout(() => {
+                loadingIds.forEach(id => loadingManager.hideLoading(id));
+                testElements.forEach(el => el.remove());
+                
+                const endTime = performance.now();
+                const duration = endTime - startTime;
+                
+                if (duration < 100) {
+                    log('Performance', `Multiple loadings fast: ${duration.toFixed(2)}ms`, 'pass');
+                } else {
+                    log('Performance', `Multiple loadings slow: ${duration.toFixed(2)}ms`, 'warn');
+                }
+            }, 50);
+        }
+
+        async function testMemoryUsage() {
+            log('Performance', 'Testing memory usage...');
+            
+            const initialStats = loadingManager.getStats();
+            log('Performance', `Initial active loadings: ${initialStats.activeLoadings}`);
+            
+            // Create and immediately destroy many loadings
+            const area = document.getElementById('performance-test-area');
+            for (let i = 0; i < 50; i++) {
+                const id = loadingManager.showSkeleton(area);
+                loadingManager.hideLoading(id);
+            }
+            
+            setTimeout(() => {
+                const finalStats = loadingManager.getStats();
+                
+                if (finalStats.activeLoadings === 0) {
+                    log('Performance', 'No memory leaks detected', 'pass');
+                } else {
+                    log('Performance', `Potential memory leak: ${finalStats.activeLoadings} active`, 'warn');
+                }
+            }, 100);
+        }
+
+        // Run all tests
+        async function runAllTests() {
+            clearResults();
+            log('System', 'Starting comprehensive test suite...');
+            
+            // Run tests with delays to avoid conflicts
+            const tests = [
+                () => testSkeletonBasic(),
+                () => new Promise(resolve => setTimeout(resolve, 3000)),
+                () => testSkeletonTypes(),
+                () => new Promise(resolve => setTimeout(resolve, 4000)),
+                () => testSpinnerBasic(),
+                () => new Promise(resolve => setTimeout(resolve, 3000)),
+                () => testSpinnerSizes(),
+                () => new Promise(resolve => setTimeout(resolve, 3000)),
+                () => testOverlayBasic(),
+                () => new Promise(resolve => setTimeout(resolve, 4000)),
+                () => testProgressDeterminate(),
+                () => new Promise(resolve => setTimeout(resolve, 3000)),
+                () => testProgressUpdate(),
+                () => new Promise(resolve => setTimeout(resolve, 4000)),
+                () => testButtonLoading(),
+                () => new Promise(resolve => setTimeout(resolve, 2000)),
+                () => testButtonRestore(),
+                () => new Promise(resolve => setTimeout(resolve, 1000)),
+                () => testAsyncSuccess(),
+                () => new Promise(resolve => setTimeout(resolve, 2000)),
+                () => testPerformanceSingle(),
+                () => new Promise(resolve => setTimeout(resolve, 1000)),
+                () => testPerformanceMultiple(),
+                () => new Promise(resolve => setTimeout(resolve, 1000)),
+                () => testMemoryUsage()
+            ];
+            
+            for (const test of tests) {
+                await test();
+            }
+            
+            log('System', 'All tests completed!', 'pass');
+        }
+    </script>
+</body>
+</html>

@@ -19,6 +19,16 @@
         </testsuite>
         <testsuite name="css-output">
             <file>./tests/php/TestOutputCss.php</file>
+            <file>./tests/php/TestCssGenerationAdvanced.php</file>
+        </testsuite>
+        <testsuite name="error-handling">
+            <file>./tests/php/TestErrorLogging.php</file>
+        </testsuite>
+        <testsuite name="performance">
+            <file>./tests/php/TestPerformanceMonitoring.php</file>
+        </testsuite>
+        <testsuite name="security">
+            <file>./tests/php/TestSecurityEnhancements.php</file>
         </testsuite>
     </testsuites>
     <filter>

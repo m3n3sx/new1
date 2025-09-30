@@ -34,18 +34,6 @@ function las_fresh_get_active_tab() {
 }
 
 /**
- * Save the active tab state for the current user.
- * Uses the enhanced LAS_User_State class for better state management.
- *
- * @param string $tab The tab ID to save.
- * @return bool True on success, false on failure.
- */
-function las_fresh_save_active_tab($tab) {
-    $user_state = new LAS_User_State();
-    return $user_state->set_active_tab($tab);
-}
-
-/**
  * Get enhanced default options including UI preferences.
  *
  * @return array Enhanced default options.
@@ -91,185 +79,374 @@ function las_fresh_render_settings_page() {
     $page_description = __('Dostosuj wygląd swojego panelu administratora. Zmiany w większości są widoczne na żywo. Zapisz, aby utrwalić.', LAS_FRESH_TEXT_DOMAIN);
     $active_tab = las_fresh_get_active_tab();
     ?>
-    <div class="wrap las-fresh-settings-wrap">
-        <h1><?php echo esc_html($page_title); ?></h1>
-        <p><?php echo esc_html($page_description); ?></p>
-
-        <?php if (isset($_GET['settings-updated']) && $_GET['settings-updated']) : ?>
-            <div id="message" class="updated notice is-dismissible">
-                <p><?php esc_html_e('Ustawienia zostały zapisane.', LAS_FRESH_TEXT_DOMAIN); ?></p>
-            </div>
-        <?php endif; ?>
-
-        <!-- Enhanced Settings Search and Organization -->
-        <div class="las-settings-header">
-            <div class="las-search-container">
-                <div class="las-search-wrapper">
-                    <span class="las-search-icon dashicons dashicons-search"></span>
-                    <input type="text" id="las-settings-search" class="las-search-input" 
-                           placeholder="<?php esc_attr_e('Szukaj ustawień...', LAS_FRESH_TEXT_DOMAIN); ?>" 
-                           autocomplete="off" />
-                    <button type="button" id="las-search-clear" class="las-search-clear" 
-                            title="<?php esc_attr_e('Wyczyść wyszukiwanie', LAS_FRESH_TEXT_DOMAIN); ?>">&times;</button>
-                </div>
-                <div class="las-search-results" id="las-search-results" style="display: none;">
-                    <div class="las-search-results-header">
-                        <span class="las-search-results-count"></span>
-                        <button type="button" class="las-search-results-close">&times;</button>
-                    </div>
-                    <div class="las-search-results-content"></div>
-                </div>
+    <div class="wrap las-fresh-settings-wrap las-container" data-las-modern-ui data-theme="light" style="background: #fafafa !important; color: #171717 !important; min-height: 100vh;">
+        <!-- Modern Header Section -->
+        <div class="las-header">
+            <div class="las-header-content">
+                <h1 class="las-page-title"><?php echo esc_html($page_title); ?></h1>
+                <p class="las-page-description"><?php echo esc_html($page_description); ?></p>
             </div>
             
-            <div class="las-settings-filters">
-                <button type="button" class="las-filter-button" data-filter="all">
-                    <span class="dashicons dashicons-admin-settings"></span>
-                    <?php esc_html_e('Wszystkie', LAS_FRESH_TEXT_DOMAIN); ?>
-                </button>
-                <button type="button" class="las-filter-button" data-filter="layout">
-                    <span class="dashicons dashicons-layout"></span>
-                    <?php esc_html_e('Układ', LAS_FRESH_TEXT_DOMAIN); ?>
-                </button>
-                <button type="button" class="las-filter-button" data-filter="colors">
-                    <span class="dashicons dashicons-art"></span>
-                    <?php esc_html_e('Kolory', LAS_FRESH_TEXT_DOMAIN); ?>
-                </button>
-                <button type="button" class="las-filter-button" data-filter="typography">
-                    <span class="dashicons dashicons-editor-textcolor"></span>
-                    <?php esc_html_e('Typografia', LAS_FRESH_TEXT_DOMAIN); ?>
-                </button>
-                <button type="button" class="las-filter-button" data-filter="advanced">
-                    <span class="dashicons dashicons-admin-tools"></span>
-                    <?php esc_html_e('Zaawansowane', LAS_FRESH_TEXT_DOMAIN); ?>
+            <!-- Theme Toggle Button -->
+            <div class="las-header-actions">
+                <button type="button" 
+                        class="las-button las-button-secondary las-theme-toggle" 
+                        data-las-theme-toggle
+                        aria-label="<?php esc_attr_e('Toggle theme', LAS_FRESH_TEXT_DOMAIN); ?>"
+                        title="<?php esc_attr_e('Switch between light and dark themes', LAS_FRESH_TEXT_DOMAIN); ?>">
+                    <span class="las-theme-toggle-icon">🌙</span>
+                    <span class="las-theme-toggle-text"><?php esc_html_e('Dark Mode', LAS_FRESH_TEXT_DOMAIN); ?></span>
                 </button>
             </div>
         </div>
 
-        <div id="las-settings-tabs" data-active-tab="<?php echo esc_attr($active_tab); ?>">
-            <ul>
-                <li><a href="#las-tab-general">
-                    <span class="las-tab-icon dashicons dashicons-admin-settings"></span>
-                    <?php esc_html_e('Układ i Ogólne', LAS_FRESH_TEXT_DOMAIN); ?>
-                </a></li>
-                <li><a href="#las-tab-menu">
-                    <span class="las-tab-icon dashicons dashicons-menu"></span>
-                    <?php esc_html_e('Menu Boczne', LAS_FRESH_TEXT_DOMAIN); ?>
-                </a></li>
-                <li><a href="#las-tab-adminbar">
-                    <span class="las-tab-icon dashicons dashicons-admin-generic"></span>
-                    <?php esc_html_e('Górny Pasek', LAS_FRESH_TEXT_DOMAIN); ?>
-                </a></li>
-                <li><a href="#las-tab-content">
-                    <span class="las-tab-icon dashicons dashicons-admin-page"></span>
-                    <?php esc_html_e('Obszar Treści', LAS_FRESH_TEXT_DOMAIN); ?>
-                </a></li>
-                <li><a href="#las-tab-logos">
-                    <span class="las-tab-icon dashicons dashicons-format-image"></span>
-                    <?php esc_html_e('Logotypy', LAS_FRESH_TEXT_DOMAIN); ?>
-                </a></li>
-                <li><a href="#las-tab-advanced">
-                    <span class="las-tab-icon dashicons dashicons-admin-tools"></span>
-                    <?php esc_html_e('Zaawansowane', LAS_FRESH_TEXT_DOMAIN); ?>
-                </a></li>
-            </ul>
+        <!-- Modern Notification System -->
+        <div class="las-notifications" id="las-notifications" aria-live="polite" aria-atomic="true">
+            <?php if (isset($_GET['settings-updated']) && $_GET['settings-updated']) : ?>
+                <div class="las-notification las-notification-success" role="alert">
+                    <div class="las-notification-icon">
+                        <span class="dashicons dashicons-yes-alt"></span>
+                    </div>
+                    <div class="las-notification-content">
+                        <p><?php esc_html_e('Ustawienia zostały zapisane.', LAS_FRESH_TEXT_DOMAIN); ?></p>
+                    </div>
+                    <button type="button" class="las-notification-dismiss" aria-label="<?php esc_attr_e('Dismiss notification', LAS_FRESH_TEXT_DOMAIN); ?>">
+                        <span class="dashicons dashicons-no-alt"></span>
+                    </button>
+                </div>
+            <?php endif; ?>
+        </div>
 
-            <form method="post" action="options.php" id="las-fresh-settings-form">
-                <?php
-                settings_fields(LAS_FRESH_OPTION_GROUP); // Use the constant
-                $page_slug_prefix = LAS_FRESH_SETTINGS_SLUG . '_'; // Use the constant
-                ?>
-                <div id="las-tab-general"><?php do_settings_sections($page_slug_prefix . 'general'); ?></div>
-                <div id="las-tab-menu"><?php do_settings_sections($page_slug_prefix . 'menu'); ?></div>
-                <div id="las-tab-adminbar"><?php do_settings_sections($page_slug_prefix . 'adminbar'); ?></div>
-                <div id="las-tab-content"><?php do_settings_sections($page_slug_prefix . 'content'); ?></div>
-                <div id="las-tab-logos"><?php do_settings_sections($page_slug_prefix . 'logos'); ?></div>
-                <div id="las-tab-advanced"><?php do_settings_sections($page_slug_prefix . 'advanced'); ?></div>
-                <?php submit_button(__('Zapisz wszystkie zmiany', LAS_FRESH_TEXT_DOMAIN)); ?>
-            </form>
-            
-            <!-- User Preferences Panel -->
-            <div class="las-preferences-panel">
-                <h3><?php esc_html_e('Preferencje użytkownika', LAS_FRESH_TEXT_DOMAIN); ?></h3>
-                <div class="las-preference-row">
-                    <div>
-                        <div class="las-preference-label"><?php esc_html_e('Zapamiętaj aktywną zakładkę', LAS_FRESH_TEXT_DOMAIN); ?></div>
-                        <div class="las-preference-description"><?php esc_html_e('Automatycznie przywraca ostatnio aktywną zakładkę po odświeżeniu strony', LAS_FRESH_TEXT_DOMAIN); ?></div>
-                    </div>
-                    <div class="las-preference-control">
-                        <label class="switch">
-                            <input type="checkbox" id="las-pref-remember-tab" checked>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
+        <!-- Modern Search and Filter System -->
+        <div class="las-toolbar">
+            <div class="las-search-container">
+                <div class="las-input-group">
+                    <span class="las-input-icon">
+                        <span class="dashicons dashicons-search"></span>
+                    </span>
+                    <input type="text" 
+                           id="las-settings-search" 
+                           class="las-input las-search-input" 
+                           placeholder="<?php esc_attr_e('Szukaj ustawień...', LAS_FRESH_TEXT_DOMAIN); ?>" 
+                           autocomplete="off"
+                           aria-label="<?php esc_attr_e('Search settings', LAS_FRESH_TEXT_DOMAIN); ?>" />
+                    <button type="button" 
+                            id="las-search-clear" 
+                            class="las-input-clear" 
+                            title="<?php esc_attr_e('Wyczyść wyszukiwanie', LAS_FRESH_TEXT_DOMAIN); ?>"
+                            aria-label="<?php esc_attr_e('Clear search', LAS_FRESH_TEXT_DOMAIN); ?>">
+                        <span class="dashicons dashicons-no-alt"></span>
+                    </button>
                 </div>
-                <div class="las-preference-row">
-                    <div>
-                        <div class="las-preference-label"><?php esc_html_e('Podgląd na żywo', LAS_FRESH_TEXT_DOMAIN); ?></div>
-                        <div class="las-preference-description"><?php esc_html_e('Włącz natychmiastowy podgląd zmian podczas edycji ustawień', LAS_FRESH_TEXT_DOMAIN); ?></div>
+                
+                <!-- Search Results Dropdown -->
+                <div class="las-search-results" id="las-search-results" style="display: none;" role="listbox">
+                    <div class="las-search-results-header">
+                        <span class="las-search-results-count" aria-live="polite"></span>
+                        <button type="button" 
+                                class="las-search-results-close"
+                                aria-label="<?php esc_attr_e('Close search results', LAS_FRESH_TEXT_DOMAIN); ?>">
+                            <span class="dashicons dashicons-no-alt"></span>
+                        </button>
                     </div>
-                    <div class="las-preference-control">
-                        <label class="switch">
-                            <input type="checkbox" id="las-pref-live-preview" checked>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                </div>
-                <div class="las-preference-row">
-                    <div>
-                        <div class="las-preference-label"><?php esc_html_e('Inteligentne submenu', LAS_FRESH_TEXT_DOMAIN); ?></div>
-                        <div class="las-preference-description"><?php esc_html_e('Ulepszona widoczność i interakcje z submenu w panelu administracyjnym', LAS_FRESH_TEXT_DOMAIN); ?></div>
-                    </div>
-                    <div class="las-preference-control">
-                        <label class="switch">
-                            <input type="checkbox" id="las-pref-smart-submenu" checked>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                </div>
-                <div class="las-preference-row">
-                    <div>
-                        <div class="las-preference-label"><?php esc_html_e('Tryb kompaktowy', LAS_FRESH_TEXT_DOMAIN); ?></div>
-                        <div class="las-preference-description"><?php esc_html_e('Zmniejsza odstępy i rozmiary elementów interfejsu', LAS_FRESH_TEXT_DOMAIN); ?></div>
-                    </div>
-                    <div class="las-preference-control">
-                        <label class="switch">
-                            <input type="checkbox" id="las-pref-compact-mode">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                </div>
-                <div class="las-preference-row">
-                    <div>
-                        <div class="las-preference-label"><?php esc_html_e('Motyw interfejsu', LAS_FRESH_TEXT_DOMAIN); ?></div>
-                        <div class="las-preference-description"><?php esc_html_e('Wybierz styl interfejsu wtyczki', LAS_FRESH_TEXT_DOMAIN); ?></div>
-                    </div>
-                    <div class="las-preference-control">
-                        <select id="las-pref-ui-theme">
-                            <option value="modern"><?php esc_html_e('Nowoczesny', LAS_FRESH_TEXT_DOMAIN); ?></option>
-                            <option value="classic"><?php esc_html_e('Klasyczny', LAS_FRESH_TEXT_DOMAIN); ?></option>
-                            <option value="minimal"><?php esc_html_e('Minimalny', LAS_FRESH_TEXT_DOMAIN); ?></option>
-                        </select>
-                    </div>
-                </div>
-                <div class="las-preference-row">
-                    <div>
-                        <div class="las-preference-label"><?php esc_html_e('Szybkość animacji', LAS_FRESH_TEXT_DOMAIN); ?></div>
-                        <div class="las-preference-description"><?php esc_html_e('Kontroluje szybkość przejść i animacji w interfejsie', LAS_FRESH_TEXT_DOMAIN); ?></div>
-                    </div>
-                    <div class="las-preference-control">
-                        <select id="las-pref-animation-speed">
-                            <option value="slow"><?php esc_html_e('Wolno', LAS_FRESH_TEXT_DOMAIN); ?></option>
-                            <option value="normal"><?php esc_html_e('Normalnie', LAS_FRESH_TEXT_DOMAIN); ?></option>
-                            <option value="fast"><?php esc_html_e('Szybko', LAS_FRESH_TEXT_DOMAIN); ?></option>
-                            <option value="none"><?php esc_html_e('Bez animacji', LAS_FRESH_TEXT_DOMAIN); ?></option>
-                        </select>
-                    </div>
-                </div>
-                <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e1e5e9;">
-                    <button type="button" class="button" id="las-reset-preferences"><?php esc_html_e('Resetuj preferencje', LAS_FRESH_TEXT_DOMAIN); ?></button>
-                    <button type="button" class="button button-primary" id="las-save-preferences"><?php esc_html_e('Zapisz preferencje', LAS_FRESH_TEXT_DOMAIN); ?></button>
+                    <div class="las-search-results-content" role="group"></div>
                 </div>
             </div>
+            
+            <!-- Modern Filter Buttons -->
+            <div class="las-filter-group" role="group" aria-label="<?php esc_attr_e('Filter settings by category', LAS_FRESH_TEXT_DOMAIN); ?>">
+                <button type="button" class="las-button las-button-ghost las-filter-button active" data-filter="all">
+                    <span class="dashicons dashicons-admin-settings"></span>
+                    <span><?php esc_html_e('Wszystkie', LAS_FRESH_TEXT_DOMAIN); ?></span>
+                </button>
+                <button type="button" class="las-button las-button-ghost las-filter-button" data-filter="layout">
+                    <span class="dashicons dashicons-layout"></span>
+                    <span><?php esc_html_e('Układ', LAS_FRESH_TEXT_DOMAIN); ?></span>
+                </button>
+                <button type="button" class="las-button las-button-ghost las-filter-button" data-filter="colors">
+                    <span class="dashicons dashicons-art"></span>
+                    <span><?php esc_html_e('Kolory', LAS_FRESH_TEXT_DOMAIN); ?></span>
+                </button>
+                <button type="button" class="las-button las-button-ghost las-filter-button" data-filter="typography">
+                    <span class="dashicons dashicons-editor-textcolor"></span>
+                    <span><?php esc_html_e('Typografia', LAS_FRESH_TEXT_DOMAIN); ?></span>
+                </button>
+                <button type="button" class="las-button las-button-ghost las-filter-button" data-filter="advanced">
+                    <span class="dashicons dashicons-admin-tools"></span>
+                    <span><?php esc_html_e('Zaawansowane', LAS_FRESH_TEXT_DOMAIN); ?></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Modern Tab Navigation -->
+        <div class="las-tabs-container" data-active-tab="<?php echo esc_attr($active_tab); ?>">
+            <nav class="las-tabs" role="tablist" aria-label="<?php esc_attr_e('Settings navigation', LAS_FRESH_TEXT_DOMAIN); ?>">
+                <button type="button" 
+                        class="las-tab <?php echo $active_tab === 'general' ? 'active' : ''; ?>" 
+                        role="tab" 
+                        aria-selected="<?php echo $active_tab === 'general' ? 'true' : 'false'; ?>"
+                        aria-controls="las-tab-general"
+                        data-tab="general">
+                    <span class="las-tab-icon dashicons dashicons-admin-settings"></span>
+                    <span class="las-tab-text"><?php esc_html_e('Układ i Ogólne', LAS_FRESH_TEXT_DOMAIN); ?></span>
+                </button>
+                <button type="button" 
+                        class="las-tab <?php echo $active_tab === 'menu' ? 'active' : ''; ?>" 
+                        role="tab" 
+                        aria-selected="<?php echo $active_tab === 'menu' ? 'true' : 'false'; ?>"
+                        aria-controls="las-tab-menu"
+                        data-tab="menu">
+                    <span class="las-tab-icon dashicons dashicons-menu"></span>
+                    <span class="las-tab-text"><?php esc_html_e('Menu Boczne', LAS_FRESH_TEXT_DOMAIN); ?></span>
+                </button>
+                <button type="button" 
+                        class="las-tab <?php echo $active_tab === 'adminbar' ? 'active' : ''; ?>" 
+                        role="tab" 
+                        aria-selected="<?php echo $active_tab === 'adminbar' ? 'true' : 'false'; ?>"
+                        aria-controls="las-tab-adminbar"
+                        data-tab="adminbar">
+                    <span class="las-tab-icon dashicons dashicons-admin-generic"></span>
+                    <span class="las-tab-text"><?php esc_html_e('Górny Pasek', LAS_FRESH_TEXT_DOMAIN); ?></span>
+                </button>
+                <button type="button" 
+                        class="las-tab <?php echo $active_tab === 'content' ? 'active' : ''; ?>" 
+                        role="tab" 
+                        aria-selected="<?php echo $active_tab === 'content' ? 'true' : 'false'; ?>"
+                        aria-controls="las-tab-content"
+                        data-tab="content">
+                    <span class="las-tab-icon dashicons dashicons-admin-page"></span>
+                    <span class="las-tab-text"><?php esc_html_e('Obszar Treści', LAS_FRESH_TEXT_DOMAIN); ?></span>
+                </button>
+                <button type="button" 
+                        class="las-tab <?php echo $active_tab === 'logos' ? 'active' : ''; ?>" 
+                        role="tab" 
+                        aria-selected="<?php echo $active_tab === 'logos' ? 'true' : 'false'; ?>"
+                        aria-controls="las-tab-logos"
+                        data-tab="logos">
+                    <span class="las-tab-icon dashicons dashicons-format-image"></span>
+                    <span class="las-tab-text"><?php esc_html_e('Logotypy', LAS_FRESH_TEXT_DOMAIN); ?></span>
+                </button>
+                <button type="button" 
+                        class="las-tab <?php echo $active_tab === 'advanced' ? 'active' : ''; ?>" 
+                        role="tab" 
+                        aria-selected="<?php echo $active_tab === 'advanced' ? 'true' : 'false'; ?>"
+                        aria-controls="las-tab-advanced"
+                        data-tab="advanced">
+                    <span class="las-tab-icon dashicons dashicons-admin-tools"></span>
+                    <span class="las-tab-text"><?php esc_html_e('Zaawansowane', LAS_FRESH_TEXT_DOMAIN); ?></span>
+                </button>
+            </nav>
+
+            <!-- Modern Settings Form -->
+            <div class="las-settings-content">
+                <form method="post" action="options.php" id="las-fresh-settings-form" class="las-form">
+                    <?php
+                    settings_fields(LAS_FRESH_OPTION_GROUP); // Use the constant
+                    $page_slug_prefix = LAS_FRESH_SETTINGS_SLUG . '_'; // Use the constant
+                    ?>
+                    
+                    <!-- Tab Panels with Modern Cards -->
+                    <div class="las-tab-panel <?php echo $active_tab === 'general' ? 'active' : ''; ?>" 
+                         id="las-tab-general" 
+                         role="tabpanel" 
+                         aria-labelledby="tab-general"
+                         tabindex="0">
+                        <div class="las-card">
+                            <?php do_settings_sections($page_slug_prefix . 'general'); ?>
+                        </div>
+                    </div>
+                    
+                    <div class="las-tab-panel <?php echo $active_tab === 'menu' ? 'active' : ''; ?>" 
+                         id="las-tab-menu" 
+                         role="tabpanel" 
+                         aria-labelledby="tab-menu"
+                         tabindex="0">
+                        <div class="las-card">
+                            <?php do_settings_sections($page_slug_prefix . 'menu'); ?>
+                        </div>
+                    </div>
+                    
+                    <div class="las-tab-panel <?php echo $active_tab === 'adminbar' ? 'active' : ''; ?>" 
+                         id="las-tab-adminbar" 
+                         role="tabpanel" 
+                         aria-labelledby="tab-adminbar"
+                         tabindex="0">
+                        <div class="las-card">
+                            <?php do_settings_sections($page_slug_prefix . 'adminbar'); ?>
+                        </div>
+                    </div>
+                    
+                    <div class="las-tab-panel <?php echo $active_tab === 'content' ? 'active' : ''; ?>" 
+                         id="las-tab-content" 
+                         role="tabpanel" 
+                         aria-labelledby="tab-content"
+                         tabindex="0">
+                        <div class="las-card">
+                            <?php do_settings_sections($page_slug_prefix . 'content'); ?>
+                        </div>
+                    </div>
+                    
+                    <div class="las-tab-panel <?php echo $active_tab === 'logos' ? 'active' : ''; ?>" 
+                         id="las-tab-logos" 
+                         role="tabpanel" 
+                         aria-labelledby="tab-logos"
+                         tabindex="0">
+                        <div class="las-card">
+                            <?php do_settings_sections($page_slug_prefix . 'logos'); ?>
+                        </div>
+                    </div>
+                    
+                    <div class="las-tab-panel <?php echo $active_tab === 'advanced' ? 'active' : ''; ?>" 
+                         id="las-tab-advanced" 
+                         role="tabpanel" 
+                         aria-labelledby="tab-advanced"
+                         tabindex="0">
+                        <div class="las-card">
+                            <?php do_settings_sections($page_slug_prefix . 'advanced'); ?>
+                        </div>
+                    </div>
+                    
+                    <!-- Modern Submit Button -->
+                    <div class="las-form-actions">
+                        <button type="submit" class="las-button las-button-primary las-button-large">
+                            <span class="las-button-text"><?php esc_html_e('Zapisz wszystkie zmiany', LAS_FRESH_TEXT_DOMAIN); ?></span>
+                            <span class="las-button-loading" style="display: none;">
+                                <span class="las-spinner"></span>
+                                <?php esc_html_e('Saving...', LAS_FRESH_TEXT_DOMAIN); ?>
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Modern User Preferences Panel -->
+        <div class="las-card las-preferences-panel">
+            <div class="las-card-header">
+                <h3 class="las-card-title"><?php esc_html_e('Preferencje użytkownika', LAS_FRESH_TEXT_DOMAIN); ?></h3>
+                <p class="las-card-description"><?php esc_html_e('Dostosuj interfejs wtyczki do swoich potrzeb', LAS_FRESH_TEXT_DOMAIN); ?></p>
+            </div>
+            
+            <div class="las-card-content">
+                <div class="las-preference-grid">
+                    <div class="las-preference-item">
+                        <div class="las-preference-info">
+                            <label class="las-preference-label" for="las-pref-remember-tab">
+                                <?php esc_html_e('Zapamiętaj aktywną zakładkę', LAS_FRESH_TEXT_DOMAIN); ?>
+                            </label>
+                            <p class="las-preference-description">
+                                <?php esc_html_e('Automatycznie przywraca ostatnio aktywną zakładkę po odświeżeniu strony', LAS_FRESH_TEXT_DOMAIN); ?>
+                            </p>
+                        </div>
+                        <div class="las-preference-control">
+                            <label class="las-switch">
+                                <input type="checkbox" id="las-pref-remember-tab" checked>
+                                <span class="las-switch-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="las-preference-item">
+                        <div class="las-preference-info">
+                            <label class="las-preference-label" for="las-pref-live-preview">
+                                <?php esc_html_e('Podgląd na żywo', LAS_FRESH_TEXT_DOMAIN); ?>
+                            </label>
+                            <p class="las-preference-description">
+                                <?php esc_html_e('Włącz natychmiastowy podgląd zmian podczas edycji ustawień', LAS_FRESH_TEXT_DOMAIN); ?>
+                            </p>
+                        </div>
+                        <div class="las-preference-control">
+                            <label class="las-switch">
+                                <input type="checkbox" id="las-pref-live-preview" checked>
+                                <span class="las-switch-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="las-preference-item">
+                        <div class="las-preference-info">
+                            <label class="las-preference-label" for="las-pref-smart-submenu">
+                                <?php esc_html_e('Inteligentne submenu', LAS_FRESH_TEXT_DOMAIN); ?>
+                            </label>
+                            <p class="las-preference-description">
+                                <?php esc_html_e('Ulepszona widoczność i interakcje z submenu w panelu administracyjnym', LAS_FRESH_TEXT_DOMAIN); ?>
+                            </p>
+                        </div>
+                        <div class="las-preference-control">
+                            <label class="las-switch">
+                                <input type="checkbox" id="las-pref-smart-submenu" checked>
+                                <span class="las-switch-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="las-preference-item">
+                        <div class="las-preference-info">
+                            <label class="las-preference-label" for="las-pref-compact-mode">
+                                <?php esc_html_e('Tryb kompaktowy', LAS_FRESH_TEXT_DOMAIN); ?>
+                            </label>
+                            <p class="las-preference-description">
+                                <?php esc_html_e('Zmniejsza odstępy i rozmiary elementów interfejsu', LAS_FRESH_TEXT_DOMAIN); ?>
+                            </p>
+                        </div>
+                        <div class="las-preference-control">
+                            <label class="las-switch">
+                                <input type="checkbox" id="las-pref-compact-mode">
+                                <span class="las-switch-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="las-preference-item">
+                        <div class="las-preference-info">
+                            <label class="las-preference-label" for="las-pref-ui-theme">
+                                <?php esc_html_e('Motyw interfejsu', LAS_FRESH_TEXT_DOMAIN); ?>
+                            </label>
+                            <p class="las-preference-description">
+                                <?php esc_html_e('Wybierz styl interfejsu wtyczki', LAS_FRESH_TEXT_DOMAIN); ?>
+                            </p>
+                        </div>
+                        <div class="las-preference-control">
+                            <select id="las-pref-ui-theme" class="las-select">
+                                <option value="modern"><?php esc_html_e('Nowoczesny', LAS_FRESH_TEXT_DOMAIN); ?></option>
+                                <option value="classic"><?php esc_html_e('Klasyczny', LAS_FRESH_TEXT_DOMAIN); ?></option>
+                                <option value="minimal"><?php esc_html_e('Minimalny', LAS_FRESH_TEXT_DOMAIN); ?></option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="las-preference-item">
+                        <div class="las-preference-info">
+                            <label class="las-preference-label" for="las-pref-animation-speed">
+                                <?php esc_html_e('Szybkość animacji', LAS_FRESH_TEXT_DOMAIN); ?>
+                            </label>
+                            <p class="las-preference-description">
+                                <?php esc_html_e('Kontroluje szybkość przejść i animacji w interfejsie', LAS_FRESH_TEXT_DOMAIN); ?>
+                            </p>
+                        </div>
+                        <div class="las-preference-control">
+                            <select id="las-pref-animation-speed" class="las-select">
+                                <option value="slow"><?php esc_html_e('Wolno', LAS_FRESH_TEXT_DOMAIN); ?></option>
+                                <option value="normal"><?php esc_html_e('Normalnie', LAS_FRESH_TEXT_DOMAIN); ?></option>
+                                <option value="fast"><?php esc_html_e('Szybko', LAS_FRESH_TEXT_DOMAIN); ?></option>
+                                <option value="none"><?php esc_html_e('Bez animacji', LAS_FRESH_TEXT_DOMAIN); ?></option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="las-card-footer">
+                <div class="las-button-group">
+                    <button type="button" class="las-button las-button-secondary" id="las-reset-preferences">
+                        <?php esc_html_e('Resetuj preferencje', LAS_FRESH_TEXT_DOMAIN); ?>
+                    </button>
+                    <button type="button" class="las-button las-button-primary" id="las-save-preferences">
+                        <?php esc_html_e('Zapisz preferencje', LAS_FRESH_TEXT_DOMAIN); ?>
+                    </button>
+                </div>
+            </div>
+        </div>
 
             <?php if (WP_DEBUG): ?>
             <!-- Debug: Enhanced System Test -->
@@ -1354,7 +1531,10 @@ function las_fresh_render_file_cleanup_field($args) {
     global $las_file_manager;
     
     // Get cleanup preview
-    $preview = $las_file_manager->get_cleanup_preview();
+    $preview = array();
+    if ($las_file_manager && method_exists($las_file_manager, 'get_cleanup_preview')) {
+        $preview = $las_file_manager->get_cleanup_preview();
+    }
     $cleanup_url = wp_nonce_url(add_query_arg('las_cleanup', '1'), 'las_manual_cleanup');
     
     ?>
@@ -1478,6 +1658,275 @@ function las_fresh_render_file_cleanup_field($args) {
         margin: 4px 0;
         color: #666;
     }
+    
+    /* Performance Monitoring Styles */
+    .las-performance-monitoring {
+        background: #fff;
+        border: 1px solid #ccd0d4;
+        border-radius: 4px;
+        padding: 20px;
+        margin-top: 20px;
+    }
+    
+    .las-performance-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-top: 15px;
+    }
+    
+    .las-performance-actions {
+        grid-column: 1 / -1;
+        padding-top: 15px;
+        border-top: 1px solid #ddd;
+    }
+    
+    .las-performance-stats, .las-cache-stats {
+        background: #f9f9f9;
+        padding: 15px;
+        border-radius: 4px;
+        border: 1px solid #e1e1e1;
+    }
+    
+    .las-performance-stats h3, .las-cache-stats h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        color: #23282d;
+    }
+    
+    .las-performance-metric {
+        display: flex;
+        justify-content: space-between;
+        padding: 5px 0;
+        border-bottom: 1px solid #e1e1e1;
+    }
+    
+    .las-performance-metric:last-child {
+        border-bottom: none;
+    }
+    
+    .las-performance-metric-label {
+        font-weight: 500;
+    }
+    
+    .las-performance-metric-value {
+        color: #0073aa;
+        font-family: monospace;
+    }
+    
+    .las-cache-status {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 3px;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+    
+    .las-cache-status.valid {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .las-cache-status.expired {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .las-cache-status.empty {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    @media (max-width: 768px) {
+        .las-performance-content {
+            grid-template-columns: 1fr;
+        }
+    }
     </style>
+    
+    <!-- Performance Monitoring Section -->
+    <div id="las-performance-section" class="las-performance-monitoring" style="display: none;">
+        <h2><?php esc_html_e('Performance Monitoring', LAS_FRESH_TEXT_DOMAIN); ?></h2>
+        <div class="las-performance-content">
+            <div class="las-performance-stats">
+                <h3><?php esc_html_e('Performance Stats (Last 7 Days)', LAS_FRESH_TEXT_DOMAIN); ?></h3>
+                <div id="las-performance-stats-content">
+                    <p><?php esc_html_e('Loading performance data...', LAS_FRESH_TEXT_DOMAIN); ?></p>
+                </div>
+            </div>
+            
+            <div class="las-cache-stats">
+                <h3><?php esc_html_e('CSS Cache Status', LAS_FRESH_TEXT_DOMAIN); ?></h3>
+                <div id="las-cache-stats-content">
+                    <p><?php esc_html_e('Loading cache data...', LAS_FRESH_TEXT_DOMAIN); ?></p>
+                </div>
+            </div>
+            
+            <div class="las-performance-actions">
+                <h3><?php esc_html_e('Performance Actions', LAS_FRESH_TEXT_DOMAIN); ?></h3>
+                <button type="button" id="las-clear-cache" class="button">
+                    <?php esc_html_e('Clear CSS Cache', LAS_FRESH_TEXT_DOMAIN); ?>
+                </button>
+                <button type="button" id="las-clear-metrics" class="button">
+                    <?php esc_html_e('Clear Performance Metrics', LAS_FRESH_TEXT_DOMAIN); ?>
+                </button>
+                <button type="button" id="las-refresh-performance" class="button button-primary">
+                    <?php esc_html_e('Refresh Data', LAS_FRESH_TEXT_DOMAIN); ?>
+                </button>
+                <button type="button" id="las-toggle-performance" class="button" style="float: right;">
+                    <?php esc_html_e('Show Performance Monitor', LAS_FRESH_TEXT_DOMAIN); ?>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    jQuery(document).ready(function($) {
+        // Toggle performance monitoring section
+        $('#las-toggle-performance').on('click', function() {
+            var $section = $('#las-performance-section');
+            var $button = $(this);
+            
+            if ($section.is(':visible')) {
+                $section.hide();
+                $button.text('<?php esc_html_e('Show Performance Monitor', LAS_FRESH_TEXT_DOMAIN); ?>');
+            } else {
+                $section.show();
+                $button.text('<?php esc_html_e('Hide Performance Monitor', LAS_FRESH_TEXT_DOMAIN); ?>');
+                loadPerformanceData();
+            }
+        });
+        
+        // Load performance data
+        function loadPerformanceData() {
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'las_get_performance_metrics',
+                    nonce: lasAdminData.nonce,
+                    days: 7,
+                    limit: 50
+                },
+                success: function(response) {
+                    if (response.success && response.data) {
+                        displayPerformanceStats(response.data.report);
+                        displayCacheStats(response.data.cache_stats);
+                    } else {
+                        $('#las-performance-stats-content').html('<p>Error loading performance data</p>');
+                        $('#las-cache-stats-content').html('<p>Error loading cache data</p>');
+                    }
+                },
+                error: function() {
+                    $('#las-performance-stats-content').html('<p>Failed to load performance data</p>');
+                    $('#las-cache-stats-content').html('<p>Failed to load cache data</p>');
+                }
+            });
+        }
+        
+        // Display performance statistics
+        function displayPerformanceStats(report) {
+            if (!report || report.error) {
+                $('#las-performance-stats-content').html('<p>No performance data available</p>');
+                return;
+            }
+            
+            var html = '';
+            html += '<div class="las-performance-metric"><span class="las-performance-metric-label">Total Operations:</span><span class="las-performance-metric-value">' + report.total_operations + '</span></div>';
+            html += '<div class="las-performance-metric"><span class="las-performance-metric-label">Avg Execution Time:</span><span class="las-performance-metric-value">' + report.avg_execution_time_ms + 'ms</span></div>';
+            html += '<div class="las-performance-metric"><span class="las-performance-metric-label">Max Execution Time:</span><span class="las-performance-metric-value">' + report.max_execution_time_ms + 'ms</span></div>';
+            html += '<div class="las-performance-metric"><span class="las-performance-metric-label">Slow Operations:</span><span class="las-performance-metric-value">' + report.slow_operations_count + '</span></div>';
+            html += '<div class="las-performance-metric"><span class="las-performance-metric-label">High Memory Operations:</span><span class="las-performance-metric-value">' + report.high_memory_operations_count + '</span></div>';
+            
+            if (report.recommendations && report.recommendations.length > 0) {
+                html += '<div style="margin-top: 10px;"><strong>Recommendations:</strong><ul>';
+                report.recommendations.forEach(function(rec) {
+                    html += '<li>' + rec + '</li>';
+                });
+                html += '</ul></div>';
+            }
+            
+            $('#las-performance-stats-content').html(html);
+        }
+        
+        // Display cache statistics
+        function displayCacheStats(stats) {
+            if (!stats) {
+                $('#las-cache-stats-content').html('<p>No cache data available</p>');
+                return;
+            }
+            
+            var statusClass = stats.status === 'valid' ? 'valid' : (stats.status === 'expired' ? 'expired' : 'empty');
+            var html = '';
+            html += '<div class="las-performance-metric"><span class="las-performance-metric-label">Status:</span><span class="las-cache-status ' + statusClass + '">' + stats.status + '</span></div>';
+            
+            if (stats.size_formatted) {
+                html += '<div class="las-performance-metric"><span class="las-performance-metric-label">Cache Size:</span><span class="las-performance-metric-value">' + stats.size_formatted + '</span></div>';
+            }
+            
+            if (stats.created_formatted) {
+                html += '<div class="las-performance-metric"><span class="las-performance-metric-label">Created:</span><span class="las-performance-metric-value">' + stats.created_formatted + '</span></div>';
+            }
+            
+            if (stats.time_remaining_formatted) {
+                html += '<div class="las-performance-metric"><span class="las-performance-metric-label">Expires In:</span><span class="las-performance-metric-value">' + stats.time_remaining_formatted + '</span></div>';
+            }
+            
+            $('#las-cache-stats-content').html(html);
+        }
+        
+        // Clear cache button
+        $('#las-clear-cache').on('click', function() {
+            if (!confirm('Are you sure you want to clear the CSS cache?')) return;
+            
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'las_clear_performance_data',
+                    nonce: lasAdminData.nonce,
+                    clear_type: 'cache'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert('Cache cleared successfully');
+                        loadPerformanceData();
+                    } else {
+                        alert('Failed to clear cache: ' + (response.data.message || 'Unknown error'));
+                    }
+                }
+            });
+        });
+        
+        // Clear metrics button
+        $('#las-clear-metrics').on('click', function() {
+            if (!confirm('Are you sure you want to clear performance metrics?')) return;
+            
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'las_clear_performance_data',
+                    nonce: lasAdminData.nonce,
+                    clear_type: 'metrics'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert('Metrics cleared successfully');
+                        loadPerformanceData();
+                    } else {
+                        alert('Failed to clear metrics: ' + (response.data.message || 'Unknown error'));
+                    }
+                }
+            });
+        });
+        
+        // Refresh data button
+        $('#las-refresh-performance').on('click', function() {
+            loadPerformanceData();
+        });
+    });
+    </script>
     <?php
 }

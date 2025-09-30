@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Admin Styler - Accessibility Integration Test</title>
+    
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="../assets/css/base-reset.css">
+    <link rel="stylesheet" href="../assets/css/design-system.css">
+    <link rel="stylesheet" href="../assets/css/accessibility.css">
+    <link rel="stylesheet" href="../assets/css/admin-style.css">
+    
+    <!-- WordPress Admin Styles (simulated) -->
+    <style>
+        /* Simulate WordPress admin environment */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f1f1f1;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .wrap {
+            background: white;
+            margin: 0 auto;
+            max-width: 1200px;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .nav-tab-wrapper {
+            border-bottom: 1px solid #ccd0d4;
+            margin: 0 0 20px;
+            padding: 0;
+        }
+        
+        .nav-tab {
+            background: #f1f1f1;
+            border: 1px solid #ccd0d4;
+            border-bottom: none;
+            color: #555;
+            display: inline-block;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1;
+            margin: 0 5px -1px 0;
+            padding: 8px 12px;
+            text-decoration: none;
+            position: relative;
+        }
+        
+        .nav-tab:hover {
+            background: #fafafa;
+            color: #444;
+        }
+        
+        .nav-tab-active {
+            background: #fff;
+            border-bottom: 1px solid #fff;
+            color: #000;
+        }
+        
+        .las-tab-content {
+            display: none;
+            padding: 20px 0;
+        }
+        
+        .las-tab-content.active {
+            display: block;
+        }
+        
+        .form-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .form-table th {
+            width: 200px;
+            padding: 20px 10px 20px 0;
+            text-align: left;
+            vertical-align: top;
+            font-weight: 600;
+        }
+        
+        .form-table td {
+            padding: 15px 10px;
+            vertical-align: top;
+        }
+        
+        .form-table input[type="text"],
+        .form-table input[type="email"],
+        .form-table select,
+        .form-table textarea {
+            width: 100%;
+            max-width: 400px;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .button {
+            background: #0073aa;
+            border: 1px solid #0073aa;
+            color: #fff;
+            cursor: pointer;
+            display: inline-block;
+            font-size: 13px;
+            line-height: 2.15384615;
+            margin: 0;
+            padding: 0 10px;
+            text-decoration: none;
+            border-radius: 3px;
+            min-height: 30px;
+        }
+        
+        .button:hover {
+            background: #005a87;
+            border-color: #005a87;
+        }
+        
+        .button-primary {
+            background: #0073aa;
+            border-color: #0073aa;
+        }
+        
+        .button-secondary {
+            background: #f1f1f1;
+            border-color: #ccd0d4;
+            color: #555;
+        }
+        
+        .wp-color-picker {
+            width: 100px;
+            height: 40px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .test-results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        
+        .test-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .test-item:last-child {
+            border-bottom: none;
+        }
+        
+        .test-status {
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .test-pass {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .test-fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .test-warn {
+            background: #fff3cd;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <!-- Skip Links -->
+    <a href="#las-main-content" class="las-skip-link las-sr-only-focusable">Skip to main content</a>
+    <a href="#las-navigation" class="las-skip-link las-sr-only-focusable">Skip to navigation</a>
+    
+    <!-- Live Regions -->
+    <div id="las-live-region" class="las-sr-only" aria-live="polite" aria-atomic="true"></div>
+    <div id="las-live-region-assertive" class="las-sr-only" aria-live="assertive" aria-atomic="true"></div>
+    
+    <div class="wrap">
+        <h1>Live Admin Styler - Accessibility Integration Test</h1>
+        <p>This page tests the integration of accessibility features with WordPress admin interface components.</p>
+        
+        <!-- Theme Controls -->
+        <div style="margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 8px;">
+            <h3>Accessibility Controls</h3>
+            <button id="theme-toggle" class="button button-secondary" aria-label="Toggle dark/light theme">
+                🌓 Toggle Theme
+            </button>
+            <button id="reduced-motion-toggle" class="button button-secondary" aria-label="Toggle reduced motion">
+                🎬 Toggle Motion
+            </button>
+            <button id="screen-reader-toggle" class="button button-secondary" aria-label="Toggle screen reader mode">
+                📢 Screen Reader Mode
+            </button>
+            <button id="high-contrast-toggle" class="button button-secondary" aria-label="Toggle high contrast mode">
+                🔍 High Contrast
+            </button>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav id="las-navigation" class="nav-tab-wrapper" role="navigation" aria-label="Settings navigation">
+            <a href="#general" class="nav-tab nav-tab-active" role="tab" aria-selected="true" aria-controls="general-panel" id="general-tab">General</a>
+            <a href="#forms" class="nav-tab" role="tab" aria-selected="false" aria-controls="forms-panel" id="forms-tab">Forms</a>
+            <a href="#colors" class="nav-tab" role="tab" aria-selected="false" aria-controls="colors-panel" id="colors-tab">Colors</a>
+            <a href="#advanced" class="nav-tab" role="tab" aria-selected="false" aria-controls="advanced-panel" id="advanced-tab">Advanced</a>
+        </nav>
+
+        <main id="las-main-content" role="main">
+            <!-- General Panel -->
+            <div id="general-panel" class="las-tab-content active" role="tabpanel" aria-labelledby="general-tab">
+                <h2>General Settings</h2>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">
+                            <label for="site-title">Site Title</label>
+                        </th>
+                        <td>
+                            <input type="text" id="site-title" name="site_title" value="My WordPress Site" required aria-describedby="site-title-desc">
+                            <p id="site-title-desc" class="description">The name of your website</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="admin-email">Admin Email</label>
+                        </th>
+                        <td>
+                            <input type="email" id="admin-email" name="admin_email" value="admin@example.com" required aria-describedby="admin-email-desc">
+                            <p id="admin-email-desc" class="description">Email address for administrative notifications</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="timezone">Timezone</label>
+                        </th>
+                        <td>
+                            <select id="timezone" name="timezone" aria-describedby="timezone-desc">
+                                <option value="UTC">UTC</option>
+                                <option value="America/New_York" selected>Eastern Time</option>
+                                <option value="America/Chicago">Central Time</option>
+                                <option value="America/Denver">Mountain Time</option>
+                                <option value="America/Los_Angeles">Pacific Time</option>
+                            </select>
+                            <p id="timezone-desc" class="description">Select your local timezone</p>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Forms Panel -->
+            <div id="forms-panel" class="las-tab-content" role="tabpanel" aria-labelledby="forms-tab">
+                <h2>Form Accessibility Test</h2>
+                <form id="test-form" novalidate>
+                    <table class="form-table">
+                        <tr>
+                            <th scope="row">
+                                <label for="required-field" aria-required="true">Required Field *</label>
+                            </th>
+                            <td>
+                                <input type="text" id="required-field" name="required_field" required aria-describedby="required-field-error">
+                                <div id="required-field-error" class="las-error-message" style="display: none;" role="alert">
+                                    This field is required
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <label for="email-field">Email Field</label>
+                            </th>
+                            <td>
+                                <input type="email" id="email-field" name="email_field" aria-describedby="email-field-error">
+                                <div id="email-field-error" class="las-error-message" style="display: none;" role="alert">
+                                    Please enter a valid email address
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <label for="description-field">Description</label>
+                            </th>
+                            <td>
+                                <textarea id="description-field" name="description" rows="4" aria-describedby="description-help"></textarea>
+                                <p id="description-help" class="description">Optional description text</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Preferences</th>
+                            <td>
+                                <fieldset>
+                                    <legend class="las-sr-only">Notification preferences</legend>
+                                    <label>
+                                        <input type="checkbox" name="notifications[]" value="email" checked>
+                                        Email notifications
+                                    </label><br>
+                                    <label>
+                                        <input type="checkbox" name="notifications[]" value="sms">
+                                        SMS notifications
+                                    </label><br>
+                                    <label>
+                                        <input type="checkbox" name="notifications[]" value="push">
+                                        Push notifications
+                                    </label>
+                                </fieldset>
+                            </td>
+                        </tr>
+                    </table>
+                    <p class="submit">
+                        <button type="submit" class="button button-primary">Save Changes</button>
+                        <button type="button" class="button button-secondary" id="reset-form">Reset Form</button>
+                    </p>
+                </form>
+            </div>
+
+            <!-- Colors Panel -->
+            <div id="colors-panel" class="las-tab-content" role="tabpanel" aria-labelledby="colors-tab">
+                <h2>Color Accessibility Test</h2>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">
+                            <label for="primary-color">Primary Color</label>
+                        </th>
+                        <td>
+                            <input type="color" id="primary-color" name="primary_color" value="#2271b1" class="wp-color-picker" aria-label="Primary color picker" aria-haspopup="dialog">
+                            <p class="description">Choose your primary brand color</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="secondary-color">Secondary Color</label>
+                        </th>
+                        <td>
+                            <input type="color" id="secondary-color" name="secondary_color" value="#10b981" class="wp-color-picker" aria-label="Secondary color picker" aria-haspopup="dialog">
+                            <p class="description">Choose your secondary color</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Color Contrast Examples</th>
+                        <td>
+                            <div style="display: grid; gap: 10px; margin-top: 10px;">
+                                <div class="las-bg-primary" style="padding: 10px; border-radius: 4px;">
+                                    Primary background with white text (should meet AA standards)
+                                </div>
+                                <div class="las-bg-success" style="padding: 10px; border-radius: 4px;">
+                                    Success background with white text
+                                </div>
+                                <div class="las-bg-warning" style="padding: 10px; border-radius: 4px;">
+                                    Warning background with dark text
+                                </div>
+                                <div class="las-bg-error" style="padding: 10px; border-radius: 4px;">
+                                    Error background with white text
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Advanced Panel -->
+            <div id="advanced-panel" class="las-tab-content" role="tabpanel" aria-labelledby="advanced-tab">
+                <h2>Advanced Accessibility Features</h2>
+                
+                <h3>Interactive Elements</h3>
+                <div style="display: grid; gap: 15px; margin: 20px 0;">
+                    <div>
+                        <h4>Toggle Buttons</h4>
+                        <button class="button" aria-pressed="false" id="toggle-1">Feature Toggle</button>
+                        <button class="button" aria-pressed="true" id="toggle-2">Enabled Feature</button>
+                    </div>
+                    
+                    <div>
+                        <h4>Expandable Sections</h4>
+                        <button class="button" aria-expanded="false" aria-controls="expandable-content" id="expand-button">
+                            Show Details
+                        </button>
+                        <div id="expandable-content" style="display: none; margin-top: 10px; padding: 15px; background: #f9f9f9; border-radius: 4px;">
+                            <p>This content is initially hidden and can be expanded.</p>
+                            <p>It demonstrates proper ARIA expanded/collapsed states.</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4>Loading States</h4>
+                        <button class="button button-primary" id="loading-demo">Start Process</button>
+                        <div id="loading-container" style="margin-top: 10px;"></div>
+                    </div>
+                </div>
+
+                <h3>Focus Management</h3>
+                <div style="margin: 20px 0;">
+                    <button class="button" id="open-modal">Open Modal Dialog</button>
+                    <button class="button button-secondary" id="focus-trap-demo">Focus Trap Demo</button>
+                </div>
+
+                <!-- Modal Dialog -->
+                <div id="modal-dialog" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000;" role="dialog" aria-labelledby="modal-title" aria-modal="true">
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 8px; max-width: 500px; width: 90%;">
+                        <h3 id="modal-title">Modal Dialog</h3>
+                        <p>This is a modal dialog that demonstrates proper focus management and keyboard navigation.</p>
+                        <div style="margin: 20px 0;">
+                            <label for="modal-input">Input field in modal:</label>
+                            <input type="text" id="modal-input" style="width: 100%; margin-top: 5px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        </div>
+                        <div style="text-align: right; margin-top: 20px;">
+                            <button class="button button-secondary" id="modal-cancel">Cancel</button>
+                            <button class="button button-primary" id="modal-ok" style="margin-left: 10px;">OK</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Test Results -->
+        <section class="test-results" aria-labelledby="test-results-heading">
+            <h2 id="test-results-heading">Accessibility Test Results</h2>
+            <button id="run-tests" class="button button-primary">Run Accessibility Tests</button>
+            
+            <div id="test-output" style="margin-top: 20px; display: none;">
+                <h3>Test Summary</h3>
+                <div id="test-summary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 15px 0;">
+                    <div style="text-align: center; padding: 15px; background: white; border-radius: 8px; border: 1px solid #ddd;">
+                        <div id="passes-count" style="font-size: 24px; font-weight: bold; color: #10b981;">0</div>
+                        <div style="font-size: 14px; color: #666;">Passes</div>
+                    </div>
+                    <div style="text-align: center; padding: 15px; background: white; border-radius: 8px; border: 1px solid #ddd;">
+                        <div id="warnings-count" style="font-size: 24px; font-weight: bold; color: #f59e0b;">0</div>
+                        <div style="font-size: 14px; color: #666;">Warnings</div>
+                    </div>
+                    <div style="text-align: center; padding: 15px; background: white; border-radius: 8px; border: 1px solid #ddd;">
+                        <div id="errors-count" style="font-size: 24px; font-weight: bold; color: #ef4444;">0</div>
+                        <div style="font-size: 14px; color: #666;">Errors</div>
+                    </div>
+                    <div style="text-align: center; padding: 15px; background: white; border-radius: 8px; border: 1px solid #ddd;">
+                        <div id="score" style="font-size: 24px; font-weight: bold; color: #2271b1;">0%</div>
+                        <div style="font-size: 14px; color: #666;">Score</div>
+                    </div>
+                </div>
+                
+                <details style="margin-top: 20px;">
+                    <summary style="cursor: pointer; font-weight: bold; padding: 10px; background: #f9f9f9; border-radius: 4px;">View Detailed Results</summary>
+                    <div id="detailed-results" style="margin-top: 15px; padding: 15px; background: white; border-radius: 4px; border: 1px solid #ddd;"></div>
+                </details>
+            </div>
+        </section>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../assets/js/theme-manager.js"></script>
+    <script src="../assets/js/accessibility-manager.js"></script>
+    <script src="validate-accessibility.js"></script>
+    
+    <script>
+        // Initialize managers
+        const themeManager = new ThemeManager();
+        const accessibilityManager = new AccessibilityManager();
+        const validator = new AccessibilityValidator();
+
+        // Tab navigation
+        const tabs = document.querySelectorAll('.nav-tab');
+        const panels = document.querySelectorAll('.las-tab-content');
+
+        tabs.forEach((tab, index) => {
+            tab.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Update tab states
+                tabs.forEach(t => {
+                    t.setAttribute('aria-selected', 'false');
+                    t.classList.remove('nav-tab-active');
+                });
+                
+                tab.setAttribute('aria-selected', 'true');
+                tab.classList.add('nav-tab-active');
+                
+                // Update panel visibility
+                panels.forEach(panel => panel.classList.remove('active'));
+                const targetPanel = document.getElementById(tab.getAttribute('aria-controls'));
+                if (targetPanel) {
+                    targetPanel.classList.add('active');
+                }
+                
+                // Announce change
+                accessibilityManager.announceToScreenReader(`Switched to ${tab.textContent.trim()} tab`);
+            });
+
+            // Keyboard navigation
+            tab.addEventListener('keydown', (e) => {
+                let targetTab = null;
+                
+                if (e.key === 'ArrowRight') {
+                    targetTab = tabs[index + 1] || tabs[0];
+                } else if (e.key === 'ArrowLeft') {
+                    targetTab = tabs[index - 1] || tabs[tabs.length - 1];
+                } else if (e.key === 'Home') {
+                    targetTab = tabs[0];
+                } else if (e.key === 'End') {
+                    targetTab = tabs[tabs.length - 1];
+                }
+                
+                if (targetTab) {
+                    e.preventDefault();
+                    targetTab.click();
+                    targetTab.focus();
+                }
+            });
+        });
+
+        // Theme controls
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            themeManager.toggleTheme();
+        });
+
+        document.getElementById('reduced-motion-toggle').addEventListener('click', () => {
+            document.documentElement.classList.toggle('las-reduced-motion');
+            const isReduced = document.documentElement.classList.contains('las-reduced-motion');
+            accessibilityManager.announceToScreenReader(
+                isReduced ? 'Reduced motion enabled' : 'Reduced motion disabled'
+            );
+        });
+
+        document.getElementById('screen-reader-toggle').addEventListener('click', () => {
+            accessibilityManager.toggleScreenReaderMode();
+        });
+
+        document.getElementById('high-contrast-toggle').addEventListener('click', () => {
+            document.documentElement.classList.toggle('las-high-contrast');
+            const isHighContrast = document.documentElement.classList.contains('las-high-contrast');
+            accessibilityManager.announceToScreenReader(
+                isHighContrast ? 'High contrast mode enabled' : 'High contrast mode disabled'
+            );
+        });
+
+        // Form validation demo
+        const form = document.getElementById('test-form');
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            let hasErrors = false;
+            const requiredField = document.getElementById('required-field');
+            const emailField = document.getElementById('email-field');
+            
+            // Validate required field
+            if (!requiredField.value.trim()) {
+                hasErrors = true;
+                requiredField.setAttribute('aria-invalid', 'true');
+                document.getElementById('required-field-error').style.display = 'block';
+            } else {
+                requiredField.setAttribute('aria-invalid', 'false');
+                document.getElementById('required-field-error').style.display = 'none';
+            }
+            
+            // Validate email field
+            if (emailField.value && !isValidEmail(emailField.value)) {
+                hasErrors = true;
+                emailField.setAttribute('aria-invalid', 'true');
+                document.getElementById('email-field-error').style.display = 'block';
+            } else {
+                emailField.setAttribute('aria-invalid', 'false');
+                document.getElementById('email-field-error').style.display = 'none';
+            }
+            
+            if (hasErrors) {
+                accessibilityManager.announceToScreenReader('Form has validation errors', true);
+                form.querySelector('[aria-invalid="true"]').focus();
+            } else {
+                accessibilityManager.announceToScreenReader('Form submitted successfully');
+            }
+        });
+
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        // Interactive element demos
+        document.querySelectorAll('[aria-pressed]').forEach(button => {
+            button.addEventListener('click', () => {
+                const isPressed = button.getAttribute('aria-pressed') === 'true';
+                button.setAttribute('aria-pressed', !isPressed);
+                accessibilityManager.announceToScreenReader(
+                    `${button.textContent} ${isPressed ? 'off' : 'on'}`
+                );
+            });
+        });
+
+        document.getElementById('expand-button').addEventListener('click', () => {
+            const button = document.getElementById('expand-button');
+            const content = document.getElementById('expandable-content');
+            const isExpanded = button.getAttribute('aria-expanded') === 'true';
+            
+            button.setAttribute('aria-expanded', !isExpanded);
+            content.style.display = isExpanded ? 'none' : 'block';
+            button.textContent = isExpanded ? 'Show Details' : 'Hide Details';
+            
+            accessibilityManager.announceToScreenReader(
+                isExpanded ? 'Details collapsed' : 'Details expanded'
+            );
+        });
+
+        // Modal dialog demo
+        const modal = document.getElementById('modal-dialog');
+        let modalTrap = null;
+
+        document.getElementById('open-modal').addEventListener('click', () => {
+            modal.style.display = 'block';
+            modalTrap = accessibilityManager.createFocusTrap(modal);
+            document.getElementById('modal-input').focus();
+            accessibilityManager.announceToScreenReader('Modal dialog opened');
+        });
+
+        function closeModal() {
+            modal.style.display = 'none';
+            if (modalTrap) {
+                accessibilityManager.releaseFocusTrap();
+                modalTrap = null;
+            }
+            document.getElementById('open-modal').focus();
+            accessibilityManager.announceToScreenReader('Modal dialog closed');
+        }
+
+        document.getElementById('modal-cancel').addEventListener('click', closeModal);
+        document.getElementById('modal-ok').addEventListener('click', closeModal);
+
+        // Loading demo
+        document.getElementById('loading-demo').addEventListener('click', () => {
+            const button = document.getElementById('loading-demo');
+            const container = document.getElementById('loading-container');
+            
+            button.disabled = true;
+            button.setAttribute('aria-busy', 'true');
+            button.textContent = 'Processing...';
+            
+            container.innerHTML = `
+                <div class="las-loading" aria-busy="true" aria-describedby="loading-desc">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div class="las-loading-spinner" aria-hidden="true"></div>
+                        <span>Processing request...</span>
+                    </div>
+                    <div id="loading-desc" class="las-sr-only">Please wait while the request is being processed</div>
+                </div>
+            `;
+            
+            accessibilityManager.announceToScreenReader('Processing started, please wait');
+            
+            setTimeout(() => {
+                button.disabled = false;
+                button.setAttribute('aria-busy', 'false');
+                button.textContent = 'Start Process';
+                container.innerHTML = '<div style="color: #10b981; font-weight: bold;">✓ Process completed successfully</div>';
+                accessibilityManager.announceToScreenReader('Process completed successfully');
+            }, 3000);
+        });
+
+        // Test runner
+        document.getElementById('run-tests').addEventListener('click', async () => {
+            const button = document.getElementById('run-tests');
+            const output = document.getElementById('test-output');
+            
+            button.disabled = true;
+            button.textContent = 'Running Tests...';
+            
+            accessibilityManager.announceToScreenReader('Starting accessibility validation');
+            
+            try {
+                const results = await validator.validate();
+                
+                // Update summary
+                document.getElementById('passes-count').textContent = results.passes.length;
+                document.getElementById('warnings-count').textContent = results.warnings.length;
+                document.getElementById('errors-count').textContent = results.errors.length;
+                document.getElementById('score').textContent = results.score + '%';
+                
+                // Update detailed results
+                const detailedResults = document.getElementById('detailed-results');
+                detailedResults.innerHTML = `
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #10b981;">✅ Passes (${results.passes.length})</h4>
+                        ${results.passes.map(pass => `<div style="margin: 5px 0; padding: 5px; background: #f0fdf4; border-left: 3px solid #10b981;">${pass}</div>`).join('')}
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #f59e0b;">⚠️ Warnings (${results.warnings.length})</h4>
+                        ${results.warnings.map(warning => `<div style="margin: 5px 0; padding: 5px; background: #fffbeb; border-left: 3px solid #f59e0b;">${warning}</div>`).join('')}
+                    </div>
+                    
+                    <div>
+                        <h4 style="color: #ef4444;">❌ Errors (${results.errors.length})</h4>
+                        ${results.errors.map(error => `<div style="margin: 5px 0; padding: 5px; background: #fef2f2; border-left: 3px solid #ef4444;">${error}</div>`).join('')}
+                    </div>
+                `;
+                
+                output.style.display = 'block';
+                
+                accessibilityManager.announceToScreenReader(
+                    `Validation complete. Score: ${results.score}%. ${results.errors.length} errors, ${results.warnings.length} warnings.`
+                );
+                
+            } catch (error) {
+                console.error('Validation failed:', error);
+                accessibilityManager.announceToScreenReader('Validation failed. Please check console for details.', true);
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Run Accessibility Tests';
+            }
+        });
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            accessibilityManager.announceToScreenReader('Accessibility integration test page loaded');
+        });
+    </script>
+</body>
+</html>

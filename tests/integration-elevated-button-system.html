@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elevated Button System Integration Test</title>
+    <link rel="stylesheet" href="../assets/css/base-reset.css">
+    <link rel="stylesheet" href="../assets/css/admin-style.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--las-neutral-100);
+            padding: 2rem;
+        }
+        
+        .test-section {
+            background: white;
+            border-radius: var(--las-radius-lg);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--las-shadow-sm);
+        }
+        
+        .test-result {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--las-radius-full);
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin: 0.25rem;
+        }
+        
+        .test-pass {
+            background: var(--las-success-100);
+            color: var(--las-success-700);
+        }
+        
+        .test-fail {
+            background: var(--las-error-100);
+            color: var(--las-error-700);
+        }
+        
+        .test-buttons {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+        
+        #test-results {
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="las-fresh-settings-wrap">
+        <h1>Elevated Button System Integration Test</h1>
+        
+        <div class="test-section">
+            <h2>Button Variants Test</h2>
+            <div class="test-buttons">
+                <button id="primary-btn" class="las-button las-button-primary" aria-label="Primary test button">
+                    Primary Button
+                </button>
+                <button id="secondary-btn" class="las-button las-button-secondary" aria-label="Secondary test button">
+                    Secondary Button
+                </button>
+                <button id="ghost-btn" class="las-button las-button-ghost" aria-label="Ghost test button">
+                    Ghost Button
+                </button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Button Sizes Test</h2>
+            <div class="test-buttons">
+                <button id="small-btn" class="las-button las-button-sm las-button-primary" aria-label="Small test button">
+                    Small
+                </button>
+                <button id="default-btn" class="las-button las-button-primary" aria-label="Default test button">
+                    Default
+                </button>
+                <button id="large-btn" class="las-button las-button-lg las-button-primary" aria-label="Large test button">
+                    Large
+                </button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Button States Test</h2>
+            <div class="test-buttons">
+                <button id="normal-btn" class="las-button las-button-primary" aria-label="Normal state button">
+                    Normal
+                </button>
+                <button id="disabled-btn" class="las-button las-button-primary" disabled aria-label="Disabled button">
+                    Disabled
+                </button>
+                <button id="loading-btn" class="las-button las-button-primary las-button-loading" aria-label="Loading button">
+                    Loading...
+                </button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Button Group Test</h2>
+            <div class="las-button-group" role="group" aria-label="Test button group">
+                <button id="group-btn-1" class="las-button las-button-secondary" aria-label="First group button">
+                    First
+                </button>
+                <button id="group-btn-2" class="las-button las-button-secondary" aria-label="Second group button">
+                    Second
+                </button>
+                <button id="group-btn-3" class="las-button las-button-secondary" aria-label="Third group button">
+                    Third
+                </button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Icon Button Test</h2>
+            <div class="test-buttons">
+                <button id="icon-btn" class="las-button las-button-icon las-button-primary" aria-label="Settings icon button">
+                    ⚙️
+                </button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Run Integration Tests</h2>
+            <button id="run-tests" class="las-button las-button-primary" aria-label="Run all integration tests">
+                Run All Tests
+            </button>
+            <button id="toggle-theme" class="las-button las-button-secondary" aria-label="Toggle dark theme">
+                Toggle Dark Theme
+            </button>
+        </div>
+        
+        <div id="test-results" class="test-section">
+            <h2>Test Results</h2>
+            <div id="results-container">
+                <p>Click "Run All Tests" to start testing...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class ElevatedButtonSystemIntegrationTest {
+            constructor() {
+                this.results = [];
+                this.setupEventListeners();
+            }
+
+            setupEventListeners() {
+                document.getElementById('run-tests').addEventListener('click', () => {
+                    this.runAllTests();
+                });
+
+                document.getElementById('toggle-theme').addEventListener('click', () => {
+                    this.toggleTheme();
+                });
+            }
+
+            async runAllTests() {
+                this.results = [];
+                const resultsContainer = document.getElementById('results-container');
+                resultsContainer.innerHTML = '<p>Running tests...</p>';
+
+                // Test button variants
+                this.testButtonVariants();
+                
+                // Test touch targets
+                this.testTouchTargets();
+                
+                // Test elevation effects
+                this.testElevationEffects();
+                
+                // Test accessibility features
+                this.testAccessibilityFeatures();
+                
+                // Test keyboard navigation
+                this.testKeyboardNavigation();
+                
+                // Test ripple effects
+                this.testRippleEffects();
+                
+                // Test button states
+                this.testButtonStates();
+                
+                // Test performance features
+                this.testPerformanceFeatures();
+
+                // Display results
+                this.displayResults();
+            }
+
+            testButtonVariants() {
+                const primaryBtn = document.getElementById('primary-btn');
+                const secondaryBtn = document.getElementById('secondary-btn');
+                const ghostBtn = document.getElementById('ghost-btn');
+
+                this.addResult(
+                    'Button Variants - Primary',
+                    primaryBtn && primaryBtn.classList.contains('las-button-primary'),
+                    'Primary button class applied correctly'
+                );
+
+                this.addResult(
+                    'Button Variants - Secondary',
+                    secondaryBtn && secondaryBtn.classList.contains('las-button-secondary'),
+                    'Secondary button class applied correctly'
+                );
+
+                this.addResult(
+                    'Button Variants - Ghost',
+                    ghostBtn && ghostBtn.classList.contains('las-button-ghost'),
+                    'Ghost button class applied correctly'
+                );
+            }
+
+            testTouchTargets() {
+                const buttons = document.querySelectorAll('.las-button');
+                let allMeetTouchTarget = true;
+
+                buttons.forEach(button => {
+                    const computedStyle = window.getComputedStyle(button);
+                    const minHeight = parseInt(computedStyle.minHeight);
+                    const minWidth = parseInt(computedStyle.minWidth);
+                    
+                    if (button.classList.contains('las-button-sm')) {
+                        if (minHeight < 36 || minWidth < 36) {
+                            allMeetTouchTarget = false;
+                        }
+                    } else {
+                        if (minHeight < 44 || minWidth < 44) {
+                            allMeetTouchTarget = false;
+                        }
+                    }
+                });
+
+                this.addResult(
+                    'Touch Targets',
+                    allMeetTouchTarget,
+                    'All buttons meet minimum touch target requirements'
+                );
+            }
+
+            testElevationEffects() {
+                const primaryBtn = document.getElementById('primary-btn');
+                const computedStyle = window.getComputedStyle(primaryBtn);
+
+                this.addResult(
+                    'Elevation - Box Shadow',
+                    computedStyle.boxShadow && computedStyle.boxShadow !== 'none',
+                    'Buttons have elevation shadows'
+                );
+
+                this.addResult(
+                    'Elevation - Transform',
+                    computedStyle.willChange && computedStyle.willChange.includes('transform'),
+                    'Buttons optimized for transform animations'
+                );
+            }
+
+            testAccessibilityFeatures() {
+                const buttons = document.querySelectorAll('.las-button');
+                let allHaveAriaLabels = true;
+
+                buttons.forEach(button => {
+                    if (!button.getAttribute('aria-label') && !button.textContent.trim()) {
+                        allHaveAriaLabels = false;
+                    }
+                });
+
+                this.addResult(
+                    'Accessibility - ARIA Labels',
+                    allHaveAriaLabels,
+                    'All buttons have proper ARIA labels or text content'
+                );
+
+                // Test focus indicators
+                const primaryBtn = document.getElementById('primary-btn');
+                primaryBtn.focus();
+                
+                this.addResult(
+                    'Accessibility - Focus',
+                    document.activeElement === primaryBtn,
+                    'Buttons are keyboard focusable'
+                );
+            }
+
+            testKeyboardNavigation() {
+                let keyboardNavigationWorks = true;
+                
+                // Test Tab navigation
+                const buttons = document.querySelectorAll('.las-button:not([disabled])');
+                if (buttons.length > 0) {
+                    buttons[0].focus();
+                    keyboardNavigationWorks = document.activeElement === buttons[0];
+                }
+
+                this.addResult(
+                    'Keyboard Navigation',
+                    keyboardNavigationWorks,
+                    'Buttons support keyboard navigation'
+                );
+            }
+
+            testRippleEffects() {
+                const primaryBtn = document.getElementById('primary-btn');
+                const afterStyle = window.getComputedStyle(primaryBtn, '::after');
+
+                this.addResult(
+                    'Ripple Effect',
+                    afterStyle.content === '""' && afterStyle.position === 'absolute',
+                    'Ripple effect pseudo-element implemented'
+                );
+            }
+
+            testButtonStates() {
+                const disabledBtn = document.getElementById('disabled-btn');
+                const loadingBtn = document.getElementById('loading-btn');
+
+                this.addResult(
+                    'Button States - Disabled',
+                    disabledBtn.disabled,
+                    'Disabled state properly applied'
+                );
+
+                this.addResult(
+                    'Button States - Loading',
+                    loadingBtn.classList.contains('las-button-loading'),
+                    'Loading state class applied'
+                );
+            }
+
+            testPerformanceFeatures() {
+                const primaryBtn = document.getElementById('primary-btn');
+                const computedStyle = window.getComputedStyle(primaryBtn);
+
+                this.addResult(
+                    'Performance - will-change',
+                    computedStyle.willChange && computedStyle.willChange.includes('transform'),
+                    'Performance optimization with will-change property'
+                );
+
+                this.addResult(
+                    'Performance - CSS Containment',
+                    computedStyle.contain && computedStyle.contain.includes('layout'),
+                    'CSS containment for performance'
+                );
+            }
+
+            addResult(testName, passed, description) {
+                this.results.push({
+                    name: testName,
+                    passed,
+                    description
+                });
+            }
+
+            displayResults() {
+                const resultsContainer = document.getElementById('results-container');
+                const passedCount = this.results.filter(r => r.passed).length;
+                const totalCount = this.results.length;
+                const successRate = ((passedCount / totalCount) * 100).toFixed(1);
+
+                let html = `
+                    <div style="margin-bottom: 1rem;">
+                        <h3>Test Summary</h3>
+                        <p><strong>Passed:</strong> ${passedCount}/${totalCount} (${successRate}%)</p>
+                    </div>
+                    <div>
+                `;
+
+                this.results.forEach(result => {
+                    const className = result.passed ? 'test-pass' : 'test-fail';
+                    const icon = result.passed ? '✅' : '❌';
+                    html += `
+                        <div class="test-result ${className}">
+                            ${icon} ${result.name}: ${result.description}
+                        </div>
+                    `;
+                });
+
+                html += '</div>';
+
+                if (passedCount === totalCount) {
+                    html += '<div style="margin-top: 1rem; padding: 1rem; background: var(--las-success-100); border-radius: var(--las-radius-md); color: var(--las-success-700);"><strong>🎉 All tests passed! Elevated button system is working correctly.</strong></div>';
+                }
+
+                resultsContainer.innerHTML = html;
+            }
+
+            toggleTheme() {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', newTheme);
+            }
+        }
+
+        // Initialize test system
+        document.addEventListener('DOMContentLoaded', () => {
+            new ElevatedButtonSystemIntegrationTest();
+            
+            // Initialize theme
+            const stored = localStorage.getItem('las-theme');
+            if (stored) {
+                document.documentElement.setAttribute('data-theme', stored);
+            } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        });
+    </script>
+</body>
+</html>

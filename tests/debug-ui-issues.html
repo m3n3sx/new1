@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAS UI Debug Test</title>
+    <style>
+        /* Test styles to verify theme system */
+        :root {
+            --las-neutral-50: #fafafa;
+            --las-neutral-900: #171717;
+        }
+        
+        [data-theme="dark"] {
+            --las-neutral-50: #171717;
+            --las-neutral-900: #fafafa;
+        }
+        
+        .las-fresh-settings-wrap {
+            background: var(--las-neutral-50) !important;
+            color: var(--las-neutral-900) !important;
+            min-height: 100vh;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        
+        .las-button {
+            background: #2271b1;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        
+        .las-button:hover {
+            background: #1e40af;
+        }
+        
+        .debug-info {
+            background: rgba(0,0,0,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="las-fresh-settings-wrap">
+        <h1>Live Admin Styler - UI Debug Test</h1>
+        
+        <div class="debug-info">
+            <h3>Debug Information:</h3>
+            <p>Current theme: <span id="current-theme">light</span></p>
+            <p>Background color: <span id="bg-color">checking...</span></p>
+            <p>Text color: <span id="text-color">checking...</span></p>
+        </div>
+        
+        <button class="las-button" onclick="toggleTheme()">Toggle Theme</button>
+        <button class="las-button" onclick="checkStyles()">Check Styles</button>
+        
+        <div style="margin-top: 20px;">
+            <h2>Sample Content</h2>
+            <p>This is a test paragraph to check if the theme system is working correctly.</p>
+            <p>The background should be light in light theme and dark in dark theme.</p>
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            html.setAttribute('data-theme', newTheme);
+            document.getElementById('current-theme').textContent = newTheme;
+            
+            console.log('Theme changed to:', newTheme);
+            checkStyles();
+        }
+        
+        function checkStyles() {
+            const container = document.querySelector('.las-fresh-settings-wrap');
+            const computedStyle = window.getComputedStyle(container);
+            
+            document.getElementById('bg-color').textContent = computedStyle.backgroundColor;
+            document.getElementById('text-color').textContent = computedStyle.color;
+            
+            console.log('Background:', computedStyle.backgroundColor);
+            console.log('Color:', computedStyle.color);
+        }
+        
+        // Check styles on load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkStyles();
+        });
+    </script>
+</body>
+</html>

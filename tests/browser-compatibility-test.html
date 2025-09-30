@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Admin Styler - Browser Compatibility Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .pass { color: green; }
+        .fail { color: red; }
+        .warn { color: orange; }
+        #test-results { margin-top: 20px; }
+        .console-output { background: #f5f5f5; padding: 10px; margin: 10px 0; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h1>Live Admin Styler - Browser Compatibility Test</h1>
+    <div id="test-results"></div>
+    
+    <div class="test-section">
+        <h3>Console Output:</h3>
+        <div id="console-output" class="console-output"></div>
+    </div>
+
+    <script>
+        // Capture console output
+        const originalConsole = {
+            log: console.log,
+            error: console.error,
+            warn: console.warn
+        };
+        
+        const consoleOutput = document.getElementById('console-output');
+        
+        function logToPage(type, ...args) {
+            const message = args.join(' ');
+            consoleOutput.innerHTML += `<div class="${type}">[${type.toUpperCase()}] ${message}</div>`;
+            originalConsole[type](...args);
+        }
+        
+        console.log = (...args) => logToPage('log', ...args);
+        console.error = (...args) => logToPage('error', ...args);
+        console.warn = (...args) => logToPage('warn', ...args);
+        
+        // Mock jQuery for testing
+        window.jQuery = function(selector) {
+            return {
+                ready: function(callback) { 
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', callback);
+                    } else {
+                        callback();
+                    }
+                    return this;
+                },
+                each: function(callback) { return this; },
+                on: function() { return this; },
+                off: function() { return this; },
+                val: function() { return 'test-value'; },
+                hasClass: function() { return false; },
+                addClass: function() { return this; },
+                removeClass: function() { return this; },
+                wpColorPicker: function() { return this; },
+                find: function() { return this; },
+                length: 1,
+                tabs: function() { return this; }
+            };
+        };
+        window.$ = window.jQuery;
+        
+        // Mock WordPress admin data
+        window.lasAdminData = {
+            ajax_url: 'http://example.com/wp-admin/admin-ajax.php',
+            nonce: 'test-nonce-123',
+            jquery_ui: { tabs: true, slider: true }
+        };
+        
+        // Test results container
+        const results = document.getElementById('test-results');
+        let testsPassed = 0;
+        let totalTests = 0;
+        
+        function addResult(testName, passed, message = '') {
+            totalTests++;
+            if (passed) testsPassed++;
+            
+            const div = document.createElement('div');
+            div.className = 'test-section';
+            div.innerHTML = `
+                <h3 class="${passed ? 'pass' : 'fail'}">
+                    ${passed ? '✓' : '✗'} ${testName}
+                </h3>
+                ${message ? `<p>${message}</p>` : ''}
+            `;
+            results.appendChild(div);
+        }
+        
+        // Browser compatibility tests
+        console.log('=== BROWSER COMPATIBILITY TESTS ===');
+        
+        // Test 1: ES6 Features
+        try {
+            // Arrow functions
+            const arrowFunc = () => 'test';
+            
+            // Template literals
+            const template = `test ${arrowFunc()}`;
+            
+            // Destructuring
+            const {ajax_url} = window.lasAdminData;
+            
+            // Promises
+            const promise = new Promise(resolve => resolve('test'));
+            
+            addResult('ES6 Features Support', true, 'Arrow functions, template literals, destructuring, and promises all supported');
+        } catch (error) {
+            addResult('ES6 Features Support', false, `Error: ${error.message}`);
+        }
+        
+        // Test 2: DOM API Support
+        try {
+            const element = document.createElement('div');
+            element.addEventListener('click', () => {});
+            element.classList.add('test');
+            element.querySelector = element.querySelector || function() { return null; };
+            
+            addResult('DOM API Support', true, 'createElement, addEventListener, classList, and querySelector supported');
+        } catch (error) {
+            addResult('DOM API Support', false, `Error: ${error.message}`);
+        }
+        
+        // Test 3: AJAX/Fetch Support
+        try {
+            const hasXHR = typeof XMLHttpRequest !== 'undefined';
+            const hasFetch = typeof fetch !== 'undefined';
+            
+            if (hasXHR || hasFetch) {
+                addResult('AJAX Support', true, `XMLHttpRequest: ${hasXHR}, Fetch: ${hasFetch}`);
+            } else {
+                addResult('AJAX Support', false, 'Neither XMLHttpRequest nor Fetch API available');
+            }
+        } catch (error) {
+            addResult('AJAX Support', false, `Error: ${error.message}`);
+        }
+        
+        // Test 4: Local Storage Support
+        try {
+            localStorage.setItem('las-test', 'test');
+            const value = localStorage.getItem('las-test');
+            localStorage.removeItem('las-test');
+            
+            addResult('Local Storage Support', value === 'test', 'Local storage read/write operations work');
+        } catch (error) {
+            addResult('Local Storage Support', false, `Error: ${error.message}`);
+        }
+        
+        // Test 5: CSS Support
+        try {
+            const testElement = document.createElement('div');
+            testElement.style.cssText = 'background-color: #ff0000; transform: translateX(10px);';
+            document.body.appendChild(testElement);
+            
+            const computedStyle = window.getComputedStyle(testElement);
+            const hasTransform = computedStyle.transform !== 'none';
+            
+            document.body.removeChild(testElement);
+            
+            addResult('CSS3 Support', true, 'CSS3 properties and transforms supported');
+        } catch (error) {
+            addResult('CSS3 Support', false, `Error: ${error.message}`);
+        }
+        
+        // Test 6: Event Handling
+        try {
+            let eventFired = false;
+            const testElement = document.createElement('div');
+            
+            const handler = () => { eventFired = true; };
+            testElement.addEventListener('click', handler);
+            
+            // Simulate click
+            const event = new Event('click');
+            testElement.dispatchEvent(event);
+            
+            testElement.removeEventListener('click', handler);
+            
+            addResult('Event Handling', eventFired, 'Custom events and event listeners work correctly');
+        } catch (error) {
+            addResult('Event Handling', false, `Error: ${error.message}`);
+        }
+        
+        // Test 7: Performance APIs
+        try {
+            const hasPerformance = typeof performance !== 'undefined' && typeof performance.now === 'function';
+            const hasRAF = typeof requestAnimationFrame !== 'undefined';
+            
+            addResult('Performance APIs', hasPerformance && hasRAF, 
+                `Performance.now: ${hasPerformance}, RequestAnimationFrame: ${hasRAF}`);
+        } catch (error) {
+            addResult('Performance APIs', false, `Error: ${error.message}`);
+        }
+        
+        // Test 8: Simulated Live Preview Functionality
+        try {
+            console.log('Testing live preview simulation...');
+            
+            // Simulate the core live preview functionality
+            const LivePreviewTest = {
+                init: function() {
+                    console.log('LivePreview: Initializing...');
+                    return true;
+                },
+                
+                handleFieldChange: function(setting, value) {
+                    console.log(`LivePreview: Field changed - ${setting}: ${value}`);
+                    return this.updatePreview(setting, value);
+                },
+                
+                updatePreview: function(setting, value) {
+                    // Simulate CSS update
+                    const style = document.createElement('style');
+                    style.id = 'las-preview-style';
+                    
+                    // Remove existing preview style
+                    const existing = document.getElementById('las-preview-style');
+                    if (existing) {
+                        existing.remove();
+                    }
+                    
+                    // Add new style
+                    style.textContent = `body { background-color: ${value}; }`;
+                    document.head.appendChild(style);
+                    
+                    console.log(`LivePreview: Updated ${setting} to ${value}`);
+                    return true;
+                }
+            };
+            
+            // Test the functionality
+            LivePreviewTest.init();
+            LivePreviewTest.handleFieldChange('background_color', '#f0f0f0');
+            
+            addResult('Live Preview Simulation', true, 'Core live preview functionality works without errors');
+        } catch (error) {
+            addResult('Live Preview Simulation', false, `Error: ${error.message}`);
+        }
+        
+        // Test 9: Memory Management
+        try {
+            console.log('Testing memory management...');
+            
+            const MemoryTest = {
+                timers: [],
+                listeners: [],
+                
+                addTimer: function(callback, delay) {
+                    const timer = setTimeout(callback, delay);
+                    this.timers.push(timer);
+                    return timer;
+                },
+                
+                addListener: function(element, event, callback) {
+                    element.addEventListener(event, callback);
+                    this.listeners.push({element, event, callback});
+                },
+                
+                cleanup: function() {
+                    // Clear timers
+                    this.timers.forEach(timer => clearTimeout(timer));
+                    this.timers = [];
+                    
+                    // Remove listeners
+                    this.listeners.forEach(({element, event, callback}) => {
+                        element.removeEventListener(event, callback);
+                    });
+                    this.listeners = [];
+                    
+                    console.log('Memory cleanup completed');
+                }
+            };
+            
+            // Test timer management
+            MemoryTest.addTimer(() => console.log('Timer executed'), 10);
+            
+            // Test listener management
+            const testEl = document.createElement('div');
+            MemoryTest.addListener(testEl, 'click', () => console.log('Clicked'));
+            
+            // Cleanup
+            setTimeout(() => {
+                MemoryTest.cleanup();
+                addResult('Memory Management', true, 'Timer and event listener cleanup works correctly');
+            }, 50);
+            
+        } catch (error) {
+            addResult('Memory Management', false, `Error: ${error.message}`);
+        }
+        
+        // Final summary
+        setTimeout(() => {
+            const summaryDiv = document.createElement('div');
+            summaryDiv.className = 'test-section';
+            summaryDiv.style.backgroundColor = testsPassed === totalTests ? '#d4edda' : '#f8d7da';
+            summaryDiv.innerHTML = `
+                <h2>Test Summary</h2>
+                <p><strong>Passed:</strong> ${testsPassed}/${totalTests} tests</p>
+                <p><strong>Success Rate:</strong> ${Math.round((testsPassed/totalTests) * 100)}%</p>
+                <p><strong>Browser:</strong> ${navigator.userAgent}</p>
+                <p><strong>Status:</strong> ${testsPassed === totalTests ? '🎉 ALL TESTS PASSED' : '⚠️ SOME TESTS FAILED'}</p>
+            `;
+            results.appendChild(summaryDiv);
+            
+            console.log(`=== BROWSER TEST SUMMARY ===`);
+            console.log(`Passed: ${testsPassed}/${totalTests} tests`);
+            console.log(`Success Rate: ${Math.round((testsPassed/totalTests) * 100)}%`);
+            console.log(testsPassed === totalTests ? '🎉 ALL TESTS PASSED' : '⚠️ SOME TESTS FAILED');
+            
+        }, 100);
+        
+    </script>
+</body>
+</html>

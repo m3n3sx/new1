@@ -5,16 +5,501 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Convert hex color to rgba with alpha transparency
+ * Enhanced color validation and sanitization functions
+ */
+
+/**
+ * Validate and sanitize color values with comprehensive fallback handling
+ */
+function las_fresh_validate_color($color, $fallback = '#2c3338') {
+    try {
+        if (empty($color) || !is_string($color)) {
+            error_log('LAS CSS Validation: Invalid color input type: ' . gettype($color));
+            return $fallback;
+        }
+        
+        $color = trim($color);
+        
+        // Handle named colors
+        $named_colors = array(
+            'transparent', 'inherit', 'initial', 'unset', 'currentColor',
+            'black', 'white', 'red', 'green', 'blue', 'yellow', 'cyan', 'magenta',
+            'gray', 'grey', 'orange', 'purple', 'brown', 'pink', 'lime', 'navy'
+        );
+        
+        if (in_array(strtolower($color), $named_colors)) {
+            return strtolower($color);
+        }
+        
+        // Validate hex colors
+        if (preg_match('/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/', $color)) {
+            return $color;
+        }
+        
+        // Validate RGB/RGBA colors
+        if (preg_match('/^rgba?\(\s*(\d+(?:\.\d+)?%?)\s*,\s*(\d+(?:\.\d+)?%?)\s*,\s*(\d+(?:\.\d+)?%?)\s*(?:,\s*([01](?:\.\d+)?))?\s*\)$/i', $color, $matches)) {
+            // Validate RGB values
+            for ($i = 1; $i <= 3; $i++) {
+                $value = $matches[$i];
+                if (strpos($value, '%') !== false) {
+                    $num = floatval(str_replace('%', '', $value));
+                    if ($num < 0 || $num > 100) {
+                        error_log('LAS CSS Validation: Invalid RGB percentage value: ' . $value);
+                        return $fallback;
+                    }
+                } else {
+                    $num = intval($value);
+                    if ($num < 0 || $num > 255) {
+                        error_log('LAS CSS Validation: Invalid RGB value: ' . $value);
+                        return $fallback;
+                    }
+                }
+            }
+            
+            // Validate alpha if present
+            if (isset($matches[4])) {
+                $alpha = floatval($matches[4]);
+                if ($alpha < 0 || $alpha > 1) {
+                    error_log('LAS CSS Validation: Invalid alpha value: ' . $alpha);
+                    return $fallback;
+                }
+            }
+            
+            return $color;
+        }
+        
+        // Validate HSL/HSLA colors
+        if (preg_match('/^hsla?\(\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)%\s*,\s*(\d+(?:\.\d+)?)%\s*(?:,\s*([01](?:\.\d+)?))?\s*\)$/i', $color, $matches)) {
+            $hue = floatval($matches[1]);
+            $saturation = floatval($matches[2]);
+            $lightness = floatval($matches[3]);
+            
+            if ($hue < 0 || $hue > 360 || $saturation < 0 || $saturation > 100 || $lightness < 0 || $lightness > 100) {
+                error_log('LAS CSS Validation: Invalid HSL values: H=' . $hue . ', S=' . $saturation . ', L=' . $lightness);
+                return $fallback;
+            }
+            
+            if (isset($matches[4])) {
+                $alpha = floatval($matches[4]);
+                if ($alpha < 0 || $alpha > 1) {
+                    error_log('LAS CSS Validation: Invalid HSL alpha value: ' . $alpha);
+                    return $fallback;
+                }
+            }
+            
+            return $color;
+        }
+        
+        error_log('LAS CSS Validation: Unrecognized color format: ' . $color);
+        return $fallback;
+        
+    } catch (Exception $e) {
+        error_log('LAS CSS Validation: Error validating color: ' . $e->getMessage());
+        return $fallback;
+    }
+}
+
+/**
+ * Validate and sanitize numeric values with units
+ */
+function las_fresh_validate_numeric($value, $unit = '', $min = null, $max = null, $fallback = 0) {
+    try {
+        if ($value === null || $value === '') {
+            return $fallback . $unit;
+        }
+        
+        // Handle string values that might contain units
+        if (is_string($value)) {
+            $value = trim($value);
+            // Extract numeric part
+            if (preg_match('/^(-?\d+(?:\.\d+)?)/', $value, $matches)) {
+                $value = floatval($matches[1]);
+            } else {
+                error_log('LAS CSS Validation: Non-numeric value provided: ' . $value);
+                return $fallback . $unit;
+            }
+        }
+        
+        if (!is_numeric($value) || !is_finite($value)) {
+            error_log('LAS CSS Validation: Invalid numeric value: ' . var_export($value, true));
+            return $fallback . $unit;
+        }
+        
+        $value = floatval($value);
+        
+        // Apply min/max constraints
+        if ($min !== null && $value < $min) {
+            error_log('LAS CSS Validation: Value below minimum (' . $min . '): ' . $value);
+            $value = $min;
+        }
+        
+        if ($max !== null && $value > $max) {
+            error_log('LAS CSS Validation: Value above maximum (' . $max . '): ' . $value);
+            $value = $max;
+        }
+        
+        // Format the value appropriately
+        if ($value == intval($value)) {
+            return intval($value) . $unit;
+        } else {
+            return number_format($value, 2, '.', '') . $unit;
+        }
+        
+    } catch (Exception $e) {
+        error_log('LAS CSS Validation: Error validating numeric value: ' . $e->getMessage());
+        return $fallback . $unit;
+    }
+}
+
+/**
+ * Enhanced CSS value validation with type-specific rules
+ */
+function las_fresh_validate_css_value($value, $property, $fallback = '') {
+    try {
+        if ($value === null || $value === '') {
+            return $fallback;
+        }
+        
+        $value = trim($value);
+        
+        // Property-specific validation rules
+        switch ($property) {
+            case 'display':
+                $valid_values = array('none', 'block', 'inline', 'inline-block', 'flex', 'grid', 'table', 'table-cell', 'table-row', 'inherit', 'initial', 'unset');
+                return in_array($value, $valid_values) ? $value : $fallback;
+                
+            case 'position':
+                $valid_values = array('static', 'relative', 'absolute', 'fixed', 'sticky', 'inherit', 'initial', 'unset');
+                return in_array($value, $valid_values) ? $value : $fallback;
+                
+            case 'overflow':
+            case 'overflow-x':
+            case 'overflow-y':
+                $valid_values = array('visible', 'hidden', 'scroll', 'auto', 'inherit', 'initial', 'unset');
+                return in_array($value, $valid_values) ? $value : $fallback;
+                
+            case 'text-align':
+                $valid_values = array('left', 'right', 'center', 'justify', 'start', 'end', 'inherit', 'initial', 'unset');
+                return in_array($value, $valid_values) ? $value : $fallback;
+                
+            case 'font-weight':
+                $valid_values = array('normal', 'bold', 'bolder', 'lighter', 'inherit', 'initial', 'unset');
+                $numeric_values = array('100', '200', '300', '400', '500', '600', '700', '800', '900');
+                return (in_array($value, $valid_values) || in_array($value, $numeric_values)) ? $value : $fallback;
+                
+            case 'font-style':
+                $valid_values = array('normal', 'italic', 'oblique', 'inherit', 'initial', 'unset');
+                return in_array($value, $valid_values) ? $value : $fallback;
+                
+            case 'text-decoration':
+                $valid_values = array('none', 'underline', 'overline', 'line-through', 'inherit', 'initial', 'unset');
+                return in_array($value, $valid_values) ? $value : $fallback;
+                
+            case 'cursor':
+                $valid_values = array('auto', 'default', 'pointer', 'text', 'wait', 'help', 'move', 'crosshair', 'not-allowed', 'grab', 'grabbing', 'inherit', 'initial', 'unset');
+                return in_array($value, $valid_values) ? $value : $fallback;
+                
+            case 'border-style':
+            case 'border-top-style':
+            case 'border-right-style':
+            case 'border-bottom-style':
+            case 'border-left-style':
+                $valid_values = array('none', 'solid', 'dashed', 'dotted', 'double', 'groove', 'ridge', 'inset', 'outset', 'inherit', 'initial', 'unset');
+                return in_array($value, $valid_values) ? $value : $fallback;
+                
+            case 'background-repeat':
+                $valid_values = array('repeat', 'repeat-x', 'repeat-y', 'no-repeat', 'space', 'round', 'inherit', 'initial', 'unset');
+                return in_array($value, $valid_values) ? $value : $fallback;
+                
+            case 'background-attachment':
+                $valid_values = array('scroll', 'fixed', 'local', 'inherit', 'initial', 'unset');
+                return in_array($value, $valid_values) ? $value : $fallback;
+                
+            case 'background-size':
+                $valid_values = array('auto', 'cover', 'contain', 'inherit', 'initial', 'unset');
+                if (in_array($value, $valid_values)) {
+                    return $value;
+                }
+                // Allow percentage and length values
+                if (preg_match('/^(\d+(?:\.\d+)?(%|px|em|rem|vh|vw)\s*){1,2}$/', $value)) {
+                    return $value;
+                }
+                return $fallback;
+                
+            case 'box-sizing':
+                $valid_values = array('content-box', 'border-box', 'inherit', 'initial', 'unset');
+                return in_array($value, $valid_values) ? $value : $fallback;
+                
+            default:
+                // For unknown properties, perform basic sanitization
+                return las_fresh_sanitize_css_value($value, $fallback);
+        }
+        
+    } catch (Exception $e) {
+        error_log('LAS CSS Validation: Error validating CSS value: ' . $e->getMessage());
+        return $fallback;
+    }
+}
+
+/**
+ * Basic CSS value sanitization for unknown properties
+ */
+function las_fresh_sanitize_css_value($value, $fallback = '') {
+    try {
+        if (empty($value)) {
+            return $fallback;
+        }
+        
+        // Remove potentially dangerous content
+        $dangerous_patterns = array(
+            '/javascript:/i',
+            '/expression\s*\(/i',
+            '/behavior\s*:/i',
+            '/binding\s*:/i',
+            '/@import/i',
+            '/url\s*\(\s*["\']?\s*javascript:/i'
+        );
+        
+        foreach ($dangerous_patterns as $pattern) {
+            if (preg_match($pattern, $value)) {
+                error_log('LAS CSS Validation: Dangerous pattern detected in CSS value: ' . $value);
+                return $fallback;
+            }
+        }
+        
+        // Basic sanitization - allow common CSS characters
+        $sanitized = preg_replace('/[^a-zA-Z0-9\s\-_.,()%#\/\'":]/', '', $value);
+        
+        return !empty($sanitized) ? $sanitized : $fallback;
+        
+    } catch (Exception $e) {
+        error_log('LAS CSS Validation: Error sanitizing CSS value: ' . $e->getMessage());
+        return $fallback;
+    }
+}
+
+/**
+ * Validate CSS selector to prevent injection and ensure proper syntax
+ */
+function las_fresh_validate_selector($selector) {
+    try {
+        if (empty($selector) || !is_string($selector)) {
+            error_log('LAS CSS Validation: Invalid selector input: ' . var_export($selector, true));
+            return '';
+        }
+        
+        $selector = trim($selector);
+        
+        // Remove potentially dangerous characters while preserving valid CSS selector syntax
+        $sanitized = preg_replace('/[^a-zA-Z0-9\s\-_#.,>+~:()[\]="\'*@]/', '', $selector);
+        
+        if (empty($sanitized)) {
+            error_log('LAS CSS Validation: Selector became empty after sanitization: ' . $selector);
+            return '';
+        }
+        
+        // Basic validation for common CSS selector patterns
+        if (!preg_match('/^[a-zA-Z0-9\s\-_#.,>+~:()[\]="\'*@]+$/', $sanitized)) {
+            error_log('LAS CSS Validation: Invalid selector pattern: ' . $sanitized);
+            return '';
+        }
+        
+        // Check for balanced brackets and quotes
+        $brackets = substr_count($sanitized, '[') - substr_count($sanitized, ']');
+        $parens = substr_count($sanitized, '(') - substr_count($sanitized, ')');
+        $single_quotes = substr_count($sanitized, "'") % 2;
+        $double_quotes = substr_count($sanitized, '"') % 2;
+        
+        if ($brackets !== 0 || $parens !== 0 || $single_quotes !== 0 || $double_quotes !== 0) {
+            error_log('LAS CSS Validation: Unbalanced brackets or quotes in selector: ' . $sanitized);
+            return '';
+        }
+        
+        return $sanitized;
+        
+    } catch (Exception $e) {
+        error_log('LAS CSS Validation: Error validating selector: ' . $e->getMessage());
+        return '';
+    }
+}
+
+/**
+ * Enhanced CSS selector specificity management
+ * Ensures proper specificity to override WordPress defaults
+ */
+function las_fresh_enhance_selector_specificity($selector) {
+    try {
+        if (empty($selector) || !is_string($selector)) {
+            error_log('LAS CSS Specificity: Invalid selector input: ' . var_export($selector, true));
+            return '';
+        }
+        
+        $selector = trim($selector);
+        
+        // Calculate current specificity level
+        $specificity_score = las_fresh_calculate_selector_specificity($selector);
+        
+        // Define specificity requirements for different selector types
+        $required_specificity = array(
+            'adminmenu' => 120,      // WordPress admin menu has high specificity
+            'adminbar' => 110,       // Admin bar needs high specificity
+            'wp-admin' => 100,       // General admin styles
+            'default' => 90          // Default minimum specificity
+        );
+        
+        // Determine required specificity based on selector content
+        $target_specificity = $required_specificity['default'];
+        
+        if (strpos($selector, '#adminmenu') !== false || strpos($selector, '.wp-menu') !== false) {
+            $target_specificity = $required_specificity['adminmenu'];
+        } elseif (strpos($selector, '#wpadminbar') !== false || strpos($selector, '.ab-') !== false) {
+            $target_specificity = $required_specificity['adminbar'];
+        } elseif (strpos($selector, '.wp-admin') !== false || strpos($selector, '#wpbody') !== false) {
+            $target_specificity = $required_specificity['wp-admin'];
+        }
+        
+        // Check if selector already has sufficient specificity
+        if ($specificity_score >= $target_specificity) {
+            return $selector;
+        }
+        
+        // Enhance specificity based on selector type
+        return las_fresh_add_specificity_prefix($selector, $target_specificity - $specificity_score);
+        
+    } catch (Exception $e) {
+        error_log('LAS CSS Specificity: Error enhancing selector specificity: ' . $e->getMessage());
+        return $selector; // Return original selector as fallback
+    }
+}
+
+/**
+ * Calculate CSS selector specificity score
+ * Based on CSS specificity rules: IDs=100, Classes/Attributes/Pseudo-classes=10, Elements=1
+ */
+function las_fresh_calculate_selector_specificity($selector) {
+    try {
+        $score = 0;
+        
+        // Count IDs (#)
+        $score += substr_count($selector, '#') * 100;
+        
+        // Count classes (.), attributes ([]), and pseudo-classes (:)
+        $score += substr_count($selector, '.') * 10;
+        $score += substr_count($selector, '[') * 10;
+        $score += preg_match_all('/:[a-zA-Z-]+(?:\([^)]*\))?/', $selector) * 10;
+        
+        // Count elements (simplified - count words that don't start with # . : [ or contain special chars)
+        $elements = preg_split('/[\s>+~]/', $selector);
+        foreach ($elements as $element) {
+            $element = trim($element);
+            if (!empty($element) && !preg_match('/^[#.:\[]/', $element) && preg_match('/^[a-zA-Z]/', $element)) {
+                $score += 1;
+            }
+        }
+        
+        return $score;
+        
+    } catch (Exception $e) {
+        error_log('LAS CSS Specificity: Error calculating specificity: ' . $e->getMessage());
+        return 0;
+    }
+}
+
+/**
+ * Add appropriate specificity prefix to reach target specificity
+ */
+function las_fresh_add_specificity_prefix($selector, $needed_specificity) {
+    try {
+        // Define specificity prefixes in order of preference
+        $prefixes = array(
+            'html body.wp-admin' => 12,           // html(1) + body(1) + .wp-admin(10) = 12
+            'body.wp-admin' => 11,                // body(1) + .wp-admin(10) = 11  
+            'html.wp-toolbar' => 11,              // html(1) + .wp-toolbar(10) = 11
+            '.wp-admin' => 10,                    // .wp-admin(10) = 10
+            'html' => 1,                          // html(1) = 1
+            'body' => 1                           // body(1) = 1
+        );
+        
+        // Check if selector already has high-specificity prefixes
+        foreach (array_keys($prefixes) as $prefix) {
+            if (strpos($selector, $prefix) === 0) {
+                return $selector; // Already has a good prefix
+            }
+        }
+        
+        // Find the most appropriate prefix
+        foreach ($prefixes as $prefix => $prefix_score) {
+            if ($prefix_score >= $needed_specificity) {
+                return $prefix . ' ' . $selector;
+            }
+        }
+        
+        // If we need very high specificity, use the strongest prefix
+        return 'html body.wp-admin ' . $selector;
+        
+    } catch (Exception $e) {
+        error_log('LAS CSS Specificity: Error adding prefix: ' . $e->getMessage());
+        return 'html body.wp-admin ' . $selector; // Safe fallback
+    }
+}
+
+/**
+ * Validate CSS property name
+ */
+function las_fresh_validate_property($property) {
+    try {
+        if (empty($property) || !is_string($property)) {
+            error_log('LAS CSS Validation: Invalid property input: ' . var_export($property, true));
+            return '';
+        }
+        
+        $property = trim($property);
+        
+        // CSS property names can only contain letters, numbers, and hyphens
+        $sanitized = preg_replace('/[^a-zA-Z0-9\-]/', '', $property);
+        
+        if (empty($sanitized)) {
+            error_log('LAS CSS Validation: Property became empty after sanitization: ' . $property);
+            return '';
+        }
+        
+        // Must start with a letter
+        if (!preg_match('/^[a-zA-Z]/', $sanitized)) {
+            error_log('LAS CSS Validation: Property must start with a letter: ' . $sanitized);
+            return '';
+        }
+        
+        return $sanitized;
+        
+    } catch (Exception $e) {
+        error_log('LAS CSS Validation: Error validating property: ' . $e->getMessage());
+        return '';
+    }
+}
+
+/**
+ * Convert hex color to rgba with alpha transparency (Enhanced)
  */
 function las_fresh_hex_to_rgba($hex, $alpha = 1) {
     try {
+        // Validate inputs
+        if (!is_string($hex) || empty($hex)) {
+            error_log('LAS CSS Generation: Invalid hex input for rgba conversion: ' . var_export($hex, true));
+            return 'rgba(44, 51, 56, ' . max(0, min(1, $alpha)) . ')';
+        }
+        
+        if (!is_numeric($alpha)) {
+            error_log('LAS CSS Generation: Invalid alpha value for rgba conversion: ' . var_export($alpha, true));
+            $alpha = 1;
+        }
+        
         // Remove # if present
         $hex = ltrim($hex, '#');
         
-        // Validate hex color
+        // Validate hex color format
         if (!preg_match('/^[a-fA-F0-9]{6}$/', $hex) && !preg_match('/^[a-fA-F0-9]{3}$/', $hex)) {
-            return 'rgba(44, 51, 56, ' . $alpha . ')'; // Fallback color
+            error_log('LAS CSS Generation: Invalid hex color format: ' . $hex);
+            return 'rgba(44, 51, 56, ' . max(0, min(1, $alpha)) . ')';
         }
         
         // Convert 3-digit hex to 6-digit
@@ -22,18 +507,156 @@ function las_fresh_hex_to_rgba($hex, $alpha = 1) {
             $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
         }
         
-        // Convert hex to RGB
+        // Convert hex to RGB with validation
         $r = hexdec(substr($hex, 0, 2));
         $g = hexdec(substr($hex, 2, 2));
         $b = hexdec(substr($hex, 4, 2));
         
-        // Clamp alpha between 0 and 1
+        // Validate RGB values
+        if ($r === false || $g === false || $b === false) {
+            error_log('LAS CSS Generation: Error converting hex components to decimal: ' . $hex);
+            return 'rgba(44, 51, 56, ' . max(0, min(1, $alpha)) . ')';
+        }
+        
+        // Clamp values to valid ranges
+        $r = max(0, min(255, $r));
+        $g = max(0, min(255, $g));
+        $b = max(0, min(255, $b));
         $alpha = max(0, min(1, $alpha));
         
         return "rgba($r, $g, $b, $alpha)";
+        
     } catch (Exception $e) {
         error_log('LAS CSS Generation: Error converting hex to rgba: ' . $e->getMessage());
-        return 'rgba(44, 51, 56, ' . $alpha . ')'; // Fallback color
+        return 'rgba(44, 51, 56, ' . max(0, min(1, floatval($alpha))) . ')';
+    }
+}
+
+/**
+ * Get property-specific fallback values for invalid CSS
+ */
+function las_fresh_get_property_fallback($property, $original_value = null) {
+    try {
+        // Define fallback values for common CSS properties
+        $fallbacks = array(
+            'color' => 'inherit',
+            'background-color' => 'transparent',
+            'border-color' => 'currentColor',
+            'font-size' => '14px',
+            'font-family' => 'inherit',
+            'font-weight' => 'normal',
+            'line-height' => 'normal',
+            'margin' => '0',
+            'padding' => '0',
+            'width' => 'auto',
+            'height' => 'auto',
+            'border-radius' => '0',
+            'opacity' => '1',
+            'z-index' => 'auto',
+            'display' => 'block',
+            'position' => 'static',
+            'overflow' => 'visible',
+            'text-align' => 'left',
+            'background-image' => 'none',
+            'background-repeat' => 'repeat',
+            'background-position' => '0 0',
+            'background-size' => 'auto',
+            'border-style' => 'solid',
+            'border-width' => '0',
+            'box-shadow' => 'none',
+            'text-decoration' => 'none',
+            'cursor' => 'auto'
+        );
+        
+        // Check for property-specific fallbacks
+        if (isset($fallbacks[$property])) {
+            return $fallbacks[$property];
+        }
+        
+        // Check for property family fallbacks
+        if (strpos($property, 'color') !== false) {
+            return 'inherit';
+        } elseif (strpos($property, 'font') !== false) {
+            return 'inherit';
+        } elseif (strpos($property, 'margin') !== false || strpos($property, 'padding') !== false) {
+            return '0';
+        } elseif (strpos($property, 'border') !== false) {
+            if (strpos($property, 'width') !== false) return '0';
+            if (strpos($property, 'style') !== false) return 'solid';
+            if (strpos($property, 'color') !== false) return 'currentColor';
+            return 'none';
+        } elseif (strpos($property, 'background') !== false) {
+            return 'transparent';
+        }
+        
+        // Generic fallbacks based on original value type
+        if (is_numeric($original_value)) {
+            return '0';
+        }
+        
+        return 'initial';
+        
+    } catch (Exception $e) {
+        error_log('LAS CSS Fallback: Error getting fallback for ' . $property . ': ' . $e->getMessage());
+        return 'initial';
+    }
+}
+
+/**
+ * Validate final CSS value syntax
+ */
+function las_fresh_is_valid_css_value($value, $property) {
+    try {
+        if (empty($value) && $value !== '0') {
+            return false;
+        }
+        
+        // Check for dangerous content
+        $dangerous_patterns = array(
+            '/javascript:/i',
+            '/expression\s*\(/i',
+            '/behavior\s*:/i',
+            '/binding\s*:/i',
+            '/<script/i',
+            '/on\w+\s*=/i'
+        );
+        
+        foreach ($dangerous_patterns as $pattern) {
+            if (preg_match($pattern, $value)) {
+                return false;
+            }
+        }
+        
+        // Basic syntax validation
+        $brackets = substr_count($value, '(') - substr_count($value, ')');
+        $quotes = (substr_count($value, '"') + substr_count($value, "'")) % 2;
+        
+        if ($brackets !== 0 || $quotes !== 0) {
+            return false;
+        }
+        
+        // Property-specific validation
+        switch ($property) {
+            case 'color':
+            case 'background-color':
+            case 'border-color':
+                return preg_match('/^(#[a-fA-F0-9]{3,6}|rgba?\([^)]+\)|\w+|transparent|inherit|initial|unset)$/', $value);
+                
+            case 'font-size':
+                return preg_match('/^\d+(\.\d+)?(px|em|rem|%|pt|pc|in|cm|mm|ex|ch|vw|vh|vmin|vmax)$/', $value) || 
+                       in_array($value, array('inherit', 'initial', 'unset', 'smaller', 'larger'));
+                
+            case 'opacity':
+                return preg_match('/^(0(\.\d+)?|1(\.0+)?|inherit|initial|unset)$/', $value);
+                
+            default:
+                // For other properties, basic validation passed above is sufficient
+                return true;
+        }
+        
+    } catch (Exception $e) {
+        error_log('LAS CSS Validation: Error validating CSS value syntax: ' . $e->getMessage());
+        return false;
     }
 }
 
@@ -41,11 +664,26 @@ function las_fresh_hex_to_rgba($hex, $alpha = 1) {
  * Generates the CSS output for styling the admin panel based on plugin options.
  */
 function las_fresh_generate_admin_css_output($preview_options = null) {
+    // Start performance monitoring
+    $performance_start = microtime(true);
+    $memory_start = memory_get_usage(true);
+    $peak_memory_start = memory_get_peak_usage(true);
+    
     try {
         // Enhanced input validation with fallback handling
         if ($preview_options !== null && !is_array($preview_options)) {
             error_log('LAS CSS Generation: Invalid preview_options provided, expected array or null, got: ' . gettype($preview_options));
             $preview_options = null;
+        }
+        
+        // Check cache for non-preview requests
+        if ($preview_options === null) {
+            $cached_css = las_fresh_get_cached_css();
+            if ($cached_css !== false) {
+                // Log cache hit performance
+                las_fresh_log_css_performance_metrics($performance_start, $memory_start, $peak_memory_start, $cached_css, 'cache_hit');
+                return $cached_css;
+            }
         }
         
         // Get options with error handling
@@ -80,25 +718,21 @@ function las_fresh_generate_admin_css_output($preview_options = null) {
         
         $add_css = function ($selector, $property, $value_or_option_key, $important = true, $unit = '') use (&$css_output, $defaults, $options, $preview_options) {
         try {
-            // Enhanced input validation with fallback values
-            if (empty($selector) || !is_string($selector)) {
-                error_log('LAS CSS Generation: Invalid selector provided: ' . var_export($selector, true));
+            // Enhanced input validation with comprehensive fallback handling
+            $validated_selector = las_fresh_validate_selector($selector);
+            if (empty($validated_selector)) {
+                error_log('LAS CSS Generation: Invalid or empty selector after validation: ' . var_export($selector, true));
                 return;
             }
             
-            if (empty($property) || !is_string($property)) {
-                error_log('LAS CSS Generation: Invalid property provided: ' . var_export($property, true));
+            $validated_property = las_fresh_validate_property($property);
+            if (empty($validated_property)) {
+                error_log('LAS CSS Generation: Invalid or empty property after validation: ' . var_export($property, true));
                 return;
             }
             
-            // Sanitize selector and property to prevent CSS injection
-            $selector = preg_replace('/[^a-zA-Z0-9\s\-_#.,>+~:()[\]="\'*]/', '', $selector);
-            $property = preg_replace('/[^a-zA-Z0-9\-_]/', '', $property);
-            
-            if (empty($selector) || empty($property)) {
-                error_log('LAS CSS Generation: Selector or property became empty after sanitization');
-                return;
-            }
+            $selector = $validated_selector;
+            $property = $validated_property;
             
             $actual_value = $value_or_option_key;
             $is_option_key_passed = is_string($value_or_option_key) && array_key_exists($value_or_option_key, $options);
@@ -142,69 +776,165 @@ function las_fresh_generate_admin_css_output($preview_options = null) {
             return;
         }
 
-        // Prepare the final CSS value string with enhanced error handling and fallbacks
+        // Enhanced CSS value processing with comprehensive validation and fallbacks
         try {
             $css_value_string = '';
             
             if (is_numeric($actual_value)) {
-                // Validate numeric values to prevent invalid CSS
-                if (is_finite($actual_value)) {
-                    $css_value_string = $actual_value . $unit;
-                } else {
+                // Enhanced numeric validation with range checking
+                if (!is_finite($actual_value)) {
                     error_log('LAS CSS Generation: Invalid numeric value (infinite/NaN): ' . var_export($actual_value, true));
                     return;
                 }
+                
+                // Apply property-specific numeric validation
+                if (in_array($property, ['opacity', 'z-index'])) {
+                    if ($property === 'opacity') {
+                        $css_value_string = las_fresh_validate_numeric($actual_value, '', 0, 1, 1);
+                    } else { // z-index
+                        $css_value_string = las_fresh_validate_numeric($actual_value, '', -2147483648, 2147483647, 0);
+                    }
+                } elseif (strpos($property, 'width') !== false || strpos($property, 'height') !== false || 
+                         strpos($property, 'margin') !== false || strpos($property, 'padding') !== false ||
+                         strpos($property, 'border') !== false || strpos($property, 'radius') !== false) {
+                    // Dimension properties - prevent negative values for most cases
+                    $min_value = (strpos($property, 'margin') !== false) ? null : 0; // margins can be negative
+                    $css_value_string = las_fresh_validate_numeric($actual_value, $unit, $min_value, 10000, 0);
+                } elseif (strpos($property, 'font-size') !== false) {
+                    // Font size validation
+                    $css_value_string = las_fresh_validate_numeric($actual_value, $unit, 1, 200, 14);
+                } else {
+                    $css_value_string = las_fresh_validate_numeric($actual_value, $unit);
+                }
+                
             } elseif (is_string($actual_value)) {
                 $trimmed_value = trim($actual_value);
                 
                 // Enhanced validation for empty values
-                if ($trimmed_value === '' && !in_array($property, ['content', 'background-image', 'box-shadow'])) {
+                if ($trimmed_value === '' && !in_array($property, ['content', 'background-image', 'box-shadow', 'border'])) {
                     return; // Don't output empty rules for most properties
                 }
                 
-                // Enhanced handling for specific CSS properties with fallbacks
+                // Property-specific validation and processing
                 if ($property === 'background-image') {
                     if (strtolower($trimmed_value) === 'none' || $trimmed_value === '') {
                         $css_value_string = 'none';
-                    } else {
-                        // Validate gradient syntax for background-image
-                        if (strpos($trimmed_value, 'linear-gradient') !== false || strpos($trimmed_value, 'radial-gradient') !== false) {
-                            $css_value_string = $trimmed_value; // Don't add unit to gradients
+                    } elseif (strpos($trimmed_value, 'linear-gradient') !== false || 
+                             strpos($trimmed_value, 'radial-gradient') !== false ||
+                             strpos($trimmed_value, 'conic-gradient') !== false) {
+                        // Validate gradient syntax
+                        if (preg_match('/^(linear|radial|conic)-gradient\s*\([^)]+\)$/', $trimmed_value)) {
+                            $css_value_string = $trimmed_value;
                         } else {
-                            $css_value_string = esc_attr($trimmed_value) . $unit;
+                            error_log('LAS CSS Generation: Invalid gradient syntax: ' . $trimmed_value);
+                            $css_value_string = 'none';
                         }
+                    } elseif (strpos($trimmed_value, 'url(') !== false) {
+                        // Validate URL syntax
+                        if (preg_match('/^url\s*\(\s*["\']?[^"\'()]+["\']?\s*\)$/', $trimmed_value)) {
+                            $css_value_string = esc_attr($trimmed_value);
+                        } else {
+                            error_log('LAS CSS Generation: Invalid URL syntax: ' . $trimmed_value);
+                            $css_value_string = 'none';
+                        }
+                    } else {
+                        // Use enhanced CSS value validation
+                        $validated_value = las_fresh_validate_css_value($trimmed_value, $property, $trimmed_value);
+                        $css_value_string = esc_attr($validated_value) . $unit;
                     }
+                    
                 } elseif ($property === 'box-shadow') {
                     if (strtolower($trimmed_value) === 'none' || $trimmed_value === '') {
                         $css_value_string = 'none';
                     } else {
-                        $css_value_string = esc_attr($trimmed_value); // Don't add unit to box-shadow
+                        // Basic box-shadow validation
+                        if (preg_match('/^(\d+px\s+){2,4}(rgba?\([^)]+\)|#[a-fA-F0-9]{3,6}|\w+)(\s+inset)?$/', $trimmed_value) ||
+                            preg_match('/^inset\s+(\d+px\s+){2,4}(rgba?\([^)]+\)|#[a-fA-F0-9]{3,6}|\w+)$/', $trimmed_value)) {
+                            $css_value_string = esc_attr($trimmed_value);
+                        } else {
+                            error_log('LAS CSS Generation: Invalid box-shadow syntax: ' . $trimmed_value);
+                            $css_value_string = 'none';
+                        }
                     }
+                    
                 } elseif ($property === 'color' || strpos($property, 'color') !== false) {
-                    // Enhanced color validation with fallbacks
-                    if (preg_match('/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/', $trimmed_value) || 
-                        preg_match('/^rgba?\([^)]+\)$/', $trimmed_value) ||
-                        in_array(strtolower($trimmed_value), ['transparent', 'inherit', 'initial', 'unset'])) {
-                        $css_value_string = $trimmed_value;
-                    } else {
-                        error_log('LAS CSS Generation: Invalid color value: ' . $trimmed_value . ', using fallback');
-                        $css_value_string = 'inherit'; // Fallback for invalid colors
+                    // Enhanced color validation using the new validation function
+                    $css_value_string = las_fresh_validate_color($trimmed_value, 'inherit');
+                    
+                } elseif ($property === 'font-family') {
+                    // Font family validation
+                    if (strlen($trimmed_value) > 200) {
+                        error_log('LAS CSS Generation: Font family name too long: ' . substr($trimmed_value, 0, 50) . '...');
+                        return;
                     }
+                    // Remove potentially dangerous characters but preserve quotes and commas
+                    $safe_font = preg_replace('/[^a-zA-Z0-9\s\-\'",.]/', '', $trimmed_value);
+                    if (!empty($safe_font)) {
+                        $css_value_string = $safe_font;
+                    } else {
+                        error_log('LAS CSS Generation: Font family became empty after sanitization: ' . $trimmed_value);
+                        return;
+                    }
+                    
+                } elseif (in_array($property, ['display', 'position', 'overflow', 'visibility', 'float', 'clear'])) {
+                    // Validate CSS keyword properties
+                    $valid_keywords = array(
+                        'display' => ['none', 'block', 'inline', 'inline-block', 'flex', 'grid', 'table', 'table-cell', 'table-row', 'inherit', 'initial', 'unset'],
+                        'position' => ['static', 'relative', 'absolute', 'fixed', 'sticky', 'inherit', 'initial', 'unset'],
+                        'overflow' => ['visible', 'hidden', 'scroll', 'auto', 'inherit', 'initial', 'unset'],
+                        'visibility' => ['visible', 'hidden', 'collapse', 'inherit', 'initial', 'unset'],
+                        'float' => ['none', 'left', 'right', 'inherit', 'initial', 'unset'],
+                        'clear' => ['none', 'left', 'right', 'both', 'inherit', 'initial', 'unset']
+                    );
+                    
+                    if (isset($valid_keywords[$property]) && in_array(strtolower($trimmed_value), $valid_keywords[$property])) {
+                        $css_value_string = strtolower($trimmed_value);
+                    } else {
+                        error_log('LAS CSS Generation: Invalid keyword for ' . $property . ': ' . $trimmed_value);
+                        return;
+                    }
+                    
                 } else {
-                    $css_value_string = esc_attr($trimmed_value) . $unit;
+                    // General string value processing with enhanced sanitization
+                    $sanitized_value = esc_attr($trimmed_value);
+                    if (strlen($sanitized_value) > 1000) {
+                        error_log('LAS CSS Generation: CSS value too long, truncating: ' . substr($sanitized_value, 0, 50) . '...');
+                        $sanitized_value = substr($sanitized_value, 0, 1000);
+                    }
+                    $css_value_string = $sanitized_value . $unit;
                 }
+                
             } else {
-                error_log('LAS CSS Generation: Unsupported value type: ' . gettype($actual_value));
-                return; // Not a string or number, skip
-            }
-            
-            // Final validation of CSS value string
-            if (empty($css_value_string) && $css_value_string !== '0') {
+                error_log('LAS CSS Generation: Unsupported value type for property ' . $property . ': ' . gettype($actual_value));
                 return;
             }
             
+            // Final validation of CSS value string with fallback mechanisms
+            if (empty($css_value_string) && $css_value_string !== '0') {
+                // Apply property-specific fallbacks
+                $css_value_string = las_fresh_get_property_fallback($property, $actual_value);
+                if (empty($css_value_string)) {
+                    return; // Skip if no valid fallback available
+                }
+            }
+            
+            // Additional syntax validation for the complete CSS value
+            if (strlen($css_value_string) > 2000) {
+                error_log('LAS CSS Generation: CSS value string too long, truncating: ' . substr($css_value_string, 0, 50) . '...');
+                $css_value_string = substr($css_value_string, 0, 2000);
+            }
+            
+            // Final CSS syntax validation
+            if (!las_fresh_is_valid_css_value($css_value_string, $property)) {
+                error_log('LAS CSS Generation: Invalid CSS syntax detected, applying fallback for ' . $property . ': ' . $css_value_string);
+                $css_value_string = las_fresh_get_property_fallback($property, $actual_value);
+                if (empty($css_value_string)) {
+                    return; // Skip if fallback also fails
+                }
+            }
+            
         } catch (Exception $e) {
-            error_log('LAS CSS Generation: Error preparing CSS value string: ' . $e->getMessage());
+            error_log('LAS CSS Generation: Error preparing CSS value string for ' . $property . ': ' . $e->getMessage());
             return;
         }
         
@@ -213,7 +943,7 @@ function las_fresh_generate_admin_css_output($preview_options = null) {
         }
 
 
-        // Enhance specificity with error handling and fallbacks
+        // Enhanced specificity management with comprehensive validation and fallbacks
         try {
             $selectors_array = explode(',', $selector);
             $specific_selectors = array();
@@ -221,47 +951,74 @@ function las_fresh_generate_admin_css_output($preview_options = null) {
             foreach ($selectors_array as $sel) {
                 try {
                     $trimmed_sel = trim($sel);
-                    if (!empty($trimmed_sel)) {
-                        // Enhanced selector validation
-                        if (strpos($trimmed_sel, 'body.wp-admin') === 0 || 
-                            strpos($trimmed_sel, 'html.wp-toolbar') === 0 || 
-                            strpos($trimmed_sel, 'body.login') === 0) {
-                            $specific_selectors[] = $trimmed_sel;
-                        } else {
-                            $specific_selectors[] = 'html body.wp-admin ' . $trimmed_sel;
-                        }
+                    if (empty($trimmed_sel)) {
+                        continue;
                     }
+                    
+                    // Validate individual selector
+                    $validated_sel = las_fresh_validate_selector($trimmed_sel);
+                    if (empty($validated_sel)) {
+                        error_log('LAS CSS Generation: Invalid selector in list: ' . $trimmed_sel);
+                        continue;
+                    }
+                    
+                    // Enhanced specificity management for WordPress admin
+                    $enhanced_selector = las_fresh_enhance_selector_specificity($validated_sel);
+                    if (!empty($enhanced_selector)) {
+                        $specific_selectors[] = $enhanced_selector;
+                    }
+                    
                 } catch (Exception $e) {
-                    error_log('LAS CSS Generation: Error processing selector: ' . $sel . ' - ' . $e->getMessage());
+                    error_log('LAS CSS Generation: Error processing individual selector: ' . $sel . ' - ' . $e->getMessage());
                     continue; // Skip this selector and continue with others
                 }
             }
             
             if (empty($specific_selectors)) {
-                error_log('LAS CSS Generation: No valid selectors found after processing');
+                error_log('LAS CSS Generation: No valid selectors found after processing selector list: ' . $selector);
                 return;
             }
             
             $final_selector = implode(', ', $specific_selectors);
             if (empty($final_selector)) {
-                error_log('LAS CSS Generation: Final selector is empty');
+                error_log('LAS CSS Generation: Final selector is empty after joining');
                 return;
             }
             
-            // Enhanced CSS output with validation
-            $important_suffix = $important ? ' !important' : '';
-            $css_rule = $final_selector . ' {' . $property . ': ' . $css_value_string . $important_suffix . ";}\n";
+            // Validate final selector length
+            if (strlen($final_selector) > 5000) {
+                error_log('LAS CSS Generation: Final selector too long, truncating: ' . substr($final_selector, 0, 100) . '...');
+                $final_selector = substr($final_selector, 0, 5000);
+            }
             
-            // Validate CSS rule length to prevent extremely long rules
+            // Enhanced CSS rule construction with validation
+            $important_suffix = $important ? ' !important' : '';
+            
+            // Validate the complete CSS rule syntax
+            $css_rule = $final_selector . ' { ' . $property . ': ' . $css_value_string . $important_suffix . "; }\n";
+            
+            // Comprehensive CSS rule validation
             if (strlen($css_rule) > 10000) {
                 error_log('LAS CSS Generation: CSS rule too long, skipping: ' . substr($css_rule, 0, 100) . '...');
+                return;
+            }
+            
+            // Basic CSS syntax validation
+            if (substr_count($css_rule, '{') !== substr_count($css_rule, '}')) {
+                error_log('LAS CSS Generation: Unbalanced braces in CSS rule: ' . substr($css_rule, 0, 100));
+                return;
+            }
+            
+            // Check for potential CSS injection patterns
+            if (preg_match('/[<>]|javascript:|expression\s*\(|@import|@charset/i', $css_rule)) {
+                error_log('LAS CSS Generation: Potential CSS injection detected, skipping rule: ' . substr($css_rule, 0, 100));
                 return;
             }
             
             $css_output .= $css_rule;
             
         } catch (Exception $e) {
-            error_log('LAS CSS Generation: Error in selector processing and CSS output: ' . $e->getMessage());
+            error_log('LAS CSS Generation: Error in selector processing and CSS output for property ' . $property . ': ' . $e->getMessage());
             return;
         }
     };
@@ -275,21 +1032,54 @@ function las_fresh_generate_admin_css_output($preview_options = null) {
             }
             
             $trimmed_block = trim($raw_css_block);
-            if (!empty($trimmed_block)) {
-                // Basic CSS validation to prevent malformed CSS
-                if (strpos($trimmed_block, '{') !== false && strpos($trimmed_block, '}') === false) {
-                    error_log('LAS CSS Generation: Malformed CSS block (missing closing brace): ' . substr($trimmed_block, 0, 100));
-                    return;
-                }
-                
-                // Validate CSS block length
-                if (strlen($trimmed_block) > 50000) {
-                    error_log('LAS CSS Generation: Raw CSS block too long, truncating: ' . substr($trimmed_block, 0, 100) . '...');
-                    $trimmed_block = substr($trimmed_block, 0, 50000) . '/* ... truncated ... */';
-                }
-                
-                $css_output .= $trimmed_block . "\n";
+            if (empty($trimmed_block)) {
+                return;
             }
+            
+            // Comprehensive CSS syntax validation
+            $open_braces = substr_count($trimmed_block, '{');
+            $close_braces = substr_count($trimmed_block, '}');
+            
+            if ($open_braces !== $close_braces) {
+                error_log('LAS CSS Generation: Unbalanced braces in raw CSS block: ' . substr($trimmed_block, 0, 100));
+                return;
+            }
+            
+            // Check for potential CSS injection patterns
+            if (preg_match('/[<>]|javascript:|expression\s*\(|@import|@charset|<script|<\/script/i', $trimmed_block)) {
+                error_log('LAS CSS Generation: Potential CSS injection detected in raw block: ' . substr($trimmed_block, 0, 100));
+                return;
+            }
+            
+            // Validate CSS block length with more reasonable limits
+            if (strlen($trimmed_block) > 20000) {
+                error_log('LAS CSS Generation: Raw CSS block too long (' . strlen($trimmed_block) . ' chars), truncating: ' . substr($trimmed_block, 0, 100) . '...');
+                $trimmed_block = substr($trimmed_block, 0, 20000) . "\n/* ... CSS block truncated due to length ... */";
+            }
+            
+            // Basic selector validation for raw blocks
+            if (preg_match_all('/([^{]+)\s*{/', $trimmed_block, $matches)) {
+                foreach ($matches[1] as $selector) {
+                    $clean_selector = las_fresh_validate_selector(trim($selector));
+                    if (empty($clean_selector)) {
+                        error_log('LAS CSS Generation: Invalid selector in raw CSS block: ' . trim($selector));
+                        // Don't return here, just log the issue and continue
+                    }
+                }
+            }
+            
+            // Sanitize the CSS block while preserving valid CSS syntax
+            $sanitized_block = preg_replace('/\/\*.*?\*\//s', '', $trimmed_block); // Remove comments for validation
+            $sanitized_block = preg_replace('/\s+/', ' ', $sanitized_block); // Normalize whitespace
+            
+            // Final validation - ensure we still have valid CSS structure
+            if (empty(trim($sanitized_block))) {
+                error_log('LAS CSS Generation: Raw CSS block became empty after sanitization');
+                return;
+            }
+            
+            $css_output .= $trimmed_block . "\n";
+            
         } catch (Exception $e) {
             error_log('LAS CSS Generation: Error in add_raw function: ' . $e->getMessage());
         }
@@ -297,57 +1087,100 @@ function las_fresh_generate_admin_css_output($preview_options = null) {
 
     $get_ff_val = function ($font_key, $google_key) use ($options, $defaults) {
         try {
-            // Enhanced input validation with fallbacks
+            // Enhanced input validation with comprehensive fallbacks
             if (!is_string($font_key) || !is_string($google_key)) {
                 error_log('LAS CSS Generation: Invalid font key parameters: ' . var_export(array($font_key, $google_key), true));
                 return '';
             }
             
-            // Get font family with fallback handling
+            // Get font family with enhanced error handling
             $fam = '';
-            if (isset($options[$font_key]) && !empty($options[$font_key])) {
-                $fam = $options[$font_key];
-            } elseif (isset($defaults[$font_key]) && !empty($defaults[$font_key])) {
-                $fam = $defaults[$font_key];
+            if (isset($options[$font_key]) && is_string($options[$font_key]) && !empty(trim($options[$font_key]))) {
+                $fam = trim($options[$font_key]);
+            } elseif (isset($defaults[$font_key]) && is_string($defaults[$font_key]) && !empty(trim($defaults[$font_key]))) {
+                $fam = trim($defaults[$font_key]);
             } else {
                 return ''; // No font family specified
             }
             
-            // Get Google font with error handling
+            // Validate font family value
+            if (strlen($fam) > 200) {
+                error_log('LAS CSS Generation: Font family key value too long: ' . substr($fam, 0, 50) . '...');
+                return '';
+            }
+            
+            // Get Google font with enhanced error handling
             $gfont = '';
-            if (isset($options[$google_key])) {
+            if (isset($options[$google_key]) && is_string($options[$google_key])) {
                 $gfont = trim($options[$google_key]);
             }
             
-            // Handle Google font selection with enhanced validation
+            // Handle Google font selection with comprehensive validation
             if ($fam === 'google' && !empty($gfont)) {
                 try {
+                    // Validate Google font string format
+                    if (strlen($gfont) > 300) {
+                        error_log('LAS CSS Generation: Google font string too long: ' . substr($gfont, 0, 50) . '...');
+                        return '';
+                    }
+                    
                     $parts = explode(':', $gfont);
                     if (is_array($parts) && count($parts) > 0) {
                         $name = sanitize_text_field(trim($parts[0]));
-                        if (!empty($name) && strlen($name) <= 100) { // Reasonable font name length limit
-                            return "'" . $name . "', sans-serif";
-                        } else {
-                            error_log('LAS CSS Generation: Invalid Google font name: ' . $name);
+                        
+                        // Enhanced font name validation
+                        if (empty($name)) {
+                            error_log('LAS CSS Generation: Empty Google font name after sanitization');
+                            return '';
                         }
+                        
+                        if (strlen($name) > 100) {
+                            error_log('LAS CSS Generation: Google font name too long: ' . $name);
+                            return '';
+                        }
+                        
+                        // Validate font name characters
+                        if (!preg_match('/^[a-zA-Z0-9\s\-_]+$/', $name)) {
+                            error_log('LAS CSS Generation: Invalid characters in Google font name: ' . $name);
+                            return '';
+                        }
+                        
+                        // Return properly formatted font family with fallback
+                        return "'" . esc_attr($name) . "', sans-serif";
+                        
+                    } else {
+                        error_log('LAS CSS Generation: Invalid Google font format: ' . $gfont);
                     }
                 } catch (Exception $e) {
                     error_log('LAS CSS Generation: Error processing Google font: ' . $e->getMessage());
                 }
             }
             
-            // Handle custom font family with enhanced validation
+            // Handle custom font family with comprehensive validation
             if ($fam !== 'default' && $fam !== 'google' && !empty($fam)) {
                 // Enhanced sanitization for font family names
                 $safe_fam = preg_replace('/[^a-zA-Z0-9\s\-\'",.]/', '', $fam);
-                if (!empty($safe_fam) && strlen($safe_fam) <= 200) { // Reasonable font family length limit
+                
+                if (empty($safe_fam)) {
+                    error_log('LAS CSS Generation: Font family became empty after sanitization: ' . $fam);
+                    return '';
+                }
+                
+                if (strlen($safe_fam) > 200) {
+                    error_log('LAS CSS Generation: Custom font family too long after sanitization: ' . substr($safe_fam, 0, 50) . '...');
+                    return '';
+                }
+                
+                // Additional validation for font family format
+                if (preg_match('/^[a-zA-Z0-9\s\-\'",.\(\)]+$/', $safe_fam)) {
                     return $safe_fam;
                 } else {
-                    error_log('LAS CSS Generation: Invalid custom font family: ' . $fam);
+                    error_log('LAS CSS Generation: Invalid custom font family format: ' . $safe_fam);
+                    return '';
                 }
             }
             
-            return ''; // Fallback to empty string
+            return ''; // Fallback to empty string for default or unrecognized values
             
         } catch (Exception $e) {
             error_log('LAS CSS Generation: Error in get_ff_val function: ' . $e->getMessage());
@@ -883,46 +1716,502 @@ function las_fresh_generate_admin_css_output($preview_options = null) {
         $css_output .= "\n/* Custom CSS User Rules */\n" . wp_strip_all_tags(wp_kses_stripslashes($options['custom_css_rules'])) . "\n";
     }
 
-        // Enhanced CSS output validation and return with error handling
-        // Validate final CSS output
-        if (!is_string($css_output)) {
-            error_log('LAS CSS Generation: CSS output is not a string: ' . gettype($css_output));
-            $css_output = "/* LAS CSS Generation Error: Invalid output type */\n";
-        }
-        
-        // Check for extremely large CSS output that might cause memory issues
-        if (strlen($css_output) > 1000000) { // 1MB limit
-            error_log('LAS CSS Generation: CSS output is extremely large (' . strlen($css_output) . ' bytes), truncating');
-            $css_output = substr($css_output, 0, 1000000) . "\n/* ... CSS truncated due to size limit ... */\n";
-        }
-        
-        // In preview mode, always return CSS even if it's just the header comment
-        if ($preview_options !== null) {
-            return $css_output;
-        }
-        
-        // In normal mode, return empty string if only header comment
+        // Comprehensive CSS output validation and finalization
         try {
-            $comment_pattern = "/^\/\* Live Admin Styler CSS v" . preg_quote(LAS_FRESH_VERSION, '/') . " \(Specificity Enhanced v[23]\) \*\/\s*$/";
-            if (preg_match($comment_pattern, trim($css_output))) {
+            // Validate final CSS output type
+            if (!is_string($css_output)) {
+                error_log('LAS CSS Generation: CSS output is not a string: ' . gettype($css_output));
+                $css_output = "/* LAS CSS Generation Error: Invalid output type */\n";
+            }
+            
+            // Check for extremely large CSS output that might cause memory issues
+            $css_length = strlen($css_output);
+            if ($css_length > 500000) { // 500KB limit (reduced from 1MB for better performance)
+                error_log('LAS CSS Generation: CSS output is very large (' . $css_length . ' bytes), truncating for performance');
+                $css_output = substr($css_output, 0, 500000) . "\n/* ... CSS truncated due to size limit for performance ... */\n";
+            }
+            
+            // Comprehensive CSS syntax validation
+            $open_braces = substr_count($css_output, '{');
+            $close_braces = substr_count($css_output, '}');
+            
+            if ($open_braces !== $close_braces) {
+                error_log('LAS CSS Generation: Final CSS has unbalanced braces (open: ' . $open_braces . ', close: ' . $close_braces . ')');
+                // Try to fix by adding missing closing braces
+                if ($open_braces > $close_braces) {
+                    $missing_braces = $open_braces - $close_braces;
+                    $css_output .= str_repeat("\n}", $missing_braces) . "\n/* Auto-fixed missing closing braces */\n";
+                }
+            }
+            
+            // Check for potential CSS injection in final output
+            if (preg_match('/[<>]|javascript:|expression\s*\(|<script|<\/script/i', $css_output)) {
+                error_log('LAS CSS Generation: Potential CSS injection detected in final output, sanitizing');
+                $css_output = preg_replace('/[<>]|javascript:|expression\s*\(|<script.*?<\/script>/i', '', $css_output);
+                $css_output .= "\n/* CSS sanitized for security */\n";
+            }
+            
+            // Validate CSS contains only printable characters and common CSS symbols
+            if (preg_match('/[^\x20-\x7E\r\n\t]/', $css_output)) {
+                error_log('LAS CSS Generation: Non-printable characters detected in CSS output');
+                $css_output = preg_replace('/[^\x20-\x7E\r\n\t]/', '', $css_output);
+                $css_output .= "\n/* Non-printable characters removed */\n";
+            }
+            
+            // Performance metrics logging
+            if ($css_length > 100000) {
+                error_log('LAS CSS Generation: Large CSS output generated (' . $css_length . ' bytes) - consider optimization');
+            }
+            
+            // In preview mode, always return CSS even if it's just the header comment
+            if ($preview_options !== null) {
+                // Log performance metrics for preview mode
+                las_fresh_log_css_performance_metrics($performance_start, $memory_start, $peak_memory_start, $css_output, 'preview');
+                return $css_output;
+            }
+            
+            // In normal mode, return empty string if only header comment
+            try {
+                $comment_pattern = "/^\/\* Live Admin Styler CSS v" . preg_quote(LAS_FRESH_VERSION, '/') . " \(Specificity Enhanced v[0-9]\) \*\/\s*$/";
+                if (preg_match($comment_pattern, trim($css_output))) {
+                    return '';
+                }
+            } catch (Exception $e) {
+                error_log('LAS CSS Generation: Error in comment pattern matching: ' . $e->getMessage());
+                // Continue with returning the CSS output
+            }
+            
+            // Final validation - ensure we're returning valid CSS
+            if (empty(trim($css_output))) {
                 return '';
             }
+            
+            // Cache the CSS output for future requests
+            las_fresh_cache_css($css_output);
+            
+            // Log performance metrics for normal mode
+            las_fresh_log_css_performance_metrics($performance_start, $memory_start, $peak_memory_start, $css_output, 'normal');
+            return $css_output;
+            
         } catch (Exception $e) {
-            error_log('LAS CSS Generation: Error in comment pattern matching: ' . $e->getMessage());
-            // Continue with returning the CSS output
+            error_log('LAS CSS Generation: Error in final CSS validation: ' . $e->getMessage());
+            las_fresh_log_css_performance_metrics($performance_start, $memory_start, $peak_memory_start, '', 'error');
+            return "/* LAS CSS Generation Error in final validation: " . esc_html($e->getMessage()) . " */\n";
         }
-        
-        return $css_output;
         
     } catch (Exception $e) {
         error_log('LAS CSS Generation: Critical error in CSS generation function: ' . $e->getMessage());
+        las_fresh_log_css_performance_metrics($performance_start, $memory_start, $peak_memory_start, '', 'critical_error');
         return "/* LAS CSS Generation Critical Error: " . esc_html($e->getMessage()) . " */\n";
+    }
+}
+
+/**
+ * Get cached CSS if available and valid
+ */
+function las_fresh_get_cached_css() {
+    try {
+        $cache_data = get_option('las_fresh_css_cache', false);
+        
+        if (!$cache_data || !is_array($cache_data)) {
+            return false;
+        }
+        
+        // Check if cache is still valid
+        $cache_expiry = $cache_data['expiry'] ?? 0;
+        $current_time = current_time('timestamp');
+        
+        if ($current_time > $cache_expiry) {
+            // Cache expired, clean it up
+            delete_option('las_fresh_css_cache');
+            return false;
+        }
+        
+        // Check if options have changed since cache was created
+        $cached_options_hash = $cache_data['options_hash'] ?? '';
+        $current_options_hash = las_fresh_get_options_hash();
+        
+        if ($cached_options_hash !== $current_options_hash) {
+            // Options changed, invalidate cache
+            delete_option('las_fresh_css_cache');
+            return false;
+        }
+        
+        // Cache is valid, return CSS
+        return $cache_data['css'] ?? false;
+        
+    } catch (Exception $e) {
+        error_log('LAS CSS Cache: Error retrieving cached CSS: ' . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Cache CSS output for future requests
+ */
+function las_fresh_cache_css($css_output) {
+    try {
+        if (empty($css_output)) {
+            return false;
+        }
+        
+        $cache_duration = apply_filters('las_fresh_css_cache_duration', 3600); // 1 hour default
+        $cache_data = array(
+            'css' => $css_output,
+            'options_hash' => las_fresh_get_options_hash(),
+            'created' => current_time('timestamp'),
+            'expiry' => current_time('timestamp') + $cache_duration,
+            'size' => strlen($css_output)
+        );
+        
+        $result = update_option('las_fresh_css_cache', $cache_data, false);
+        
+        if ($result) {
+            // Log cache creation
+            error_log(sprintf(
+                'LAS CSS Cache: CSS cached successfully - Size: %s, Expires: %s',
+                size_format($cache_data['size']),
+                date('Y-m-d H:i:s', $cache_data['expiry'])
+            ));
+        }
+        
+        return $result;
+        
+    } catch (Exception $e) {
+        error_log('LAS CSS Cache: Error caching CSS: ' . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Generate hash of current options for cache validation
+ */
+function las_fresh_get_options_hash() {
+    try {
+        $options = las_fresh_get_options();
+        
+        // Remove non-CSS affecting options from hash calculation
+        $css_affecting_options = $options;
+        unset($css_affecting_options['active_template']); // This might not affect CSS directly
+        
+        return md5(serialize($css_affecting_options));
+        
+    } catch (Exception $e) {
+        error_log('LAS CSS Cache: Error generating options hash: ' . $e->getMessage());
+        return '';
+    }
+}
+
+/**
+ * Clear CSS cache
+ */
+function las_fresh_clear_css_cache() {
+    try {
+        $result = delete_option('las_fresh_css_cache');
+        
+        if ($result) {
+            error_log('LAS CSS Cache: Cache cleared successfully');
+        }
+        
+        return $result;
+        
+    } catch (Exception $e) {
+        error_log('LAS CSS Cache: Error clearing cache: ' . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Get cache statistics
+ */
+function las_fresh_get_cache_stats() {
+    try {
+        $cache_data = get_option('las_fresh_css_cache', false);
+        
+        if (!$cache_data || !is_array($cache_data)) {
+            return array(
+                'status' => 'empty',
+                'message' => 'No cache data available'
+            );
+        }
+        
+        $current_time = current_time('timestamp');
+        $is_expired = $current_time > ($cache_data['expiry'] ?? 0);
+        
+        return array(
+            'status' => $is_expired ? 'expired' : 'valid',
+            'created' => $cache_data['created'] ?? 0,
+            'created_formatted' => isset($cache_data['created']) ? date('Y-m-d H:i:s', $cache_data['created']) : 'Unknown',
+            'expiry' => $cache_data['expiry'] ?? 0,
+            'expiry_formatted' => isset($cache_data['expiry']) ? date('Y-m-d H:i:s', $cache_data['expiry']) : 'Unknown',
+            'size_bytes' => $cache_data['size'] ?? 0,
+            'size_formatted' => isset($cache_data['size']) ? size_format($cache_data['size']) : 'Unknown',
+            'options_hash' => $cache_data['options_hash'] ?? '',
+            'time_remaining' => max(0, ($cache_data['expiry'] ?? 0) - $current_time),
+            'time_remaining_formatted' => las_fresh_format_time_remaining(max(0, ($cache_data['expiry'] ?? 0) - $current_time))
+        );
+        
+    } catch (Exception $e) {
+        error_log('LAS CSS Cache: Error getting cache stats: ' . $e->getMessage());
+        return array(
+            'status' => 'error',
+            'message' => $e->getMessage()
+        );
+    }
+}
+
+/**
+ * Format time remaining in human readable format
+ */
+function las_fresh_format_time_remaining($seconds) {
+    if ($seconds <= 0) {
+        return 'Expired';
+    }
+    
+    if ($seconds < 60) {
+        return $seconds . ' seconds';
+    } elseif ($seconds < 3600) {
+        return round($seconds / 60) . ' minutes';
+    } else {
+        return round($seconds / 3600, 1) . ' hours';
+    }
+}
+
+/**
+ * Log CSS generation performance metrics
+ */
+function las_fresh_log_css_performance_metrics($start_time, $start_memory, $start_peak_memory, $css_output, $mode = 'normal') {
+    try {
+        $execution_time = round((microtime(true) - $start_time) * 1000, 2); // milliseconds
+        $memory_used = memory_get_usage(true) - $start_memory;
+        $peak_memory = memory_get_peak_usage(true);
+        $css_size = strlen($css_output);
+        
+        $metrics = array(
+            'execution_time_ms' => $execution_time,
+            'memory_used_bytes' => $memory_used,
+            'memory_used_formatted' => size_format($memory_used),
+            'peak_memory_bytes' => $peak_memory,
+            'peak_memory_formatted' => size_format($peak_memory),
+            'css_size_bytes' => $css_size,
+            'css_size_formatted' => size_format($css_size),
+            'mode' => $mode,
+            'timestamp' => current_time('timestamp'),
+            'user_id' => get_current_user_id()
+        );
+        
+        // Store metrics for reporting
+        las_fresh_store_performance_metrics('css_generation', $metrics);
+        
+        // Log performance warnings
+        if ($execution_time > 500) {
+            error_log(sprintf(
+                'LAS Performance Warning: Slow CSS generation - %dms, Memory: %s, Peak: %s, CSS Size: %s, Mode: %s',
+                $execution_time,
+                $metrics['memory_used_formatted'],
+                $metrics['peak_memory_formatted'],
+                $metrics['css_size_formatted'],
+                $mode
+            ));
+        }
+        
+        if ($memory_used > 10 * 1024 * 1024) { // 10MB
+            error_log(sprintf(
+                'LAS Performance Warning: High memory usage in CSS generation - %s, Peak: %s, Mode: %s',
+                $metrics['memory_used_formatted'],
+                $metrics['peak_memory_formatted'],
+                $mode
+            ));
+        }
+        
+        return $metrics;
+        
+    } catch (Exception $e) {
+        error_log('LAS Performance Monitoring: Error logging CSS metrics: ' . $e->getMessage());
+        return array();
+    }
+}
+
+/**
+ * Store performance metrics for analysis and reporting
+ */
+function las_fresh_store_performance_metrics($operation_type, $metrics) {
+    try {
+        // Get existing metrics
+        $stored_metrics = get_option('las_fresh_performance_metrics', array());
+        
+        if (!is_array($stored_metrics)) {
+            $stored_metrics = array();
+        }
+        
+        // Initialize operation type array if not exists
+        if (!isset($stored_metrics[$operation_type])) {
+            $stored_metrics[$operation_type] = array();
+        }
+        
+        // Add current metrics
+        $stored_metrics[$operation_type][] = $metrics;
+        
+        // Keep only last 100 entries per operation type to prevent database bloat
+        if (count($stored_metrics[$operation_type]) > 100) {
+            $stored_metrics[$operation_type] = array_slice($stored_metrics[$operation_type], -100);
+        }
+        
+        // Update option
+        update_option('las_fresh_performance_metrics', $stored_metrics, false);
+        
+        return true;
+        
+    } catch (Exception $e) {
+        error_log('LAS Performance Storage: Error storing metrics: ' . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Get performance metrics for reporting
+ */
+function las_fresh_get_performance_metrics($operation_type = null, $limit = 50) {
+    try {
+        $stored_metrics = get_option('las_fresh_performance_metrics', array());
+        
+        if (!is_array($stored_metrics)) {
+            return array();
+        }
+        
+        if ($operation_type) {
+            $metrics = isset($stored_metrics[$operation_type]) ? $stored_metrics[$operation_type] : array();
+            return array_slice($metrics, -$limit);
+        }
+        
+        return $stored_metrics;
+        
+    } catch (Exception $e) {
+        error_log('LAS Performance Retrieval: Error getting metrics: ' . $e->getMessage());
+        return array();
+    }
+}
+
+/**
+ * Generate performance report
+ */
+function las_fresh_generate_performance_report($operation_type = null, $days = 7) {
+    try {
+        $metrics = las_fresh_get_performance_metrics($operation_type);
+        $cutoff_time = current_time('timestamp') - ($days * 24 * 60 * 60);
+        
+        $report = array(
+            'operation_type' => $operation_type ?: 'all',
+            'period_days' => $days,
+            'total_operations' => 0,
+            'avg_execution_time_ms' => 0,
+            'max_execution_time_ms' => 0,
+            'min_execution_time_ms' => PHP_INT_MAX,
+            'avg_memory_usage_bytes' => 0,
+            'max_memory_usage_bytes' => 0,
+            'avg_css_size_bytes' => 0,
+            'max_css_size_bytes' => 0,
+            'slow_operations_count' => 0,
+            'high_memory_operations_count' => 0,
+            'operations_by_mode' => array(),
+            'recommendations' => array()
+        );
+        
+        if ($operation_type) {
+            $operation_metrics = isset($metrics[$operation_type]) ? $metrics[$operation_type] : array();
+        } else {
+            $operation_metrics = array();
+            foreach ($metrics as $type => $type_metrics) {
+                $operation_metrics = array_merge($operation_metrics, $type_metrics);
+            }
+        }
+        
+        // Filter by time period
+        $recent_metrics = array_filter($operation_metrics, function($metric) use ($cutoff_time) {
+            return isset($metric['timestamp']) && $metric['timestamp'] >= $cutoff_time;
+        });
+        
+        if (empty($recent_metrics)) {
+            return $report;
+        }
+        
+        $report['total_operations'] = count($recent_metrics);
+        
+        $total_execution_time = 0;
+        $total_memory_usage = 0;
+        $total_css_size = 0;
+        
+        foreach ($recent_metrics as $metric) {
+            // Execution time stats
+            $exec_time = $metric['execution_time_ms'] ?? 0;
+            $total_execution_time += $exec_time;
+            $report['max_execution_time_ms'] = max($report['max_execution_time_ms'], $exec_time);
+            $report['min_execution_time_ms'] = min($report['min_execution_time_ms'], $exec_time);
+            
+            if ($exec_time > 500) {
+                $report['slow_operations_count']++;
+            }
+            
+            // Memory stats
+            $memory_usage = $metric['memory_used_bytes'] ?? 0;
+            $total_memory_usage += $memory_usage;
+            $report['max_memory_usage_bytes'] = max($report['max_memory_usage_bytes'], $memory_usage);
+            
+            if ($memory_usage > 10 * 1024 * 1024) { // 10MB
+                $report['high_memory_operations_count']++;
+            }
+            
+            // CSS size stats
+            $css_size = $metric['css_size_bytes'] ?? 0;
+            $total_css_size += $css_size;
+            $report['max_css_size_bytes'] = max($report['max_css_size_bytes'], $css_size);
+            
+            // Mode statistics
+            $mode = $metric['mode'] ?? 'unknown';
+            if (!isset($report['operations_by_mode'][$mode])) {
+                $report['operations_by_mode'][$mode] = 0;
+            }
+            $report['operations_by_mode'][$mode]++;
+        }
+        
+        // Calculate averages
+        $report['avg_execution_time_ms'] = round($total_execution_time / $report['total_operations'], 2);
+        $report['avg_memory_usage_bytes'] = round($total_memory_usage / $report['total_operations']);
+        $report['avg_css_size_bytes'] = round($total_css_size / $report['total_operations']);
+        
+        // Fix min value if no operations
+        if ($report['min_execution_time_ms'] === PHP_INT_MAX) {
+            $report['min_execution_time_ms'] = 0;
+        }
+        
+        // Generate recommendations
+        if ($report['avg_execution_time_ms'] > 300) {
+            $report['recommendations'][] = 'Consider implementing CSS caching to improve performance';
+        }
+        
+        if ($report['slow_operations_count'] > $report['total_operations'] * 0.1) {
+            $report['recommendations'][] = 'High number of slow operations detected - review CSS generation logic';
+        }
+        
+        if ($report['high_memory_operations_count'] > 0) {
+            $report['recommendations'][] = 'Memory usage optimization needed - consider reducing CSS complexity';
+        }
+        
+        if ($report['max_css_size_bytes'] > 100 * 1024) { // 100KB
+            $report['recommendations'][] = 'Large CSS output detected - consider CSS minification';
+        }
+        
+        return $report;
+        
+    } catch (Exception $e) {
+        error_log('LAS Performance Report: Error generating report: ' . $e->getMessage());
+        return array('error' => $e->getMessage());
     }
 }
 
 function las_fresh_generate_login_css_rules() {
     try {
-        // Get options with error handling
+        // Get options with comprehensive error handling
         try {
             $options = las_fresh_get_options();
         } catch (Exception $e) {
@@ -930,35 +2219,108 @@ function las_fresh_generate_login_css_rules() {
             return '';
         }
         
-        // Validate options
+        // Enhanced options validation
         if (!is_array($options)) {
-            error_log('LAS Login CSS: Options is not an array');
+            error_log('LAS Login CSS: Options is not an array, got: ' . gettype($options));
             return '';
         }
         
-        $login_logo_url = isset($options['login_logo']) ? $options['login_logo'] : '';
+        $login_logo_url = isset($options['login_logo']) && is_string($options['login_logo']) ? trim($options['login_logo']) : '';
         $css = '';
         
-        // Enhanced validation for login logo URL
+        // Comprehensive validation for login logo URL
         if (!empty($login_logo_url)) {
-            // Validate URL format and security
-            if (filter_var($login_logo_url, FILTER_VALIDATE_URL) && 
-                (strpos($login_logo_url, 'http://') === 0 || strpos($login_logo_url, 'https://') === 0)) {
+            // Enhanced URL validation with security checks
+            if (strlen($login_logo_url) > 2000) {
+                error_log('LAS Login CSS: Login logo URL too long: ' . substr($login_logo_url, 0, 100) . '...');
+                return '';
+            }
+            
+            // Validate URL format and protocol
+            if (filter_var($login_logo_url, FILTER_VALIDATE_URL)) {
+                $parsed_url = parse_url($login_logo_url);
+                
+                if (!$parsed_url || !isset($parsed_url['scheme']) || !isset($parsed_url['host'])) {
+                    error_log('LAS Login CSS: Invalid URL structure: ' . $login_logo_url);
+                    return '';
+                }
+                
+                // Only allow HTTP and HTTPS protocols
+                if (!in_array(strtolower($parsed_url['scheme']), ['http', 'https'])) {
+                    error_log('LAS Login CSS: Invalid URL protocol: ' . $parsed_url['scheme']);
+                    return '';
+                }
+                
+                // Additional security checks
+                $dangerous_patterns = [
+                    'javascript:', 'data:', 'vbscript:', 'file:', 'ftp:',
+                    '<script', '</script', 'onload=', 'onerror=', 'onclick='
+                ];
+                
+                foreach ($dangerous_patterns as $pattern) {
+                    if (stripos($login_logo_url, $pattern) !== false) {
+                        error_log('LAS Login CSS: Potentially dangerous pattern in URL: ' . $pattern);
+                        return '';
+                    }
+                }
                 
                 try {
                     $logo_url = esc_url($login_logo_url);
-                    if (!empty($logo_url)) {
-                        $css .= "body.login div#login h1 a { background-image: url({$logo_url}) !important; width: 100% !important; max-width:320px !important; min-height:80px !important; height:auto !important; background-size: contain !important; background-position: center center !important; background-repeat:no-repeat !important; margin-bottom:25px !important; padding-bottom:0 !important; }\n";
+                    if (!empty($logo_url) && $logo_url === $login_logo_url) {
+                        // Generate validated CSS with enhanced security
+                        $css_rule = sprintf(
+                            'body.login div#login h1 a { ' .
+                            'background-image: url(%s) !important; ' .
+                            'width: 100%% !important; ' .
+                            'max-width: 320px !important; ' .
+                            'min-height: 80px !important; ' .
+                            'height: auto !important; ' .
+                            'background-size: contain !important; ' .
+                            'background-position: center center !important; ' .
+                            'background-repeat: no-repeat !important; ' .
+                            'margin-bottom: 25px !important; ' .
+                            'padding-bottom: 0 !important; ' .
+                            '}',
+                            esc_attr($logo_url)
+                        );
+                        
+                        // Validate generated CSS length
+                        if (strlen($css_rule) > 1000) {
+                            error_log('LAS Login CSS: Generated CSS rule too long');
+                            return '';
+                        }
+                        
+                        $css .= $css_rule . "\n";
+                        
+                    } else {
+                        error_log('LAS Login CSS: URL failed esc_url validation: ' . $login_logo_url);
                     }
                 } catch (Exception $e) {
                     error_log('LAS Login CSS: Error processing logo URL: ' . $e->getMessage());
                 }
             } else {
-                error_log('LAS Login CSS: Invalid login logo URL: ' . $login_logo_url);
+                error_log('LAS Login CSS: Invalid login logo URL format: ' . $login_logo_url);
             }
         }
         
-        return trim($css);
+        // Final CSS validation
+        $trimmed_css = trim($css);
+        
+        if (!empty($trimmed_css)) {
+            // Basic CSS syntax validation
+            if (substr_count($trimmed_css, '{') !== substr_count($trimmed_css, '}')) {
+                error_log('LAS Login CSS: Unbalanced braces in generated CSS');
+                return '';
+            }
+            
+            // Check for potential injection
+            if (preg_match('/[<>]|javascript:|expression\s*\(/i', $trimmed_css)) {
+                error_log('LAS Login CSS: Potential CSS injection detected');
+                return '';
+            }
+        }
+        
+        return $trimmed_css;
         
     } catch (Exception $e) {
         error_log('LAS Login CSS: Critical error in login CSS generation: ' . $e->getMessage());
@@ -968,7 +2330,13 @@ function las_fresh_generate_login_css_rules() {
 
 function las_fresh_custom_admin_footer_text_output($footer_text) {
     try {
-        // Get custom footer text with error handling
+        // Validate input parameter
+        if (!is_string($footer_text)) {
+            error_log('LAS Footer Text: Invalid footer_text parameter type: ' . gettype($footer_text));
+            $footer_text = ''; // Fallback to empty string
+        }
+        
+        // Get custom footer text with comprehensive error handling
         try {
             $custom_text = las_fresh_get_option('footer_text');
         } catch (Exception $e) {
@@ -977,15 +2345,55 @@ function las_fresh_custom_admin_footer_text_output($footer_text) {
         }
         
         // Enhanced validation for custom footer text
-        if (!empty($custom_text) && is_string($custom_text)) {
-            // Validate text length to prevent extremely long footer text
-            if (strlen($custom_text) > 1000) {
-                error_log('LAS Footer Text: Custom footer text too long, truncating');
-                $custom_text = substr($custom_text, 0, 1000) . '...';
+        if (!empty($custom_text)) {
+            if (!is_string($custom_text)) {
+                error_log('LAS Footer Text: Custom footer text is not a string: ' . gettype($custom_text));
+                return $footer_text;
+            }
+            
+            $custom_text = trim($custom_text);
+            
+            if (empty($custom_text)) {
+                return $footer_text; // Return original if custom text is empty after trimming
+            }
+            
+            // Enhanced length validation with more reasonable limits
+            if (strlen($custom_text) > 500) {
+                error_log('LAS Footer Text: Custom footer text too long (' . strlen($custom_text) . ' chars), truncating');
+                $custom_text = substr($custom_text, 0, 500) . '...';
+            }
+            
+            // Check for potentially dangerous content
+            $dangerous_patterns = [
+                '<script', '</script', 'javascript:', 'onload=', 'onerror=', 
+                'onclick=', 'onmouseover=', 'onfocus=', 'data:text/html'
+            ];
+            
+            foreach ($dangerous_patterns as $pattern) {
+                if (stripos($custom_text, $pattern) !== false) {
+                    error_log('LAS Footer Text: Potentially dangerous pattern detected: ' . $pattern);
+                    return $footer_text; // Return original text for security
+                }
             }
             
             try {
-                return wp_kses_post($custom_text);
+                // Enhanced sanitization with WordPress functions
+                $sanitized_text = wp_kses_post($custom_text);
+                
+                if (empty($sanitized_text) && !empty($custom_text)) {
+                    error_log('LAS Footer Text: Custom text became empty after sanitization, using fallback');
+                    // Try basic sanitization as fallback
+                    $sanitized_text = sanitize_text_field($custom_text);
+                }
+                
+                // Final validation of sanitized text
+                if (!empty($sanitized_text) && is_string($sanitized_text)) {
+                    return $sanitized_text;
+                } else {
+                    error_log('LAS Footer Text: Sanitized text is invalid, returning original');
+                    return $footer_text;
+                }
+                
             } catch (Exception $e) {
                 error_log('LAS Footer Text: Error sanitizing custom footer text: ' . $e->getMessage());
                 return $footer_text; // Return original on sanitization error
@@ -996,14 +2404,14 @@ function las_fresh_custom_admin_footer_text_output($footer_text) {
         
     } catch (Exception $e) {
         error_log('LAS Footer Text: Critical error in footer text processing: ' . $e->getMessage());
-        return $footer_text; // Always return something, even if it's the original
+        return is_string($footer_text) ? $footer_text : ''; // Always return a string
     }
 }
 
 if (!function_exists('las_fresh_adjust_brightness_css')) {
     function las_fresh_adjust_brightness_css($hex, $steps) {
         try {
-            // Enhanced input validation with fallbacks
+            // Comprehensive input validation with enhanced fallbacks
             if (!is_string($hex)) {
                 error_log('LAS Brightness Adjustment: Hex value is not a string: ' . gettype($hex));
                 return '#000000'; // Fallback to black
@@ -1015,43 +2423,80 @@ if (!function_exists('las_fresh_adjust_brightness_css')) {
             }
             
             $original_hex = $hex;
-            $hex = ltrim($hex, '#');
+            $hex = trim(ltrim($hex, '#'));
             
-            // Validate hex string
+            // Enhanced validation for empty or invalid input
             if (empty($hex)) {
                 error_log('LAS Brightness Adjustment: Empty hex value provided');
                 return '#000000'; // Fallback to black
             }
             
-            // Expand 3-character hex to 6-character
-            if (strlen($hex) === 3) {
-                $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
-            }
-            
-            // Enhanced hex validation
-            if (strlen($hex) !== 6 || !ctype_xdigit($hex)) {
+            // Validate hex string length and characters
+            if (!in_array(strlen($hex), [3, 6]) || !ctype_xdigit($hex)) {
                 error_log('LAS Brightness Adjustment: Invalid hex format: ' . $original_hex);
-                return '#' . ltrim($original_hex, '#'); // Return original if invalid
+                // Try to return a valid color based on original input
+                if (preg_match('/^#?([a-fA-F0-9]{3}|[a-fA-F0-9]{6})$/', $original_hex)) {
+                    return '#' . ltrim($original_hex, '#');
+                }
+                return '#000000'; // Ultimate fallback
             }
             
-            // Clamp steps to valid range
+            // Expand 3-character hex to 6-character with validation
+            if (strlen($hex) === 3) {
+                if (ctype_xdigit($hex)) {
+                    $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+                } else {
+                    error_log('LAS Brightness Adjustment: Invalid 3-character hex: ' . $hex);
+                    return '#000000';
+                }
+            }
+            
+            // Final validation after expansion
+            if (strlen($hex) !== 6 || !ctype_xdigit($hex)) {
+                error_log('LAS Brightness Adjustment: Hex validation failed after expansion: ' . $hex);
+                return '#000000';
+            }
+            
+            // Enhanced steps validation with reasonable limits
+            if (!is_finite($steps)) {
+                error_log('LAS Brightness Adjustment: Steps value is not finite: ' . $steps);
+                $steps = 0;
+            }
+            
             $steps = max(-255, min(255, (int)$steps));
             
             $rgb_array = array();
             
-            // Process each color component with error handling
+            // Process each color component with comprehensive error handling
             for ($i = 0; $i < 3; $i++) {
                 try {
-                    $hex_component = substr($hex, $i * 2, 2);
+                    $start_pos = $i * 2;
+                    if ($start_pos + 1 >= strlen($hex)) {
+                        error_log('LAS Brightness Adjustment: Hex string too short for component ' . $i);
+                        $rgb_array[] = 0;
+                        continue;
+                    }
+                    
+                    $hex_component = substr($hex, $start_pos, 2);
+                    
+                    if (strlen($hex_component) !== 2 || !ctype_xdigit($hex_component)) {
+                        error_log('LAS Brightness Adjustment: Invalid hex component: ' . $hex_component);
+                        $rgb_array[] = 0;
+                        continue;
+                    }
+                    
                     $color_component = hexdec($hex_component);
                     
                     // Validate hexdec result
-                    if ($color_component === false) {
+                    if ($color_component === false || !is_numeric($color_component)) {
                         error_log('LAS Brightness Adjustment: Error converting hex component: ' . $hex_component);
-                        $color_component = 0; // Fallback to 0
+                        $rgb_array[] = 0;
+                        continue;
                     }
                     
-                    $rgb_array[] = max(0, min(255, $color_component + $steps));
+                    // Apply brightness adjustment with clamping
+                    $adjusted_component = $color_component + $steps;
+                    $rgb_array[] = max(0, min(255, $adjusted_component));
                     
                 } catch (Exception $e) {
                     error_log('LAS Brightness Adjustment: Error processing color component ' . $i . ': ' . $e->getMessage());
@@ -1059,22 +2504,40 @@ if (!function_exists('las_fresh_adjust_brightness_css')) {
                 }
             }
             
-            // Build new hex value with error handling
+            // Ensure we have exactly 3 RGB components
+            if (count($rgb_array) !== 3) {
+                error_log('LAS Brightness Adjustment: Invalid RGB array length: ' . count($rgb_array));
+                return '#000000';
+            }
+            
+            // Build new hex value with comprehensive error handling
             $new_hex = '#';
-            foreach ($rgb_array as $component) {
+            foreach ($rgb_array as $index => $component) {
                 try {
-                    $hex_component = dechex($component);
+                    if (!is_numeric($component) || $component < 0 || $component > 255) {
+                        error_log('LAS Brightness Adjustment: Invalid RGB component value: ' . $component);
+                        $component = 0; // Fallback to 0
+                    }
+                    
+                    $hex_component = dechex((int)$component);
+                    
+                    if ($hex_component === false) {
+                        error_log('LAS Brightness Adjustment: Error converting component to hex: ' . $component);
+                        $hex_component = '00'; // Fallback
+                    }
+                    
                     $new_hex .= str_pad($hex_component, 2, '0', STR_PAD_LEFT);
+                    
                 } catch (Exception $e) {
-                    error_log('LAS Brightness Adjustment: Error converting component to hex: ' . $e->getMessage());
-                    $new_hex .= '00'; // Fallback to 00
+                    error_log('LAS Brightness Adjustment: Error converting component ' . $index . ' to hex: ' . $e->getMessage());
+                    $new_hex .= '00'; // Fallback to 00 for this component
                 }
             }
             
-            // Final validation of result
-            if (strlen($new_hex) !== 7 || $new_hex[0] !== '#') {
-                error_log('LAS Brightness Adjustment: Invalid result format: ' . $new_hex);
-                return '#' . ltrim($original_hex, '#'); // Return original on error
+            // Final validation of generated hex color
+            if (strlen($new_hex) !== 7 || !preg_match('/^#[a-fA-F0-9]{6}$/', $new_hex)) {
+                error_log('LAS Brightness Adjustment: Generated invalid hex color: ' . $new_hex);
+                return '#000000';
             }
             
             return $new_hex;
