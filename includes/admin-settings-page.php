@@ -79,7 +79,7 @@ function las_fresh_render_settings_page() {
     $page_description = __('Dostosuj wygląd swojego panelu administratora. Zmiany w większości są widoczne na żywo. Zapisz, aby utrwalić.', LAS_FRESH_TEXT_DOMAIN);
     $active_tab = las_fresh_get_active_tab();
     ?>
-    <div class="wrap las-fresh-settings-wrap las-container" data-las-modern-ui data-theme="light" style="background: #fafafa !important; color: #171717 !important; min-height: 100vh;">
+    <div class="wrap las-fresh-settings-wrap las-container" data-las-modern-ui>data-theme="light" style="background: #fafafa !important; color: #171717 !important; min-height: 100vh;">
         <!-- Modern Header Section -->
         <div class="las-header">
             <div class="las-header-content">
