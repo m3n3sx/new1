@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Build files
+dist/
+build/
+
+# Cache files
+.cache/
+*.cache
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.temp
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# WordPress specific
+wp-config.php
+.htaccess
+
+# Backup files
+*.backup
+*.bak
