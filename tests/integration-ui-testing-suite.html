@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI Testing Suite Integration Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            background: #f1f1f1;
+        }
+
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .test-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .test-button {
+            padding: 8px 16px;
+            background: #007cba;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .test-button:hover {
+            background: #005a87;
+        }
+
+        .test-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .test-button.success {
+            background: #28a745;
+        }
+
+        .test-button.warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .test-button.danger {
+            background: #dc3545;
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .test-results {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+            white-space: pre-wrap;
+        }
+
+        .test-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .summary-card {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .summary-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .summary-card.passed .summary-value {
+            color: #28a745;
+        }
+
+        .summary-card.failed .summary-value {
+            color: #dc3545;
+        }
+
+        .summary-card.skipped .summary-value {
+            color: #ffc107;
+        }
+
+        .summary-card.total .summary-value {
+            color: #007cba;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .suite-results {
+            margin: 20px 0;
+        }
+
+        .suite-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .suite-header {
+            padding: 15px;
+            background: #e9ecef;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .suite-header:hover {
+            background: #dee2e6;
+        }
+
+        .suite-content {
+            padding: 15px;
+            display: none;
+        }
+
+        .suite-content.expanded {
+            display: block;
+        }
+
+        .test-item {
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .test-item.passed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .test-item.failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .test-item.skipped {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .test-duration {
+            font-size: 11px;
+            opacity: 0.7;
+        }
+
+        .error-details {
+            font-size: 11px;
+            margin-top: 5px;
+            padding: 5px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 3px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007cba;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="test-container">
+        <h1>UI Testing Suite Integration Test</h1>
+        <p>Comprehensive testing of the LAS UI Testing Framework including all manager tests, integration tests, and
+            performance validation.</p>
+
+        <!-- Test Controls -->
+        <div class="test-section">
+            <h3>Test Execution Controls</h3>
+
+            <div class="test-controls">
+                <button class="test-button" onclick="runAllTests()" id="run-all-btn">
+                    <span class="loading hidden" id="loading-spinner"></span>
+                    Run All Tests
+                </button>
+                <button class="test-button" onclick="runTestSuite('core-manager')">Core Manager Tests</button>
+                <button class="test-button" onclick="runTestSuite('tab-manager')">Tab Manager Tests</button>
+                <button class="test-button" onclick="runTestSuite('menu-manager')">Menu Manager Tests</button>
+                <button class="test-button" onclick="runTestSuite('form-manager')">Form Manager Tests</button>
+                <button class="test-button" onclick="runTestSuite('state-manager')">State Manager Tests</button>
+                <button class="test-button" onclick="runTestSuite('integration')">Integration Tests</button>
+                <button class="test-button" onclick="runTestSuite('performance')">Performance Tests</button>
+            </div>
+
+            <div class="test-controls">
+                <button class="test-button warning" onclick="clearResults()">Clear Results</button>
+                <button class="test-button success" onclick="exportReport()">Export Report</button>
+                <button class="test-button" onclick="validateAccessibility()">Validate Accessibility</button>
+                <button class="test-button" onclick="runPerformanceBenchmark()">Performance Benchmark</button>
+            </div>
+
+            <div id="test-status" class="status" style="display: none;"></div>
+        </div>
+
+        <!-- Test Summary -->
+        <div class="test-section">
+            <h3>Test Summary</h3>
+
+            <div class="test-summary">
+                <div class="summary-card total">
+                    <div class="summary-value" id="total-tests">0</div>
+                    <div class="summary-label">Total Tests</div>
+                </div>
+                <div class="summary-card passed">
+                    <div class="summary-value" id="passed-tests">0</div>
+                    <div class="summary-label">Passed</div>
+                </div>
+                <div class="summary-card failed">
+                    <div class="summary-value" id="failed-tests">0</div>
+                    <div class="summary-label">Failed</div>
+                </div>
+                <div class="summary-card skipped">
+                    <div class="summary-value" id="skipped-tests">0</div>
+                    <div class="summary-label">Skipped</div>
+                </div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: 0%;"></div>
+            </div>
+
+            <div id="test-duration" style="text-align: center; margin-top: 10px; color: #666;">
+                Duration: <span id="duration-value">0ms</span> |
+                Success Rate: <span id="success-rate">0%</span>
+            </div>
+        </div>
+
+        <!-- Test Suite Results -->
+        <div class="test-section">
+            <h3>Test Suite Results</h3>
+            <div id="suite-results" class="suite-results">
+                <!-- Suite results will be populated here -->
+            </div>
+        </div>
+
+        <!-- Test Output -->
+        <div class="test-section">
+            <h3>Test Output</h3>
+            <div id="test-output" class="test-results">
+                Test output will appear here...
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Dependencies -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
+    <!-- Load LAS Modules -->
+    <script src="../../assets/js/modules/ui-tester.js"></script>
+
+    <script>
+        // Test Framework Integration
+        class UITestingIntegration {
+            constructor() {
+                this.tester = null;
+                this.mockCore = null;
+                this.currentReport = null;
+                this.isRunning = false;
+
+                this.initializeMockCore();
+                this.initializeUITester();
+            }
+
+            initializeMockCore() {
+                this.mockCore = {
+                    initialized: true,
+                    components: new Map(),
+                    config: {
+                        debug: true,
+                        timeout: 5000
+                    },
+
+                    get: (name) => {
+                        return this.mockCore.components.get(name);
+                    },
+
+                    emit: (eventName, data) => {
+                        this.log(`Event: ${eventName}`, data);
+                    },
+
+                    on: (eventName, callback) => {
+                        this.log(`Event listener registered: ${eventName}`);
+                    },
+
+                    initializeComponent: async (name, ComponentClass) => {
+                        if (!ComponentClass) {
+                            throw new Error(`Invalid component class for ${name}`);
+                        }
+
+                        const component = new ComponentClass(this.mockCore);
+                        await component.init();
+                        this.mockCore.components.set(name, component);
+                    }
+                };
+
+                // Mock Tab Manager
+                this.mockCore.components.set('tabs', {
+                    initialized: true,
+                    tabButtons: new Map([
+                        ['general', { dataset: { tab: 'general' }, classList: { add: () => { }, remove: () => { } } }],
+                        ['menu', { dataset: { tab: 'menu' }, classList: { add: () => { }, remove: () => { } } }],
+                        ['advanced', { dataset: { tab: 'advanced' }, classList: { add: () => { }, remove: () => { } } }]
+                    ]),
+                    tabPanels: new Map([
+                        ['general', { id: 'las-tab-general', classList: { add: () => { }, remove: () => { } } }],
+                        ['menu', { id: 'las-tab-menu', classList: { add: () => { }, remove: () => { } } }],
+                        ['advanced', { id: 'las-tab-advanced', classList: { add: () => { }, remove: () => { } } }]
+                    ]),
+                    activeTab: 'general',
+
+                    setActiveTab: (tabId) => {
+                        this.mockCore.components.get('tabs').activeTab = tabId;
+                        this.log(`Tab switched to: ${tabId}`);
+                        return true;
+                    },
+
+                    getActiveTab: () => {
+                        return this.mockCore.components.get('tabs').activeTab;
+                    },
+
+                    discoverTabElements: () => {
+                        this.log('Tab elements rediscovered');
+                    },
+
+                    restoreTabState: async () => {
+                        this.log('Tab state restored');
+                    }
+                });
+
+                // Mock Menu Manager
+                this.mockCore.components.set('menu', {
+                    initialized: true,
+                    menuItems: new Map([
+                        ['menu-1', { id: 'menu-1' }]
+                    ]),
+                    submenus: new Map([
+                        ['menu-1', { classList: { add: () => { }, remove: () => { } } }]
+                    ]),
+
+                    showSubmenu: (menuId) => {
+                        this.log(`Submenu shown: ${menuId}`);
+                    },
+
+                    discoverMenuElements: () => {
+                        this.log('Menu elements rediscovered');
+                    }
+                });
+
+                // Mock Form Manager
+                this.mockCore.components.set('forms', {
+                    initialized: true,
+                    controls: new Map([
+                        ['test-input', { type: 'text', value: '', element: { value: '' } }],
+                        ['test-color', { type: 'color', value: '#007cba', element: { value: '#007cba' } }],
+                        ['test-slider', { type: 'slider', value: '50', element: { value: '50' } }]
+                    ]),
+
+                    getControlValue: (controlId) => {
+                        const control = this.mockCore.components.get('forms').controls.get(controlId);
+                        return control ? control.value : null;
+                    },
+
+                    setControlValue: (controlId, value) => {
+                        const control = this.mockCore.components.get('forms').controls.get(controlId);
+                        if (control) {
+                            control.value = value;
+                            control.element.value = value;
+                            return true;
+                        }
+                        return false;
+                    },
+
+                    handleControlChange: (controlId, value, options) => {
+                        this.log(`Form control changed: ${controlId} = ${value}`, options);
+                    },
+
+                    discoverFormControls: () => {
+                        this.log('Form controls rediscovered');
+                    }
+                });
+
+                // Mock State Manager
+                this.mockCore.components.set('state', {
+                    initialized: true,
+                    state: {},
+                    broadcastChannel: {
+                        postMessage: () => { },
+                        onmessage: null
+                    },
+                    localStorage: window.localStorage,
+                    sessionStorage: window.sessionStorage,
+
+                    get: async (key) => {
+                        return this.mockCore.components.get('state').state[key];
+                    },
+
+                    set: async (key, value) => {
+                        this.mockCore.components.get('state').state[key] = value;
+                    },
+
+                    loadState: async () => {
+                        this.log('State loaded');
+                    }
+                });
+
+                // Mock Performance Optimizer
+                this.mockCore.components.set('performance', {
+                    initialized: true,
+                    lazyLoadQueue: new Set(),
+                    memoryThreshold: 25 * 1024 * 1024,
+
+                    getMetrics: () => ({
+                        initialization_time: { current: 1200, average: 1200, min: 1000, max: 1500 },
+                        event_handling_time: { current: 45, average: 50, min: 30, max: 80 },
+                        memory_used: { current: 12 * 1024 * 1024, average: 15 * 1024 * 1024 }
+                    }),
+
+                    loadLazyComponent: (element) => {
+                        this.log(`Lazy component loaded: ${element.dataset.lazyLoad}`);
+                        this.mockCore.components.get('performance').lazyLoadQueue.delete(element);
+                    }
+                });
+            }
+
+            async initializeUITester() {
+                try {
+                    this.log('Initializing UI Tester...');
+
+                    this.tester = new LASUITester(this.mockCore);
+                    await this.tester.init();
+
+                    this.log('UI Tester initialized successfully');
+                    this.showStatus('UI Testing Framework ready', 'success');
+
+                } catch (error) {
+                    this.log(`UI Tester initialization failed: ${error.message}`, 'error');
+                    this.showStatus(`Initialization failed: ${error.message}`, 'error');
+                }
+            }
+
+            async runAllTests() {
+                if (this.isRunning) {
+                    this.showStatus('Tests are already running', 'warning');
+                    return;
+                }
+
+                this.isRunning = true;
+                this.setRunningState(true);
+
+                try {
+                    this.log('Starting comprehensive test suite...');
+                    this.clearResults();
+
+                    await this.tester.runAllTests();
+
+                    this.currentReport = this.tester.generateTestReport();
+                    this.displayResults(this.currentReport);
+
+                    this.log('All tests completed successfully');
+                    this.showStatus('All tests completed', 'success');
+
+                } catch (error) {
+                    this.log(`Test execution failed: ${error.message}`, 'error');
+                    this.showStatus(`Test execution failed: ${error.message}`, 'error');
+                } finally {
+                    this.isRunning = false;
+                    this.setRunningState(false);
+                }
+            }
+
+            async runTestSuite(suiteId) {
+                if (this.isRunning) {
+                    this.showStatus('Tests are already running', 'warning');
+                    return;
+                }
+
+                this.isRunning = true;
+
+                try {
+                    this.log(`Running test suite: ${suiteId}`);
+
+                    await this.tester.runTestSuite(suiteId);
+
+                    const suiteResults = this.tester.testResults.get(suiteId);
+                    this.displaySuiteResults(suiteId, suiteResults);
+                    this.updateSummary();
+
+                    this.log(`Test suite ${suiteId} completed`);
+                    this.showStatus(`Test suite ${suiteId} completed`, 'success');
+
+                } catch (error) {
+                    this.log(`Test suite ${suiteId} failed: ${error.message}`, 'error');
+                    this.showStatus(`Test suite failed: ${error.message}`, 'error');
+                } finally {
+                    this.isRunning = false;
+                }
+            }
+
+            displayResults(report) {
+                // Update summary
+                document.getElementById('total-tests').textContent = report.summary.total;
+                document.getElementById('passed-tests').textContent = report.summary.passed;
+                document.getElementById('failed-tests').textContent = report.summary.failed;
+                document.getElementById('skipped-tests').textContent = report.summary.skipped;
+                document.getElementById('duration-value').textContent = `${report.summary.duration}ms`;
+                document.getElementById('success-rate').textContent = `${report.summary.successRate}%`;
+
+                // Update progress bar
+                const successRate = parseFloat(report.summary.successRate);
+                document.getElementById('progress-fill').style.width = `${successRate}%`;
+
+                // Display suite results
+                const suiteResultsContainer = document.getElementById('suite-results');
+                suiteResultsContainer.innerHTML = '';
+
+                report.suites.forEach(suite => {
+                    this.displaySuiteResults(suite.name.toLowerCase().replace(/\s+/g, '-'), suite);
+                });
+            }
+
+            displaySuiteResults(suiteId, suiteResults) {
+                const container = document.getElementById('suite-results');
+
+                // Remove existing suite result if it exists
+                const existingSuite = document.getElementById(`suite-${suiteId}`);
+                if (existingSuite) {
+                    existingSuite.remove();
+                }
+
+                const suiteElement = document.createElement('div');
+                suiteElement.className = 'suite-item';
+                suiteElement.id = `suite-${suiteId}`;
+
+                const headerClass = suiteResults.failed > 0 ? 'danger' :
+                    suiteResults.skipped > 0 ? 'warning' : 'success';
+
+                suiteElement.innerHTML = `
+                    <div class="suite-header" onclick="toggleSuite('${suiteId}')">
+                        <div>
+                            <strong>${suiteResults.name}</strong>
+                            <div style="font-size: 12px; color: #666;">${suiteResults.description}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 14px;">
+                                <span style="color: #28a745;">${suiteResults.passed}</span> / 
+                                <span style="color: #dc3545;">${suiteResults.failed}</span> / 
+                                <span style="color: #ffc107;">${suiteResults.skipped}</span>
+                            </div>
+                            <div style="font-size: 11px; color: #666;">${suiteResults.duration}ms</div>
+                        </div>
+                    </div>
+                    <div class="suite-content" id="suite-content-${suiteId}">
+                        ${suiteResults.tests.map(test => `
+                            <div class="test-item ${test.status}">
+                                <div>
+                                    <div>${test.name}</div>
+                                    ${test.error ? `<div class="error-details">${test.error}</div>` : ''}
+                                </div>
+                                <div class="test-duration">${test.duration}ms</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+
+                container.appendChild(suiteElement);
+                this.updateSummary();
+            }
+
+            updateSummary() {
+                let totalTests = 0;
+                let passedTests = 0;
+                let failedTests = 0;
+                let skippedTests = 0;
+
+                this.tester.testResults.forEach(suite => {
+                    totalTests += suite.tests.length;
+                    passedTests += suite.passed;
+                    failedTests += suite.failed;
+                    skippedTests += suite.skipped;
+                });
+
+                document.getElementById('total-tests').textContent = totalTests;
+                document.getElementById('passed-tests').textContent = passedTests;
+                document.getElementById('failed-tests').textContent = failedTests;
+                document.getElementById('skipped-tests').textContent = skippedTests;
+
+                const successRate = totalTests > 0 ? (passedTests / totalTests * 100).toFixed(2) : 0;
+                document.getElementById('success-rate').textContent = `${successRate}%`;
+                document.getElementById('progress-fill').style.width = `${successRate}%`;
+            }
+
+            clearResults() {
+                document.getElementById('suite-results').innerHTML = '';
+                document.getElementById('test-output').textContent = 'Test output will appear here...';
+
+                // Reset summary
+                document.getElementById('total-tests').textContent = '0';
+                document.getElementById('passed-tests').textContent = '0';
+                document.getElementById('failed-tests').textContent = '0';
+                document.getElementById('skipped-tests').textContent = '0';
+                document.getElementById('duration-value').textContent = '0ms';
+                document.getElementById('success-rate').textContent = '0%';
+                document.getElementById('progress-fill').style.width = '0%';
+
+                // Clear tester results
+                if (this.tester) {
+                    this.tester.testResults.clear();
+                    this.tester.testCount = 0;
+                    this.tester.passedCount = 0;
+                    this.tester.failedCount = 0;
+                    this.tester.skippedCount = 0;
+                }
+
+                this.currentReport = null;
+                this.log('Results cleared');
+            }
+
+            exportReport() {
+                if (!this.currentReport) {
+                    this.showStatus('No test results to export', 'warning');
+                    return;
+                }
+
+                const reportJson = JSON.stringify(this.currentReport, null, 2);
+                const blob = new Blob([reportJson], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `ui-test-report-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
+                a.click();
+
+                URL.revokeObjectURL(url);
+                this.showStatus('Test report exported', 'success');
+            }
+
+            async validateAccessibility() {
+                this.log('Running accessibility validation...');
+
+                try {
+                    await this.tester.runTest('testAccessibilityCompliance');
+                    this.showStatus('Accessibility validation completed', 'success');
+                } catch (error) {
+                    this.showStatus(`Accessibility validation failed: ${error.message}`, 'error');
+                }
+            }
+
+            async runPerformanceBenchmark() {
+                this.log('Running performance benchmark...');
+
+                try {
+                    await this.tester.runTestSuite('performance');
+
+                    const performanceResults = this.tester.testResults.get('performance');
+                    this.displaySuiteResults('performance', performanceResults);
+
+                    this.showStatus('Performance benchmark completed', 'success');
+                } catch (error) {
+                    this.showStatus(`Performance benchmark failed: ${error.message}`, 'error');
+                }
+            }
+
+            setRunningState(isRunning) {
+                const runButton = document.getElementById('run-all-btn');
+                const spinner = document.getElementById('loading-spinner');
+
+                if (isRunning) {
+                    runButton.disabled = true;
+                    spinner.classList.remove('hidden');
+                    runButton.textContent = ' Running Tests...';
+                    runButton.prepend(spinner);
+                } else {
+                    runButton.disabled = false;
+                    spinner.classList.add('hidden');
+                    runButton.textContent = 'Run All Tests';
+                }
+            }
+
+            log(message, data = null) {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = `[${timestamp}] ${message}`;
+
+                if (data) {
+                    console.log(logEntry, data);
+                } else {
+                    console.log(logEntry);
+                }
+
+                const output = document.getElementById('test-output');
+                output.textContent += logEntry + '\n';
+                output.scrollTop = output.scrollHeight;
+            }
+
+            showStatus(message, type = 'info') {
+                const statusElement = document.getElementById('test-status');
+                statusElement.textContent = message;
+                statusElement.className = `status ${type}`;
+                statusElement.style.display = 'block';
+
+                setTimeout(() => {
+                    statusElement.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Global test instance
+        let testIntegration;
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            testIntegration = new UITestingIntegration();
+        });
+
+        // Global functions for button handlers
+        function runAllTests() {
+            if (testIntegration) {
+                testIntegration.runAllTests();
+            }
+        }
+
+        function runTestSuite(suiteId) {
+            if (testIntegration) {
+                testIntegration.runTestSuite(suiteId);
+            }
+        }
+
+        function clearResults() {
+            if (testIntegration) {
+                testIntegration.clearResults();
+            }
+        }
+
+        function exportReport() {
+            if (testIntegration) {
+                testIntegration.exportReport();
+            }
+        }
+
+        function validateAccessibility() {
+            if (testIntegration) {
+                testIntegration.validateAccessibility();
+            }
+        }
+
+        function runPerformanceBenchmark() {
+            if (testIntegration) {
+                testIntegration.runPerformanceBenchmark();
+            }
+        }
+
+        function toggleSuite(suiteId) {
+            const content = document.getElementById(`suite-content-${suiteId}`);
+            if (content) {
+                content.classList.toggle('expanded');
+            }
+        }
+    </script>
+</body>
+
+</html>

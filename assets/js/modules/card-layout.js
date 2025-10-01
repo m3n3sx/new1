@@ -1,0 +1,517 @@
+/**
+ * CardLayout - Modern card-based layout system with glassmorphism effects
+ * Implements responsive card components with backdrop-filter support
+ */
+export default class CardLayout {
+    constructor(core) {
+        this.core = core;
+        this.cards = new Map();
+        this.containers = new Map();
+        this.observer = null;
+        this.supportsBackdropFilter = this.checkBackdropFilterSupport();
+        
+        this.init();
+    }
+
+    /**
+     * Initialize the card layout system
+     */
+    init() {
+        this.setupIntersectionObserver();
+        this.setupEventListeners();
+        this.core.on('card-layout:ready', this.render.bind(this));
+        this.core.emit('card-layout:initialized');
+    }
+
+    /**
+     * Check if browser supports backdrop-filter
+     */
+    checkBackdropFilterSupport() {
+        if (typeof CSS === 'undefined' || !CSS.supports) {
+            return false;
+        }
+        return CSS.supports('backdrop-filter', 'blur(1px)') || 
+               CSS.supports('-webkit-backdrop-filter', 'blur(1px)');
+    }
+
+    /**
+     * Create a card container
+     */
+    createContainer(parentElement, config = {}) {
+        const {
+            id = `card-container-${Date.now()}`,
+            layout = 'grid', // 'grid', 'masonry', 'flex'
+            columns = 'auto',
+            gap = '24px',
+            responsive = true,
+            className = ''
+        } = config;
+
+        const container = document.createElement('div');
+        container.className = `las-card-container las-card-${layout} ${className}`.trim();
+        container.setAttribute('data-container-id', id);
+        
+        // Set CSS custom properties for layout
+        container.style.setProperty('--las-card-gap', gap);
+        if (columns !== 'auto') {
+            container.style.setProperty('--las-card-columns', columns);
+        }
+
+        if (responsive) {
+            container.classList.add('las-card-responsive');
+        }
+
+        parentElement.appendChild(container);
+        
+        const containerData = {
+            id,
+            element: container,
+            layout,
+            columns,
+            gap,
+            responsive,
+            cards: []
+        };
+        
+        this.containers.set(id, containerData);
+        this.core.emit('card-layout:container-created', { containerId: id });
+        
+        return containerData;
+    }
+
+    /**
+     * Create a card component
+     */
+    createCard(containerId, config) {
+        const container = this.containers.get(containerId);
+        if (!container) {
+            console.error(`Container with id "${containerId}" not found`);
+            return null;
+        }
+
+        const {
+            id = `card-${Date.now()}`,
+            title = '',
+            content = '',
+            image = null,
+            actions = [],
+            variant = 'elevated', // 'elevated', 'filled', 'outlined', 'glass'
+            size = 'medium', // 'small', 'medium', 'large'
+            interactive = false,
+            loading = false,
+            disabled = false,
+            className = ''
+        } = config;
+
+        const card = document.createElement('div');
+        card.className = `las-card las-card-${variant} las-card-${size} ${className}`.trim();
+        card.setAttribute('data-card-id', id);
+        
+        if (interactive) {
+            card.classList.add('las-card-interactive');
+            card.setAttribute('role', 'button');
+            card.setAttribute('tabindex', '0');
+        }
+        
+        if (loading) {
+            card.classList.add('las-card-loading');
+            card.setAttribute('aria-busy', 'true');
+        }
+        
+        if (disabled) {
+            card.classList.add('las-card-disabled');
+            card.setAttribute('aria-disabled', 'true');
+        }
+
+        // Add glassmorphism fallback class if not supported
+        if (variant === 'glass' && !this.supportsBackdropFilter) {
+            card.classList.add('las-card-glass-fallback');
+        }
+
+        // Build card structure
+        this.buildCardStructure(card, { title, content, image, actions, loading });
+        
+        // Add event listeners
+        this.addCardEventListeners(card, { interactive, disabled });
+        
+        // Add to container
+        container.element.appendChild(card);
+        
+        const cardData = {
+            id,
+            element: card,
+            container: containerId,
+            title,
+            content,
+            image,
+            actions,
+            variant,
+            size,
+            interactive,
+            loading,
+            disabled
+        };
+        
+        this.cards.set(id, cardData);
+        container.cards.push(id);
+        
+        // Observe for animations
+        if (this.observer) {
+            this.observer.observe(card);
+        }
+        
+        this.core.emit('card-layout:card-created', { cardId: id, containerId });
+        
+        return cardData;
+    }
+
+    /**
+     * Build card internal structure
+     */
+    buildCardStructure(cardElement, { title, content, image, actions, loading }) {
+        let cardHTML = '';
+        
+        // Loading state
+        if (loading) {
+            cardHTML += '<div class="las-card-loading-overlay"><div class="las-card-spinner"></div></div>';
+        }
+        
+        // Image section
+        if (image) {
+            cardHTML += `
+                <div class="las-card-media">
+                    <img src="${image.src}" alt="${image.alt || ''}" class="las-card-image" loading="lazy">
+                </div>
+            `;
+        }
+        
+        // Content section
+        cardHTML += '<div class="las-card-content">';
+        
+        if (title) {
+            cardHTML += `<h3 class="las-card-title">${title}</h3>`;
+        }
+        
+        if (content) {
+            cardHTML += `<div class="las-card-body">${content}</div>`;
+        }
+        
+        cardHTML += '</div>';
+        
+        // Actions section
+        if (actions && actions.length > 0) {
+            cardHTML += '<div class="las-card-actions">';
+            actions.forEach(action => {
+                const {
+                    label,
+                    type = 'button',
+                    variant = 'text',
+                    disabled = false,
+                    onClick
+                } = action;
+                
+                cardHTML += `
+                    <button 
+                        class="las-card-action las-card-action-${variant}" 
+                        type="${type}"
+                        ${disabled ? 'disabled' : ''}
+                        data-action="${label.toLowerCase().replace(/\s+/g, '-')}"
+                    >
+                        ${label}
+                    </button>
+                `;
+            });
+            cardHTML += '</div>';
+        }
+        
+        cardElement.innerHTML = cardHTML;
+        
+        // Attach action event listeners
+        if (actions && actions.length > 0) {
+            actions.forEach(action => {
+                if (action.onClick) {
+                    const button = cardElement.querySelector(`[data-action="${action.label.toLowerCase().replace(/\s+/g, '-')}"]`);
+                    if (button) {
+                        button.addEventListener('click', action.onClick);
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * Add event listeners to card
+     */
+    addCardEventListeners(cardElement, { interactive, disabled }) {
+        if (!interactive || disabled) return;
+        
+        // Click handler
+        cardElement.addEventListener('click', (e) => {
+            if (e.target.closest('.las-card-actions')) return; // Don't trigger on action buttons
+            
+            const cardId = cardElement.getAttribute('data-card-id');
+            this.core.emit('card-layout:card-clicked', { cardId, element: cardElement });
+        });
+        
+        // Keyboard handler
+        cardElement.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                cardElement.click();
+            }
+        });
+        
+        // Hover effects
+        cardElement.addEventListener('mouseenter', () => {
+            cardElement.classList.add('las-card-hover');
+        });
+        
+        cardElement.addEventListener('mouseleave', () => {
+            cardElement.classList.remove('las-card-hover');
+        });
+        
+        // Focus effects
+        cardElement.addEventListener('focus', () => {
+            cardElement.classList.add('las-card-focus');
+        });
+        
+        cardElement.addEventListener('blur', () => {
+            cardElement.classList.remove('las-card-focus');
+        });
+    }
+
+    /**
+     * Update card content
+     */
+    updateCard(cardId, updates) {
+        const card = this.cards.get(cardId);
+        if (!card) {
+            console.error(`Card with id "${cardId}" not found`);
+            return;
+        }
+
+        // Update card data
+        Object.assign(card, updates);
+        
+        // Rebuild card structure if content changed
+        if (updates.title || updates.content || updates.image || updates.actions) {
+            this.buildCardStructure(card.element, {
+                title: card.title,
+                content: card.content,
+                image: card.image,
+                actions: card.actions,
+                loading: card.loading
+            });
+        }
+        
+        // Update classes if variant or size changed
+        if (updates.variant) {
+            card.element.className = card.element.className.replace(/las-card-\w+(?=\s|$)/g, '');
+            card.element.classList.add(`las-card-${updates.variant}`);
+        }
+        
+        if (updates.size) {
+            card.element.className = card.element.className.replace(/las-card-(small|medium|large)/g, '');
+            card.element.classList.add(`las-card-${updates.size}`);
+        }
+        
+        // Update loading state
+        if (updates.hasOwnProperty('loading')) {
+            card.element.classList.toggle('las-card-loading', updates.loading);
+            card.element.setAttribute('aria-busy', updates.loading ? 'true' : 'false');
+        }
+        
+        // Update disabled state
+        if (updates.hasOwnProperty('disabled')) {
+            card.element.classList.toggle('las-card-disabled', updates.disabled);
+            card.element.setAttribute('aria-disabled', updates.disabled ? 'true' : 'false');
+        }
+        
+        this.core.emit('card-layout:card-updated', { cardId, updates });
+    }
+
+    /**
+     * Remove a card
+     */
+    removeCard(cardId) {
+        const card = this.cards.get(cardId);
+        if (!card) return;
+        
+        const container = this.containers.get(card.container);
+        if (container) {
+            container.cards = container.cards.filter(id => id !== cardId);
+        }
+        
+        // Animate out
+        card.element.classList.add('las-card-removing');
+        
+        setTimeout(() => {
+            if (this.observer) {
+                this.observer.unobserve(card.element);
+            }
+            card.element.remove();
+            this.cards.delete(cardId);
+            this.core.emit('card-layout:card-removed', { cardId });
+        }, 300);
+    }
+
+    /**
+     * Set up intersection observer for animations
+     */
+    setupIntersectionObserver() {
+        if (typeof window === 'undefined' || !window.IntersectionObserver) return;
+        
+        this.observer = new window.IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('las-card-visible');
+                    // Stagger animation for multiple cards
+                    const delay = Array.from(entry.target.parentElement.children).indexOf(entry.target) * 100;
+                    entry.target.style.animationDelay = `${delay}ms`;
+                }
+            });
+        }, {
+            threshold: 0.1,
+            rootMargin: '50px'
+        });
+    }
+
+    /**
+     * Update container layout
+     */
+    updateContainerLayout(containerId, updates) {
+        const container = this.containers.get(containerId);
+        if (!container) return;
+        
+        Object.assign(container, updates);
+        
+        if (updates.layout) {
+            container.element.className = container.element.className.replace(/las-card-(grid|masonry|flex)/g, '');
+            container.element.classList.add(`las-card-${updates.layout}`);
+        }
+        
+        if (updates.gap) {
+            container.element.style.setProperty('--las-card-gap', updates.gap);
+        }
+        
+        if (updates.columns && updates.columns !== 'auto') {
+            container.element.style.setProperty('--las-card-columns', updates.columns);
+        }
+        
+        this.core.emit('card-layout:container-updated', { containerId, updates });
+    }
+
+    /**
+     * Setup responsive behavior
+     */
+    setupResponsive() {
+        const mediaQueries = [
+            { query: '(max-width: 767px)', columns: 1 },
+            { query: '(min-width: 768px) and (max-width: 1023px)', columns: 2 },
+            { query: '(min-width: 1024px)', columns: 3 }
+        ];
+        
+        mediaQueries.forEach(({ query, columns }) => {
+            const mq = window.matchMedia(query);
+            
+            const handler = (e) => {
+                if (e.matches) {
+                    this.containers.forEach((container) => {
+                        if (container.responsive) {
+                            container.element.style.setProperty('--las-card-columns', columns);
+                        }
+                    });
+                }
+            };
+            
+            mq.addListener(handler);
+            handler(mq); // Initial check
+        });
+    }
+
+    /**
+     * Setup event listeners
+     */
+    setupEventListeners() {
+        // Handle window resize for responsive behavior
+        window.addEventListener('resize', () => {
+            this.setupResponsive();
+        });
+        
+        // Handle reduced motion preference
+        const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+        const handleReducedMotion = (e) => {
+            document.body.classList.toggle('las-reduced-motion', e.matches);
+        };
+        
+        mediaQuery.addListener(handleReducedMotion);
+        handleReducedMotion(mediaQuery);
+    }
+
+    /**
+     * Get container state
+     */
+    getContainerState(containerId) {
+        const container = this.containers.get(containerId);
+        if (!container) return null;
+        
+        return {
+            id: container.id,
+            layout: container.layout,
+            columns: container.columns,
+            gap: container.gap,
+            responsive: container.responsive,
+            cardCount: container.cards.length,
+            cards: container.cards.map(cardId => this.cards.get(cardId))
+        };
+    }
+
+    /**
+     * Get card state
+     */
+    getCardState(cardId) {
+        return this.cards.get(cardId) || null;
+    }
+
+    /**
+     * Render all containers and cards
+     */
+    render() {
+        this.setupResponsive();
+        
+        // Trigger visibility animations for existing cards
+        this.cards.forEach(card => {
+            if (this.observer) {
+                this.observer.observe(card.element);
+            }
+        });
+    }
+
+    /**
+     * Destroy card layout system
+     */
+    destroy() {
+        // Clean up intersection observer
+        if (this.observer) {
+            this.observer.disconnect();
+            this.observer = null;
+        }
+        
+        // Remove all cards and containers
+        this.cards.forEach(card => {
+            card.element.remove();
+        });
+        
+        this.containers.forEach(container => {
+            container.element.remove();
+        });
+        
+        this.cards.clear();
+        this.containers.clear();
+        
+        // Remove event listeners
+        window.removeEventListener('resize', this.setupResponsive);
+        
+        this.core.emit('card-layout:destroyed');
+    }
+}

@@ -1,0 +1,623 @@
+/**
+ * Card Layout System - Modern cards with glassmorphism effects
+ * Responsive card components with backdrop-filter support and fallbacks
+ */
+
+/* Card Container Layouts */
+.las-card-container {
+    display: grid;
+    gap: var(--las-card-gap, 24px);
+    width: 100%;
+    padding: var(--las-spacing-md, 16px);
+}
+
+/* Grid Layout */
+.las-card-grid {
+    grid-template-columns: repeat(var(--las-card-columns, auto-fit), minmax(280px, 1fr));
+}
+
+/* Masonry Layout */
+.las-card-masonry {
+    columns: var(--las-card-columns, auto);
+    column-gap: var(--las-card-gap, 24px);
+    column-fill: balance;
+}
+
+.las-card-masonry .las-card {
+    break-inside: avoid;
+    margin-bottom: var(--las-card-gap, 24px);
+}
+
+/* Flex Layout */
+.las-card-flex {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--las-card-gap, 24px);
+}
+
+.las-card-flex .las-card {
+    flex: 1 1 280px;
+    max-width: 400px;
+}
+
+/* Responsive Container */
+.las-card-responsive {
+    --las-card-columns: 1;
+}
+
+@media (min-width: 768px) {
+    .las-card-responsive {
+        --las-card-columns: 2;
+    }
+}
+
+@media (min-width: 1024px) {
+    .las-card-responsive {
+        --las-card-columns: 3;
+    }
+}
+
+@media (min-width: 1440px) {
+    .las-card-responsive {
+        --las-card-columns: 4;
+    }
+}
+
+/* Base Card Styles */
+.las-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border-radius: 16px; /* 2 * 8px grid */
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+    opacity: 0;
+    transform: translateY(20px);
+    animation: none;
+}
+
+.las-card.las-card-visible {
+    opacity: 1;
+    transform: translateY(0);
+    animation: las-card-fade-in 0.6s cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+
+/* Card Variants */
+
+/* Elevated Card */
+.las-card-elevated {
+    background: var(--las-surface, #ffffff);
+    box-shadow: 
+        0 1px 3px rgba(0, 0, 0, 0.12),
+        0 1px 2px rgba(0, 0, 0, 0.24);
+    border: 1px solid var(--las-outline-variant, #e0e0e0);
+}
+
+.las-card-elevated:hover,
+.las-card-elevated.las-card-hover {
+    box-shadow: 
+        0 4px 8px rgba(0, 0, 0, 0.12),
+        0 2px 4px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+}
+
+/* Filled Card */
+.las-card-filled {
+    background: var(--las-surface-variant, #f3f0f4);
+    border: 1px solid var(--las-outline-variant, #e0e0e0);
+}
+
+.las-card-filled:hover,
+.las-card-filled.las-card-hover {
+    background: var(--las-surface-container-high, #ece6f0);
+}
+
+/* Outlined Card */
+.las-card-outlined {
+    background: var(--las-surface, #ffffff);
+    border: 2px solid var(--las-outline, #79747e);
+}
+
+.las-card-outlined:hover,
+.las-card-outlined.las-card-hover {
+    border-color: var(--las-primary, #6750a4);
+    box-shadow: 0 0 0 1px var(--las-primary, #6750a4);
+}
+
+/* Glass Card (Glassmorphism) */
+.las-card-glass {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.las-card-glass:hover,
+.las-card-glass.las-card-hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 
+        0 12px 40px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* Glass Card Fallback (for browsers without backdrop-filter support) */
+.las-card-glass-fallback {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+/* Dark theme glass cards */
+@media (prefers-color-scheme: dark) {
+    .las-card-glass {
+        background: rgba(28, 27, 31, 0.8);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .las-card-glass:hover,
+    .las-card-glass.las-card-hover {
+        background: rgba(28, 27, 31, 0.9);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+    
+    .las-card-glass-fallback {
+        background: rgba(28, 27, 31, 0.95);
+    }
+}
+
+/* Card Sizes */
+.las-card-small {
+    min-height: 120px; /* 15 * 8px grid */
+}
+
+.las-card-medium {
+    min-height: 200px; /* 25 * 8px grid */
+}
+
+.las-card-large {
+    min-height: 320px; /* 40 * 8px grid */
+}
+
+/* Interactive Cards */
+.las-card-interactive {
+    cursor: pointer;
+    user-select: none;
+}
+
+.las-card-interactive:focus {
+    outline: 2px solid var(--las-primary, #6750a4);
+    outline-offset: 2px;
+}
+
+.las-card-interactive.las-card-focus {
+    outline: 2px solid var(--las-primary, #6750a4);
+    outline-offset: 2px;
+}
+
+/* Card States */
+.las-card-loading {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.las-card-disabled {
+    opacity: 0.38;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+.las-card-removing {
+    opacity: 0;
+    transform: scale(0.9) translateY(-10px);
+    transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Card Structure */
+
+/* Media Section */
+.las-card-media {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+.las-card-image {
+    width: 100%;
+    height: 200px; /* 25 * 8px grid */
+    object-fit: cover;
+    transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.las-card-interactive:hover .las-card-image,
+.las-card-interactive.las-card-hover .las-card-image {
+    transform: scale(1.05);
+}
+
+/* Content Section */
+.las-card-content {
+    flex: 1;
+    padding: var(--las-spacing-lg, 24px);
+    display: flex;
+    flex-direction: column;
+    gap: var(--las-spacing-sm, 8px);
+}
+
+.las-card-title {
+    margin: 0;
+    font-family: var(--las-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+    font-size: 18px; /* Typography scale */
+    font-weight: 600;
+    line-height: 24px;
+    color: var(--las-on-surface, #1c1b1f);
+}
+
+.las-card-body {
+    flex: 1;
+    font-family: var(--las-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--las-on-surface-variant, #49454f);
+}
+
+/* Actions Section */
+.las-card-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--las-spacing-sm, 8px);
+    padding: var(--las-spacing-sm, 8px) var(--las-spacing-lg, 24px) var(--las-spacing-lg, 24px);
+    border-top: 1px solid var(--las-outline-variant, #e0e0e0);
+}
+
+.las-card-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px; /* 5 * 8px grid */
+    padding: var(--las-spacing-sm, 8px) var(--las-spacing-md, 16px);
+    background: transparent;
+    border: none;
+    border-radius: 20px; /* Pill shape */
+    font-family: var(--las-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+    user-select: none;
+}
+
+.las-card-action:hover {
+    background: var(--las-surface-variant, #f3f0f4);
+}
+
+.las-card-action:focus {
+    outline: 2px solid var(--las-primary, #6750a4);
+    outline-offset: 2px;
+}
+
+.las-card-action:disabled {
+    opacity: 0.38;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Action Variants */
+.las-card-action-text {
+    color: var(--las-primary, #6750a4);
+}
+
+.las-card-action-filled {
+    background: var(--las-primary, #6750a4);
+    color: var(--las-on-primary, #ffffff);
+}
+
+.las-card-action-filled:hover {
+    background: var(--las-primary-container, #eaddff);
+    color: var(--las-on-primary-container, #21005d);
+}
+
+.las-card-action-outlined {
+    border: 1px solid var(--las-outline, #79747e);
+    color: var(--las-primary, #6750a4);
+}
+
+.las-card-action-outlined:hover {
+    background: var(--las-primary-container, #eaddff);
+    border-color: var(--las-primary, #6750a4);
+}
+
+/* Loading Overlay */
+.las-card-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.las-card-spinner {
+    width: 32px; /* 4 * 8px grid */
+    height: 32px;
+    border: 3px solid var(--las-outline-variant, #e0e0e0);
+    border-top-color: var(--las-primary, #6750a4);
+    border-radius: 50%;
+    animation: las-card-spin 1s linear infinite;
+}
+
+/* Animations */
+@keyframes las-card-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes las-card-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    .las-card-elevated,
+    .las-card-filled,
+    .las-card-outlined {
+        border-width: 2px;
+        border-color: var(--las-outline, #79747e);
+    }
+    
+    .las-card-glass {
+        background: rgba(255, 255, 255, 0.95);
+        border-width: 2px;
+    }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    .las-card,
+    .las-card-image,
+    .las-card-action,
+    .las-card-spinner {
+        transition: none;
+        animation: none;
+    }
+    
+    .las-card.las-card-visible {
+        opacity: 1;
+        transform: none;
+    }
+    
+    .las-card-interactive:hover .las-card-image,
+    .las-card-interactive.las-card-hover .las-card-image {
+        transform: none;
+    }
+}
+
+.las-reduced-motion .las-card,
+.las-reduced-motion .las-card-image,
+.las-reduced-motion .las-card-action,
+.las-reduced-motion .las-card-spinner {
+    transition: none;
+    animation: none;
+}
+
+/* Theme System Support */
+[data-theme="dark"] .las-card-elevated,
+.las-theme-dark .las-card-elevated {
+    background: var(--las-surface-dark, #1c1b1f);
+    border-color: var(--las-outline-variant-dark, #49454f);
+    box-shadow: 
+        0 1px 3px rgba(0, 0, 0, 0.3),
+        0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .las-card-filled,
+.las-theme-dark .las-card-filled {
+    background: var(--las-surface-variant-dark, #49454f);
+    border-color: var(--las-outline-variant-dark, #49454f);
+}
+
+[data-theme="dark"] .las-card-outlined,
+.las-theme-dark .las-card-outlined {
+    background: var(--las-surface-dark, #1c1b1f);
+    border-color: var(--las-outline-dark, #938f99);
+}
+
+[data-theme="dark"] .las-card-title,
+.las-theme-dark .las-card-title {
+    color: var(--las-on-surface-dark, #e6e1e5);
+}
+
+[data-theme="dark"] .las-card-body,
+.las-theme-dark .las-card-body {
+    color: var(--las-on-surface-variant-dark, #cac4d0);
+}
+
+[data-theme="dark"] .las-card-actions,
+.las-theme-dark .las-card-actions {
+    border-top-color: var(--las-outline-variant-dark, #49454f);
+}
+
+[data-theme="dark"] .las-card-loading-overlay,
+.las-theme-dark .las-card-loading-overlay {
+    background: rgba(28, 27, 31, 0.8);
+}
+
+[data-theme="dark"] .las-card-glass,
+.las-theme-dark .las-card-glass {
+    background: rgba(28, 27, 31, 0.8);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .las-card-glass:hover,
+[data-theme="dark"] .las-card-glass.las-card-hover,
+.las-theme-dark .las-card-glass:hover,
+.las-theme-dark .las-card-glass.las-card-hover {
+    background: rgba(28, 27, 31, 0.9);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .las-card-glass-fallback,
+.las-theme-dark .las-card-glass-fallback {
+    background: rgba(28, 27, 31, 0.95);
+}
+
+[data-theme="dark"] .las-card-action,
+.las-theme-dark .las-card-action {
+    color: var(--las-on-surface-dark, #e6e1e5);
+}
+
+[data-theme="dark"] .las-card-action:hover,
+.las-theme-dark .las-card-action:hover {
+    background: var(--las-surface-variant-dark, #49454f);
+}
+
+[data-theme="dark"] .las-card-action-text,
+.las-theme-dark .las-card-action-text {
+    color: var(--las-primary-dark, #d0bcff);
+}
+
+[data-theme="dark"] .las-card-action-filled,
+.las-theme-dark .las-card-action-filled {
+    background: var(--las-primary-dark, #d0bcff);
+    color: var(--las-on-primary-dark, #381e72);
+}
+
+[data-theme="dark"] .las-card-action-filled:hover,
+.las-theme-dark .las-card-action-filled:hover {
+    background: var(--las-primary-container-dark, #4f378b);
+    color: var(--las-on-primary-container-dark, #eaddff);
+}
+
+[data-theme="dark"] .las-card-action-outlined,
+.las-theme-dark .las-card-action-outlined {
+    border-color: var(--las-outline-dark, #938f99);
+    color: var(--las-primary-dark, #d0bcff);
+}
+
+[data-theme="dark"] .las-card-action-outlined:hover,
+.las-theme-dark .las-card-action-outlined:hover {
+    background: var(--las-primary-container-dark, #4f378b);
+    border-color: var(--las-primary-dark, #d0bcff);
+}
+
+/* Auto Theme Detection */
+@media (prefers-color-scheme: dark) {
+    .las-theme-auto .las-card-elevated {
+        background: var(--las-surface-dark, #1c1b1f);
+        border-color: var(--las-outline-variant-dark, #49454f);
+        box-shadow: 
+            0 1px 3px rgba(0, 0, 0, 0.3),
+            0 1px 2px rgba(0, 0, 0, 0.4);
+    }
+    
+    .las-theme-auto .las-card-filled {
+        background: var(--las-surface-variant-dark, #49454f);
+        border-color: var(--las-outline-variant-dark, #49454f);
+    }
+    
+    .las-theme-auto .las-card-outlined {
+        background: var(--las-surface-dark, #1c1b1f);
+        border-color: var(--las-outline-dark, #938f99);
+    }
+    
+    .las-theme-auto .las-card-title {
+        color: var(--las-on-surface-dark, #e6e1e5);
+    }
+    
+    .las-theme-auto .las-card-body {
+        color: var(--las-on-surface-variant-dark, #cac4d0);
+    }
+    
+    .las-theme-auto .las-card-actions {
+        border-top-color: var(--las-outline-variant-dark, #49454f);
+    }
+    
+    .las-theme-auto .las-card-loading-overlay {
+        background: rgba(28, 27, 31, 0.8);
+    }
+    
+    .las-theme-auto .las-card-glass {
+        background: rgba(28, 27, 31, 0.8);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .las-theme-auto .las-card-glass:hover,
+    .las-theme-auto .las-card-glass.las-card-hover {
+        background: rgba(28, 27, 31, 0.9);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+    
+    .las-theme-auto .las-card-glass-fallback {
+        background: rgba(28, 27, 31, 0.95);
+    }
+}
+
+/* Print Styles */
+@media print {
+    .las-card {
+        break-inside: avoid;
+        box-shadow: none;
+        border: 1px solid #000;
+        opacity: 1;
+        transform: none;
+    }
+    
+    .las-card-loading-overlay,
+    .las-card-actions {
+        display: none;
+    }
+    
+    .las-card-image {
+        max-height: 200px;
+    }
+}
+
+/* Focus Visible Support */
+.las-card-interactive:focus-visible {
+    outline: 2px solid var(--las-primary, #6750a4);
+    outline-offset: 2px;
+}
+
+.las-card-action:focus-visible {
+    outline: 2px solid var(--las-primary, #6750a4);
+    outline-offset: 2px;
+}
+
+/* Utility Classes */
+.las-card-hidden {
+    display: none;
+}
+
+.las-card-full-width {
+    width: 100%;
+    max-width: none;
+}
+
+.las-card-centered {
+    margin: 0 auto;
+}
+
+/* Container Utilities */
+.las-card-container-centered {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.las-card-container-full {
+    padding: 0;
+    max-width: none;
+}

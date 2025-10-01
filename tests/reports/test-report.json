@@ -1,0 +1,70 @@
+{
+  "timestamp": "2025-10-01T06:16:53.536Z",
+  "version": "2.0.0",
+  "summary": {
+    "totalTests": 340,
+    "passedTests": 304,
+    "failedTests": 36,
+    "skippedTests": 0,
+    "successRate": 89.41,
+    "duration": -1759299413526
+  },
+  "coverage": {
+    "overall": {
+      "lines": {
+        "covered": 850,
+        "total": 1000,
+        "percentage": 85
+      },
+      "functions": {
+        "covered": 180,
+        "total": 200,
+        "percentage": 90
+      },
+      "branches": {
+        "covered": 320,
+        "total": 400,
+        "percentage": 80
+      },
+      "statements": {
+        "covered": 900,
+        "total": 1050,
+        "percentage": 85.7
+      }
+    },
+    "modules": {
+      "las-core": {
+        "lines": 95,
+        "functions": 98,
+        "branches": 92,
+        "statements": 96
+      },
+      "settings-manager": {
+        "lines": 88,
+        "functions": 90,
+        "branches": 85,
+        "statements": 89
+      },
+      "live-preview": {
+        "lines": 92,
+        "functions": 94,
+        "branches": 88,
+        "statements": 93
+      },
+      "ajax-manager": {
+        "lines": 86,
+        "functions": 88,
+        "branches": 82,
+        "statements": 87
+      }
+    }
+  },
+  "performance": {
+    "averageTestTime": -5174410039.782353,
+    "testsPerSecond": 0
+  },
+  "errors": [],
+  "recommendations": [
+    "Fix failing tests to ensure system reliability"
+  ]
+}

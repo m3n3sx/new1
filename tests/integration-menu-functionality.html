@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Manager Integration Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f0f0f1;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .test-header {
+            background: #0073aa;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .test-content {
+            display: flex;
+            min-height: 600px;
+        }
+        
+        .mock-admin-menu {
+            width: 160px;
+            background: #23282d;
+            color: #eee;
+            overflow: hidden;
+        }
+        
+        .mock-admin-menu.folded {
+            width: 36px;
+        }
+        
+        .mock-content {
+            flex: 1;
+            padding: 20px;
+        }
+        
+        /* Mock WordPress admin menu styles */
+        #adminmenu {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        
+        #adminmenu .menu-top {
+            position: relative;
+            margin: 0;
+            padding: 0;
+        }
+        
+        #adminmenu .wp-menu-name,
+        #adminmenu .menu-top > a {
+            display: block;
+            padding: 8px 10px;
+            color: #eee;
+            text-decoration: none;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        #adminmenu .wp-menu-name:hover,
+        #adminmenu .menu-top > a:hover {
+            background: #0073aa;
+            color: white;
+        }
+        
+        #adminmenu .wp-menu-image {
+            float: left;
+            width: 20px;
+            height: 20px;
+            margin: 0 8px 0 0;
+            text-align: center;
+        }
+        
+        #adminmenu .wp-submenu {
+            display: none;
+            position: absolute;
+            left: 160px;
+            top: 0;
+            min-width: 200px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            padding: 8px 0;
+        }
+        
+        .folded #adminmenu .wp-submenu {
+            left: 36px;
+        }
+        
+        #adminmenu .wp-submenu li {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        
+        #adminmenu .wp-submenu a {
+            display: block;
+            padding: 8px 16px;
+            color: #333;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        
+        #adminmenu .wp-submenu a:hover {
+            background: #f0f0f1;
+            color: #0073aa;
+        }
+        
+        .test-controls {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+        
+        .test-button {
+            background: #0073aa;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 5px;
+        }
+        
+        .test-button:hover {
+            background: #005a87;
+        }
+        
+        .test-button.secondary {
+            background: #646970;
+        }
+        
+        .test-button.secondary:hover {
+            background: #50575e;
+        }
+        
+        .test-results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .test-log {
+            margin: 2px 0;
+            padding: 2px 0;
+        }
+        
+        .test-log.success {
+            color: #00a32a;
+        }
+        
+        .test-log.error {
+            color: #d63638;
+        }
+        
+        .test-log.info {
+            color: #0073aa;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-indicator.success {
+            background: #00a32a;
+        }
+        
+        .status-indicator.error {
+            background: #d63638;
+        }
+        
+        .status-indicator.pending {
+            background: #dba617;
+        }
+    </style>
+</head>
+<body class="wp-admin">
+    <div class="test-container">
+        <div class="test-header">
+            <h1>Menu Manager Integration Test</h1>
+            <p>Interactive test for WordPress admin menu functionality</p>
+        </div>
+        
+        <div class="test-content">
+            <div class="mock-admin-menu" id="mock-admin-menu">
+                <ul id="adminmenu">
+                    <li id="menu-dashboard" class="wp-has-submenu menu-top">
+                        <a href="#" class="wp-menu-name">
+                            <div class="wp-menu-image">📊</div>
+                            <div class="wp-menu-name">Dashboard</div>
+                        </a>
+                        <ul class="wp-submenu">
+                            <li><a href="#">Home</a></li>
+                            <li><a href="#">Updates</a></li>
+                        </ul>
+                    </li>
+                    <li id="menu-posts" class="wp-has-submenu menu-top">
+                        <a href="#" class="wp-menu-name">
+                            <div class="wp-menu-image">📝</div>
+                            <div class="wp-menu-name">Posts</div>
+                        </a>
+                        <ul class="wp-submenu">
+                            <li><a href="#">All Posts</a></li>
+                            <li><a href="#">Add New</a></li>
+                            <li><a href="#">Categories</a></li>
+                            <li><a href="#">Tags</a></li>
+                        </ul>
+                    </li>
+                    <li id="menu-media" class="menu-top">
+                        <a href="#" class="wp-menu-name">
+                            <div class="wp-menu-image">🖼️</div>
+                            <div class="wp-menu-name">Media</div>
+                        </a>
+                    </li>
+                    <li id="menu-pages" class="wp-has-submenu menu-top">
+                        <a href="#" class="wp-menu-name">
+                            <div class="wp-menu-image">📄</div>
+                            <div class="wp-menu-name">Pages</div>
+                        </a>
+                        <ul class="wp-submenu">
+                            <li><a href="#">All Pages</a></li>
+                            <li><a href="#">Add New</a></li>
+                        </ul>
+                    </li>
+                    <li id="menu-comments" class="menu-top">
+                        <a href="#" class="wp-menu-name">
+                            <div class="wp-menu-image">💬</div>
+                            <div class="wp-menu-name">Comments</div>
+                        </a>
+                    </li>
+                    <li id="menu-appearance" class="wp-has-submenu menu-top">
+                        <a href="#" class="wp-menu-name">
+                            <div class="wp-menu-image">🎨</div>
+                            <div class="wp-menu-name">Appearance</div>
+                        </a>
+                        <ul class="wp-submenu">
+                            <li><a href="#">Themes</a></li>
+                            <li><a href="#">Customize</a></li>
+                            <li><a href="#">Widgets</a></li>
+                            <li><a href="#">Menus</a></li>
+                        </ul>
+                    </li>
+                    <li id="menu-plugins" class="wp-has-submenu menu-top">
+                        <a href="#" class="wp-menu-name">
+                            <div class="wp-menu-image">🔌</div>
+                            <div class="wp-menu-name">Plugins</div>
+                        </a>
+                        <ul class="wp-submenu">
+                            <li><a href="#">Installed Plugins</a></li>
+                            <li><a href="#">Add New</a></li>
+                            <li><a href="#">Plugin Editor</a></li>
+                        </ul>
+                    </li>
+                    <li id="menu-users" class="wp-has-submenu menu-top">
+                        <a href="#" class="wp-menu-name">
+                            <div class="wp-menu-image">👥</div>
+                            <div class="wp-menu-name">Users</div>
+                        </a>
+                        <ul class="wp-submenu">
+                            <li><a href="#">All Users</a></li>
+                            <li><a href="#">Add New</a></li>
+                            <li><a href="#">Profile</a></li>
+                        </ul>
+                    </li>
+                    <li id="menu-tools" class="wp-has-submenu menu-top">
+                        <a href="#" class="wp-menu-name">
+                            <div class="wp-menu-image">🔧</div>
+                            <div class="wp-menu-name">Tools</div>
+                        </a>
+                        <ul class="wp-submenu">
+                            <li><a href="#">Available Tools</a></li>
+                            <li><a href="#">Import</a></li>
+                            <li><a href="#">Export</a></li>
+                        </ul>
+                    </li>
+                    <li id="menu-settings" class="wp-has-submenu menu-top">
+                        <a href="#" class="wp-menu-name">
+                            <div class="wp-menu-image">⚙️</div>
+                            <div class="wp-menu-name">Settings</div>
+                        </a>
+                        <ul class="wp-submenu">
+                            <li><a href="#">General</a></li>
+                            <li><a href="#">Writing</a></li>
+                            <li><a href="#">Reading</a></li>
+                            <li><a href="#">Discussion</a></li>
+                            <li><a href="#">Media</a></li>
+                            <li><a href="#">Permalinks</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="mock-content">
+                <div class="test-controls">
+                    <h3>Test Controls</h3>
+                    <button class="test-button" onclick="initializeMenuManager()">Initialize Menu Manager</button>
+                    <button class="test-button" onclick="testHoverInteractions()">Test Hover Interactions</button>
+                    <button class="test-button" onclick="testKeyboardNavigation()">Test Keyboard Navigation</button>
+                    <button class="test-button" onclick="testTouchInteractions()">Test Touch Interactions</button>
+                    <button class="test-button" onclick="testResponsiveMode()">Test Responsive Mode</button>
+                    <button class="test-button secondary" onclick="toggleFoldedMenu()">Toggle Folded Menu</button>
+                    <button class="test-button secondary" onclick="clearResults()">Clear Results</button>
+                    <button class="test-button secondary" onclick="destroyMenuManager()">Destroy Manager</button>
+                </div>
+                
+                <div class="test-status">
+                    <h3>Status</h3>
+                    <p>
+                        <span class="status-indicator pending" id="init-status"></span>
+                        Menu Manager: <span id="init-text">Not Initialized</span>
+                    </p>
+                    <p>
+                        <span class="status-indicator pending" id="menu-status"></span>
+                        Menu Items: <span id="menu-count">0</span>
+                    </p>
+                    <p>
+                        <span class="status-indicator pending" id="submenu-status"></span>
+                        Submenus: <span id="submenu-count">0</span>
+                    </p>
+                    <p>
+                        <span class="status-indicator pending" id="touch-status"></span>
+                        Touch Device: <span id="touch-detected">Unknown</span>
+                    </p>
+                </div>
+                
+                <div class="test-results" id="test-results">
+                    <div class="test-log info">Ready to run tests...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load UI Repair System -->
+    <script src="../../assets/js/ui-repair.js"></script>
+    
+    <script>
+        let menuManager = null;
+        let uiCore = null;
+        
+        // Mock core for testing
+        const mockCore = {
+            log: function(message, level = 'info') {
+                console.log(`[${level.toUpperCase()}] ${message}`);
+                logResult(message, level);
+            },
+            emit: function(eventName, data) {
+                console.log(`Event emitted: ${eventName}`, data);
+                logResult(`Event: ${eventName}`, 'info');
+            },
+            on: function(eventName, callback) {
+                console.log(`Event listener added: ${eventName}`);
+            },
+            get: function(componentName) {
+                return null; // Mock state manager not needed for this test
+            }
+        };
+        
+        function logResult(message, level = 'info') {
+            const results = document.getElementById('test-results');
+            const logDiv = document.createElement('div');
+            logDiv.className = `test-log ${level}`;
+            logDiv.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            results.appendChild(logDiv);
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        function updateStatus() {
+            if (menuManager) {
+                const status = menuManager.getStatus();
+                
+                document.getElementById('init-status').className = 'status-indicator ' + (status.initialized ? 'success' : 'error');
+                document.getElementById('init-text').textContent = status.initialized ? 'Initialized' : 'Failed';
+                
+                document.getElementById('menu-status').className = 'status-indicator success';
+                document.getElementById('menu-count').textContent = status.menuItems;
+                
+                document.getElementById('submenu-status').className = 'status-indicator success';
+                document.getElementById('submenu-count').textContent = status.submenus;
+                
+                document.getElementById('touch-status').className = 'status-indicator ' + (status.touchDevice ? 'success' : 'pending');
+                document.getElementById('touch-detected').textContent = status.touchDevice ? 'Yes' : 'No';
+            }
+        }
+        
+        async function initializeMenuManager() {
+            try {
+                logResult('Initializing Menu Manager...', 'info');
+                
+                if (menuManager) {
+                    menuManager.destroy();
+                }
+                
+                menuManager = new window.LASMenuManager(mockCore);
+                await menuManager.init();
+                
+                updateStatus();
+                logResult('Menu Manager initialized successfully!', 'success');
+                
+            } catch (error) {
+                logResult(`Initialization failed: ${error.message}`, 'error');
+            }
+        }
+        
+        function testHoverInteractions() {
+            if (!menuManager || !menuManager.initialized) {
+                logResult('Menu Manager not initialized', 'error');
+                return;
+            }
+            
+            logResult('Testing hover interactions...', 'info');
+            
+            // Test hover on dashboard menu
+            const dashboardLink = document.querySelector('#menu-dashboard .wp-menu-name');
+            const dashboardSubmenu = document.querySelector('#menu-dashboard .wp-submenu');
+            
+            if (dashboardLink && dashboardSubmenu) {
+                // Simulate mouse enter
+                const mouseEnterEvent = new MouseEvent('mouseenter', { bubbles: true });
+                dashboardLink.dispatchEvent(mouseEnterEvent);
+                
+                setTimeout(() => {
+                    if (dashboardSubmenu.classList.contains('las-submenu-visible')) {
+                        logResult('✓ Submenu shows on hover', 'success');
+                        
+                        // Test mouse leave
+                        const menuItem = document.querySelector('#menu-dashboard');
+                        const mouseLeaveEvent = new MouseEvent('mouseleave', { bubbles: true });
+                        menuItem.dispatchEvent(mouseLeaveEvent);
+                        
+                        setTimeout(() => {
+                            if (!dashboardSubmenu.classList.contains('las-submenu-visible')) {
+                                logResult('✓ Submenu hides after delay', 'success');
+                            } else {
+                                logResult('✗ Submenu did not hide', 'error');
+                            }
+                        }, 350);
+                        
+                    } else {
+                        logResult('✗ Submenu did not show on hover', 'error');
+                    }
+                }, 100);
+            }
+        }
+        
+        function testKeyboardNavigation() {
+            if (!menuManager || !menuManager.initialized) {
+                logResult('Menu Manager not initialized', 'error');
+                return;
+            }
+            
+            logResult('Testing keyboard navigation...', 'info');
+            
+            const dashboardLink = document.querySelector('#menu-dashboard .wp-menu-name');
+            const dashboardSubmenu = document.querySelector('#menu-dashboard .wp-submenu');
+            
+            if (dashboardLink && dashboardSubmenu) {
+                // Focus the menu item
+                dashboardLink.focus();
+                
+                // Test Enter key
+                const enterEvent = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true });
+                dashboardLink.dispatchEvent(enterEvent);
+                
+                setTimeout(() => {
+                    if (dashboardSubmenu.classList.contains('las-submenu-visible')) {
+                        logResult('✓ Submenu shows on Enter key', 'success');
+                        
+                        // Test Escape key
+                        const escapeEvent = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true });
+                        dashboardLink.dispatchEvent(escapeEvent);
+                        
+                        setTimeout(() => {
+                            if (!dashboardSubmenu.classList.contains('las-submenu-visible')) {
+                                logResult('✓ Submenu hides on Escape key', 'success');
+                            } else {
+                                logResult('✗ Submenu did not hide on Escape', 'error');
+                            }
+                        }, 100);
+                        
+                    } else {
+                        logResult('✗ Submenu did not show on Enter key', 'error');
+                    }
+                }, 100);
+            }
+        }
+        
+        function testTouchInteractions() {
+            if (!menuManager || !menuManager.initialized) {
+                logResult('Menu Manager not initialized', 'error');
+                return;
+            }
+            
+            logResult('Testing touch interactions...', 'info');
+            
+            // Simulate touch device
+            menuManager.touchDevice = true;
+            document.body.classList.add('las-touch-device');
+            
+            const dashboardLink = document.querySelector('#menu-dashboard .wp-menu-name');
+            const dashboardSubmenu = document.querySelector('#menu-dashboard .wp-submenu');
+            
+            if (dashboardLink && dashboardSubmenu) {
+                // Test touch start
+                const touchStartEvent = new TouchEvent('touchstart', { bubbles: true });
+                dashboardLink.dispatchEvent(touchStartEvent);
+                
+                // Test click for toggle
+                const clickEvent = new MouseEvent('click', { bubbles: true });
+                dashboardLink.dispatchEvent(clickEvent);
+                
+                setTimeout(() => {
+                    if (dashboardSubmenu.classList.contains('las-submenu-visible')) {
+                        logResult('✓ Submenu toggles on touch/click', 'success');
+                        
+                        // Test second click to hide
+                        dashboardLink.dispatchEvent(clickEvent);
+                        
+                        setTimeout(() => {
+                            if (!dashboardSubmenu.classList.contains('las-submenu-visible')) {
+                                logResult('✓ Submenu hides on second click', 'success');
+                            } else {
+                                logResult('✗ Submenu did not hide on second click', 'error');
+                            }
+                        }, 100);
+                        
+                    } else {
+                        logResult('✗ Submenu did not show on touch', 'error');
+                    }
+                }, 100);
+            }
+            
+            // Reset touch device simulation
+            setTimeout(() => {
+                menuManager.touchDevice = false;
+                document.body.classList.remove('las-touch-device');
+            }, 1000);
+        }
+        
+        function testResponsiveMode() {
+            if (!menuManager || !menuManager.initialized) {
+                logResult('Menu Manager not initialized', 'error');
+                return;
+            }
+            
+            logResult('Testing responsive mode...', 'info');
+            
+            // Simulate mobile viewport
+            const originalWidth = window.innerWidth;
+            Object.defineProperty(window, 'innerWidth', { value: 600, writable: true });
+            
+            // Trigger resize event
+            const resizeEvent = new Event('resize');
+            window.dispatchEvent(resizeEvent);
+            
+            logResult('✓ Responsive mode activated (mobile viewport)', 'success');
+            
+            // Restore original width
+            setTimeout(() => {
+                Object.defineProperty(window, 'innerWidth', { value: originalWidth, writable: true });
+                window.dispatchEvent(resizeEvent);
+                logResult('✓ Responsive mode deactivated (desktop viewport)', 'success');
+            }, 1000);
+        }
+        
+        function toggleFoldedMenu() {
+            const adminMenu = document.getElementById('mock-admin-menu');
+            adminMenu.classList.toggle('folded');
+            document.body.classList.toggle('folded');
+            
+            const isFolded = adminMenu.classList.contains('folded');
+            logResult(`Menu ${isFolded ? 'folded' : 'expanded'}`, 'info');
+            
+            if (menuManager && menuManager.initialized) {
+                // Trigger positioning update
+                const resizeEvent = new Event('resize');
+                window.dispatchEvent(resizeEvent);
+            }
+        }
+        
+        function clearResults() {
+            const results = document.getElementById('test-results');
+            results.innerHTML = '<div class="test-log info">Results cleared...</div>';
+        }
+        
+        function destroyMenuManager() {
+            if (menuManager) {
+                menuManager.destroy();
+                menuManager = null;
+                
+                // Reset status
+                document.getElementById('init-status').className = 'status-indicator pending';
+                document.getElementById('init-text').textContent = 'Not Initialized';
+                document.getElementById('menu-status').className = 'status-indicator pending';
+                document.getElementById('menu-count').textContent = '0';
+                document.getElementById('submenu-status').className = 'status-indicator pending';
+                document.getElementById('submenu-count').textContent = '0';
+                document.getElementById('touch-status').className = 'status-indicator pending';
+                document.getElementById('touch-detected').textContent = 'Unknown';
+                
+                logResult('Menu Manager destroyed', 'info');
+            }
+        }
+        
+        // Auto-initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            logResult('Page loaded, ready for testing', 'info');
+        });
+        
+        // Add some demo interactions
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('#adminmenu a')) {
+                e.preventDefault();
+                const menuText = e.target.textContent || e.target.closest('a').textContent;
+                logResult(`Clicked: ${menuText.trim()}`, 'info');
+            }
+        });
+    </script>
+</body>
+</html>

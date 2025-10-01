@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RetryEngine Integration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-controls {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-primary { background: #007cba; color: white; }
+        .btn-secondary { background: #666; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+        .status.info { background: #d1ecf1; color: #0c5460; }
+        .status.warning { background: #fff3cd; color: #856404; }
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .metric-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #007cba;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007cba;
+        }
+        .metric-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+        .circuit-breaker {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .circuit-closed { background: #d4edda; color: #155724; }
+        .circuit-open { background: #f8d7da; color: #721c24; }
+        .circuit-half-open { background: #fff3cd; color: #856404; }
+        .log-container {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .log-entry {
+            margin: 2px 0;
+            padding: 2px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .log-timestamp {
+            color: #666;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>RetryEngine Integration Test</h1>
+    <p>This page tests the RetryEngine class with various error scenarios and circuit breaker patterns.</p>
+
+    <!-- Basic Retry Logic Test -->
+    <div class="test-section">
+        <h2>Basic Retry Logic</h2>
+        <p>Test exponential backoff and retry decision making</p>
+        
+        <div class="test-controls">
+            <button class="btn-primary" onclick="testBasicRetry()">Test Network Error Retry</button>
+            <button class="btn-primary" onclick="testTimeoutRetry()">Test Timeout Retry</button>
+            <button class="btn-secondary" onclick="testNonRetryableError()">Test Non-Retryable Error</button>
+            <button class="btn-danger" onclick="clearRetryLog()">Clear Log</button>
+        </div>
+        
+        <div id="retry-status" class="status info">Ready to test retry logic...</div>
+        <div id="retry-log" class="log-container"></div>
+    </div>
+
+    <!-- Circuit Breaker Test -->
+    <div class="test-section">
+        <h2>Circuit Breaker Pattern</h2>
+        <p>Test circuit breaker behavior with failure thresholds</p>
+        
+        <div class="test-controls">
+            <button class="btn-primary" onclick="simulateSuccessfulRequests()">Simulate 5 Successful Requests</button>
+            <button class="btn-danger" onclick="simulateFailedRequests()">Simulate 5 Failed Requests</button>
+            <button class="btn-secondary" onclick="testCircuitRecovery()">Test Circuit Recovery</button>
+            <button class="btn-success" onclick="resetCircuitBreaker()">Reset Circuit Breaker</button>
+        </div>
+        
+        <div class="metrics">
+            <div class="metric-card">
+                <div class="metric-value" id="circuit-state">CLOSED</div>
+                <div class="metric-label">Circuit State</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="success-count">0</div>
+                <div class="metric-label">Successful Requests</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="failure-count">0</div>
+                <div class="metric-label">Failed Requests</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="failure-rate">0%</div>
+                <div class="metric-label">Failure Rate</div>
+            </div>
+        </div>
+        
+        <div id="circuit-status" class="status info">Circuit breaker ready...</div>
+        <div id="circuit-log" class="log-container"></div>
+    </div>
+
+    <!-- Error Classification Test -->
+    <div class="test-section">
+        <h2>Error Classification</h2>
+        <p>Test error type detection and classification</p>
+        
+        <div class="test-controls">
+            <button class="btn-primary" onclick="testNetworkError()">Network Error</button>
+            <button class="btn-primary" onclick="testServerError()">Server Error (500)</button>
+            <button class="btn-primary" onclick="testRateLimitError()">Rate Limit (429)</button>
+            <button class="btn-secondary" onclick="testClientError()">Client Error (400)</button>
+            <button class="btn-secondary" onclick="testSecurityError()">Security Error (401)</button>
+            <button class="btn-danger" onclick="clearClassificationLog()">Clear Log</button>
+        </div>
+        
+        <div id="classification-status" class="status info">Ready to test error classification...</div>
+        <div id="classification-log" class="log-container"></div>
+    </div>
+
+    <!-- Performance Metrics -->
+    <div class="test-section">
+        <h2>Performance Metrics</h2>
+        <p>Monitor retry engine performance and statistics</p>
+        
+        <div class="test-controls">
+            <button class="btn-primary" onclick="runPerformanceTest()">Run Performance Test</button>
+            <button class="btn-secondary" onclick="updateMetrics()">Update Metrics</button>
+            <button class="btn-danger" onclick="resetMetrics()">Reset All Metrics</button>
+        </div>
+        
+        <div class="metrics">
+            <div class="metric-card">
+                <div class="metric-value" id="total-operations">0</div>
+                <div class="metric-label">Total Operations</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="avg-backoff">0ms</div>
+                <div class="metric-label">Average Backoff</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="circuit-breakers">0</div>
+                <div class="metric-label">Active Circuit Breakers</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="error-types">0</div>
+                <div class="metric-label">Error Types Seen</div>
+            </div>
+        </div>
+        
+        <div id="performance-log" class="log-container"></div>
+    </div>
+
+    <!-- Load RetryEngine -->
+    <script src="../../assets/js/modules/retry-engine.js"></script>
+    
+    <script>
+        // Initialize RetryEngine
+        let retryEngine = new RetryEngine({
+            maxRetries: 3,
+            baseDelay: 500, // Shorter for testing
+            maxDelay: 5000,
+            circuitBreakerTimeout: 3000 // Shorter for testing
+        });
+
+        // Test tracking
+        let testMetrics = {
+            totalOperations: 0,
+            backoffTimes: [],
+            errorTypesSeen: new Set(),
+            startTime: Date.now()
+        };
+
+        // Logging utilities
+        function logToContainer(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `<span class="log-timestamp">[${timestamp}]</span>${message}`;
+            container.appendChild(entry);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function updateStatus(statusId, message, type = 'info') {
+            const status = document.getElementById(statusId);
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+
+        // Basic Retry Logic Tests
+        async function testBasicRetry() {
+            updateStatus('retry-status', 'Testing network error retry logic...', 'info');
+            logToContainer('retry-log', 'Starting network error retry test');
+
+            const networkError = new TypeError('Failed to fetch');
+            const config = { action: 'test-network' };
+
+            for (let attempt = 0; attempt < 5; attempt++) {
+                const shouldRetry = retryEngine.shouldRetry(networkError, attempt, config);
+                const delay = shouldRetry ? retryEngine.calculateDelay(attempt) : 0;
+                
+                logToContainer('retry-log', 
+                    `Attempt ${attempt}: shouldRetry=${shouldRetry}, delay=${delay}ms`);
+                
+                if (shouldRetry) {
+                    testMetrics.backoffTimes.push(delay);
+                    retryEngine.updateCircuitBreaker('test-network', false);
+                } else {
+                    break;
+                }
+            }
+
+            testMetrics.totalOperations++;
+            updateStatus('retry-status', 'Network error retry test completed', 'success');
+        }
+
+        async function testTimeoutRetry() {
+            updateStatus('retry-status', 'Testing timeout error retry logic...', 'info');
+            logToContainer('retry-log', 'Starting timeout error retry test');
+
+            const timeoutError = new Error('Request timeout');
+            timeoutError.name = 'AbortError';
+            const config = { action: 'test-timeout' };
+
+            for (let attempt = 0; attempt < 4; attempt++) {
+                const shouldRetry = retryEngine.shouldRetry(timeoutError, attempt, config);
+                const delay = shouldRetry ? retryEngine.calculateDelay(attempt) : 0;
+                
+                logToContainer('retry-log', 
+                    `Timeout attempt ${attempt}: shouldRetry=${shouldRetry}, delay=${delay}ms`);
+                
+                if (shouldRetry) {
+                    testMetrics.backoffTimes.push(delay);
+                    retryEngine.updateCircuitBreaker('test-timeout', false);
+                } else {
+                    break;
+                }
+            }
+
+            testMetrics.totalOperations++;
+            updateStatus('retry-status', 'Timeout error retry test completed', 'success');
+        }
+
+        function testNonRetryableError() {
+            updateStatus('retry-status', 'Testing non-retryable error...', 'info');
+            logToContainer('retry-log', 'Starting non-retryable error test');
+
+            const clientError = new Error('Bad Request');
+            clientError.status = 400;
+
+            const shouldRetry = retryEngine.shouldRetry(clientError, 0);
+            logToContainer('retry-log', 
+                `Client error (400): shouldRetry=${shouldRetry} (expected: false)`);
+
+            testMetrics.totalOperations++;
+            updateStatus('retry-status', 'Non-retryable error test completed', 'success');
+        }
+
+        function clearRetryLog() {
+            document.getElementById('retry-log').innerHTML = '';
+            updateStatus('retry-status', 'Retry log cleared', 'info');
+        }
+
+        // Circuit Breaker Tests
+        function simulateSuccessfulRequests() {
+            logToContainer('circuit-log', 'Simulating 5 successful requests...');
+            
+            for (let i = 0; i < 5; i++) {
+                retryEngine.updateCircuitBreaker('test-circuit', true);
+                logToContainer('circuit-log', `Successful request ${i + 1}`);
+            }
+            
+            updateCircuitBreakerDisplay();
+            testMetrics.totalOperations += 5;
+        }
+
+        function simulateFailedRequests() {
+            logToContainer('circuit-log', 'Simulating 5 failed requests...');
+            
+            for (let i = 0; i < 5; i++) {
+                retryEngine.updateCircuitBreaker('test-circuit', false);
+                logToContainer('circuit-log', `Failed request ${i + 1}`);
+            }
+            
+            updateCircuitBreakerDisplay();
+            testMetrics.totalOperations += 5;
+        }
+
+        async function testCircuitRecovery() {
+            logToContainer('circuit-log', 'Testing circuit breaker recovery...');
+            
+            // Force circuit open
+            for (let i = 0; i < 5; i++) {
+                retryEngine.updateCircuitBreaker('recovery-test', false);
+            }
+            
+            logToContainer('circuit-log', 'Circuit should be OPEN now');
+            updateCircuitBreakerDisplay();
+            
+            // Wait for timeout (3 seconds in test config)
+            updateStatus('circuit-status', 'Waiting for circuit breaker timeout...', 'warning');
+            
+            setTimeout(() => {
+                const isOpen = retryEngine.isCircuitOpen('recovery-test');
+                logToContainer('circuit-log', `After timeout: circuit open = ${isOpen}`);
+                
+                // Send successful request to close circuit
+                retryEngine.updateCircuitBreaker('recovery-test', true);
+                logToContainer('circuit-log', 'Sent successful request to close circuit');
+                
+                updateCircuitBreakerDisplay();
+                updateStatus('circuit-status', 'Circuit recovery test completed', 'success');
+            }, 3500);
+        }
+
+        function resetCircuitBreaker() {
+            retryEngine.resetCircuitBreaker('test-circuit');
+            retryEngine.resetCircuitBreaker('recovery-test');
+            updateCircuitBreakerDisplay();
+            logToContainer('circuit-log', 'Circuit breakers reset');
+            updateStatus('circuit-status', 'Circuit breakers reset', 'info');
+        }
+
+        function updateCircuitBreakerDisplay() {
+            const status = retryEngine.getCircuitBreakerStatus('test-circuit');
+            
+            document.getElementById('circuit-state').textContent = status.state;
+            document.getElementById('success-count').textContent = status.successes;
+            document.getElementById('failure-count').textContent = status.failures;
+            document.getElementById('failure-rate').textContent = 
+                Math.round(status.failureRate * 100) + '%';
+            
+            // Update circuit state styling
+            const stateElement = document.getElementById('circuit-state');
+            stateElement.className = `metric-value circuit-${status.state.toLowerCase().replace('_', '-')}`;
+        }
+
+        // Error Classification Tests
+        function testNetworkError() {
+            const error = new TypeError('Failed to fetch');
+            const errorType = retryEngine.classifyError(error);
+            
+            logToContainer('classification-log', 
+                `Network Error: ${errorType.code}, retryable: ${errorType.retryable}`);
+            
+            testMetrics.errorTypesSeen.add(errorType.code);
+            testMetrics.totalOperations++;
+        }
+
+        function testServerError() {
+            const error = new Error('Internal Server Error');
+            error.status = 500;
+            const errorType = retryEngine.classifyError(error);
+            
+            logToContainer('classification-log', 
+                `Server Error (500): ${errorType.code}, retryable: ${errorType.retryable}`);
+            
+            testMetrics.errorTypesSeen.add(errorType.code);
+            testMetrics.totalOperations++;
+        }
+
+        function testRateLimitError() {
+            const error = new Error('Too Many Requests');
+            error.status = 429;
+            const errorType = retryEngine.classifyError(error);
+            
+            logToContainer('classification-log', 
+                `Rate Limit (429): ${errorType.code}, retryable: ${errorType.retryable}`);
+            
+            testMetrics.errorTypesSeen.add(errorType.code);
+            testMetrics.totalOperations++;
+        }
+
+        function testClientError() {
+            const error = new Error('Bad Request');
+            error.status = 400;
+            const errorType = retryEngine.classifyError(error);
+            
+            logToContainer('classification-log', 
+                `Client Error (400): ${errorType.code}, retryable: ${errorType.retryable}`);
+            
+            testMetrics.errorTypesSeen.add(errorType.code);
+            testMetrics.totalOperations++;
+        }
+
+        function testSecurityError() {
+            const error = new Error('Unauthorized');
+            error.status = 401;
+            const errorType = retryEngine.classifyError(error);
+            
+            logToContainer('classification-log', 
+                `Security Error (401): ${errorType.code}, retryable: ${errorType.retryable}`);
+            
+            testMetrics.errorTypesSeen.add(errorType.code);
+            testMetrics.totalOperations++;
+        }
+
+        function clearClassificationLog() {
+            document.getElementById('classification-log').innerHTML = '';
+            updateStatus('classification-status', 'Classification log cleared', 'info');
+        }
+
+        // Performance Tests
+        async function runPerformanceTest() {
+            logToContainer('performance-log', 'Starting performance test...');
+            
+            const startTime = performance.now();
+            
+            // Test 100 retry calculations
+            for (let i = 0; i < 100; i++) {
+                const delay = retryEngine.calculateDelay(i % 4);
+                testMetrics.backoffTimes.push(delay);
+            }
+            
+            // Test 50 error classifications
+            const errors = [
+                new TypeError('Failed to fetch'),
+                { status: 500, message: 'Server Error' },
+                { status: 429, message: 'Rate Limited' },
+                { status: 400, message: 'Bad Request' }
+            ];
+            
+            for (let i = 0; i < 50; i++) {
+                const error = errors[i % errors.length];
+                const errorType = retryEngine.classifyError(error);
+                testMetrics.errorTypesSeen.add(errorType.code);
+            }
+            
+            const endTime = performance.now();
+            const duration = endTime - startTime;
+            
+            logToContainer('performance-log', 
+                `Performance test completed in ${duration.toFixed(2)}ms`);
+            
+            testMetrics.totalOperations += 150;
+            updateMetrics();
+        }
+
+        function updateMetrics() {
+            document.getElementById('total-operations').textContent = testMetrics.totalOperations;
+            
+            const avgBackoff = testMetrics.backoffTimes.length > 0 ?
+                Math.round(testMetrics.backoffTimes.reduce((a, b) => a + b, 0) / testMetrics.backoffTimes.length) :
+                0;
+            document.getElementById('avg-backoff').textContent = avgBackoff + 'ms';
+            
+            const circuitBreakers = Object.keys(retryEngine.getAllCircuitBreakerStatuses()).length;
+            document.getElementById('circuit-breakers').textContent = circuitBreakers;
+            
+            document.getElementById('error-types').textContent = testMetrics.errorTypesSeen.size;
+        }
+
+        function resetMetrics() {
+            testMetrics = {
+                totalOperations: 0,
+                backoffTimes: [],
+                errorTypesSeen: new Set(),
+                startTime: Date.now()
+            };
+            
+            // Reset retry engine
+            retryEngine = new RetryEngine({
+                maxRetries: 3,
+                baseDelay: 500,
+                maxDelay: 5000,
+                circuitBreakerTimeout: 3000
+            });
+            
+            updateMetrics();
+            updateCircuitBreakerDisplay();
+            
+            // Clear all logs
+            document.getElementById('performance-log').innerHTML = '';
+            logToContainer('performance-log', 'All metrics reset');
+        }
+
+        // Initialize display
+        updateMetrics();
+        updateCircuitBreakerDisplay();
+        
+        // Auto-update metrics every 5 seconds
+        setInterval(updateMetrics, 5000);
+    </script>
+</body>
+</html>

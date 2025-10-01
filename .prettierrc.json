@@ -1,0 +1,51 @@
+{
+    "printWidth": 120,
+    "tabWidth": 4,
+    "useTabs": false,
+    "semi": true,
+    "singleQuote": true,
+    "quoteProps": "as-needed",
+    "jsxSingleQuote": true,
+    "trailingComma": "none",
+    "bracketSpacing": true,
+    "bracketSameLine": false,
+    "arrowParens": "avoid",
+    "rangeStart": 0,
+    "rangeEnd": null,
+    "requirePragma": false,
+    "insertPragma": false,
+    "proseWrap": "preserve",
+    "htmlWhitespaceSensitivity": "css",
+    "vueIndentScriptAndStyle": false,
+    "endOfLine": "lf",
+    "embeddedLanguageFormatting": "auto",
+    "overrides": [
+        {
+            "files": "*.json",
+            "options": {
+                "tabWidth": 2
+            }
+        },
+        {
+            "files": "*.md",
+            "options": {
+                "proseWrap": "always",
+                "printWidth": 80
+            }
+        },
+        {
+            "files": "*.css",
+            "options": {
+                "singleQuote": false
+            }
+        },
+        {
+            "files": "*.php",
+            "options": {
+                "printWidth": 120,
+                "tabWidth": 4,
+                "useTabs": true
+            }
+        }
+    ]
+}

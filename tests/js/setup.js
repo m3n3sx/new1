@@ -71,18 +71,20 @@ Object.defineProperty(global, 'navigator', {
 });
 
 // Mock document
-Object.defineProperty(global, 'document', {
-    value: {
-        hidden: false,
-        visibilityState: 'visible',
-        head: {
-            appendChild: jest.fn(),
-            removeChild: jest.fn()
-        },
-        body: {
-            appendChild: jest.fn(),
-            removeChild: jest.fn()
-        },
+if (!global.document) {
+    Object.defineProperty(global, 'document', {
+        value: {
+            hidden: false,
+            visibilityState: 'visible',
+            head: {
+                appendChild: jest.fn(),
+                removeChild: jest.fn()
+            },
+            body: {
+                appendChild: jest.fn(),
+                removeChild: jest.fn(),
+                innerHTML: ''
+            },
         createElement: jest.fn(() => ({
             id: '',
             type: '',
@@ -107,9 +109,11 @@ Object.defineProperty(global, 'document', {
     },
     writable: true
 });
+}
 
 // Mock window
-Object.defineProperty(global, 'window', {
+if (!global.window) {
+    Object.defineProperty(global, 'window', {
     value: {
         location: {
             href: 'http://test.com/wp-admin/admin.php?page=las-settings',
@@ -132,10 +136,23 @@ Object.defineProperty(global, 'window', {
         close: jest.fn(),
         alert: jest.fn(),
         confirm: jest.fn(() => true),
-        prompt: jest.fn()
+        prompt: jest.fn(),
+        matchMedia: jest.fn((query) => ({
+            matches: false,
+            media: query,
+            onchange: null,
+            addListener: jest.fn(),
+            removeListener: jest.fn(),
+            addEventListener: jest.fn(),
+            removeEventListener: jest.fn(),
+            dispatchEvent: jest.fn()
+        })),
+        innerWidth: 1024,
+        innerHeight: 768
     },
     writable: true
 });
+}
 
 // Mock performance API
 Object.defineProperty(global, 'performance', {
@@ -303,10 +320,20 @@ global.testUtils = {
     resetAllMocks: () => {
         jest.clearAllMocks();
         localStorageMock.clear();
-        global.console.log.mockClear();
-        global.console.warn.mockClear();
-        global.console.error.mockClear();
-        global.console.info.mockClear();
+        
+        // Reset console mocks if they exist
+        if (global.console.log && typeof global.console.log.mockClear === 'function') {
+            global.console.log.mockClear();
+        }
+        if (global.console.warn && typeof global.console.warn.mockClear === 'function') {
+            global.console.warn.mockClear();
+        }
+        if (global.console.error && typeof global.console.error.mockClear === 'function') {
+            global.console.error.mockClear();
+        }
+        if (global.console.info && typeof global.console.info.mockClear === 'function') {
+            global.console.info.mockClear();
+        }
     }
 };
 
@@ -315,11 +342,19 @@ beforeEach(() => {
     // Reset localStorage before each test
     localStorageMock.clear();
     
-    // Reset console mocks
-    global.console.log.mockClear();
-    global.console.warn.mockClear();
-    global.console.error.mockClear();
-    global.console.info.mockClear();
+    // Reset console mocks if they exist
+    if (global.console.log && global.console.log.mockClear) {
+        global.console.log.mockClear();
+    }
+    if (global.console.warn && global.console.warn.mockClear) {
+        global.console.warn.mockClear();
+    }
+    if (global.console.error && global.console.error.mockClear) {
+        global.console.error.mockClear();
+    }
+    if (global.console.info && global.console.info.mockClear) {
+        global.console.info.mockClear();
+    }
 });
 
 afterEach(() => {
@@ -349,3 +384,63 @@ console.warn = (...args) => {
     }
     originalWarn.apply(console, args);
 };
+
+// Load UI Repair System for tests
+// Mock the IIFE wrapper environment
+global.window = global.window || global;
+
+// Ensure matchMedia is available
+if (!global.window.matchMedia) {
+    global.window.matchMedia = jest.fn((query) => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+        dispatchEvent: jest.fn()
+    }));
+}
+
+// Ensure window dimensions are available
+if (!global.window.innerWidth) {
+    global.window.innerWidth = 1024;
+    global.window.innerHeight = 768;
+}
+
+global.document = global.document || {
+    readyState: 'complete',
+    addEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+    createElement: jest.fn(() => ({
+        id: '',
+        className: '',
+        style: {},
+        appendChild: jest.fn(),
+        setAttribute: jest.fn(),
+        getAttribute: jest.fn(),
+        classList: {
+            add: jest.fn(),
+            remove: jest.fn(),
+            contains: jest.fn()
+        }
+    })),
+    head: {
+        appendChild: jest.fn()
+    },
+    body: {
+        classList: {
+            add: jest.fn(),
+            remove: jest.fn(),
+            contains: jest.fn()
+        },
+        appendChild: jest.fn()
+    },
+    querySelector: jest.fn(),
+    querySelectorAll: jest.fn(() => []),
+    getElementById: jest.fn()
+};
+
+// Load the UI repair system
+require('../../assets/js/ui-repair.js');

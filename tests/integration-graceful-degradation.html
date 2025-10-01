@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAS Graceful Degradation Integration Test</title>
+    
+    <!-- WordPress Admin Styles -->
+    <link rel="stylesheet" href="../assets/css/ui-repair.css">
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 20px;
+            background: #f0f0f1;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .test-controls {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+        
+        .test-controls button {
+            margin: 5px;
+            padding: 8px 16px;
+            border: 1px solid #ccc;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .test-controls button:hover {
+            background: #f0f0f0;
+        }
+        
+        .status-display {
+            margin: 10px 0;
+            padding: 10px;
+            background: #e7f3ff;
+            border-left: 4px solid #0073aa;
+            border-radius: 4px;
+        }
+        
+        .error-display {
+            margin: 10px 0;
+            padding: 10px;
+            background: #ffebee;
+            border-left: 4px solid #d63638;
+            border-radius: 4px;
+            color: #d63638;
+        }
+        
+        .success-display {
+            margin: 10px 0;
+            padding: 10px;
+            background: #e8f5e8;
+            border-left: 4px solid #00a32a;
+            border-radius: 4px;
+            color: #00a32a;
+        }
+        
+        .log-output {
+            background: #1e1e1e;
+            color: #fff;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .component-status {
+            display: inline-block;
+            margin: 5px;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .component-status.working {
+            background: #e8f5e8;
+            color: #00a32a;
+        }
+        
+        .component-status.failed {
+            background: #ffebee;
+            color: #d63638;
+        }
+        
+        .component-status.degraded {
+            background: #fff8e1;
+            color: #dba617;
+        }
+    </style>
+</head>
+<body class="wp-admin">
+    <div class="test-container">
+        <h1>LAS Graceful Degradation Integration Test</h1>
+        <p>This test demonstrates the graceful degradation system handling component failures and providing fallback functionality.</p>
+        
+        <!-- Test Controls -->
+        <div class="test-controls">
+            <h3>Test Controls</h3>
+            <button onclick="initializeSystem()">Initialize System</button>
+            <button onclick="simulateComponentFailure('tabs')">Fail Tabs Component</button>
+            <button onclick="simulateComponentFailure('menu')">Fail Menu Component</button>
+            <button onclick="simulateComponentFailure('forms')">Fail Forms Component</button>
+            <button onclick="simulateMultipleFailures()">Simulate Multiple Failures</button>
+            <button onclick="triggerEmergencyMode()">Trigger Emergency Mode</button>
+            <button onclick="resetSystem()">Reset System</button>
+            <button onclick="clearLog()">Clear Log</button>
+        </div>
+        
+        <!-- System Status -->
+        <div class="test-section">
+            <h3>System Status</h3>
+            <div id="system-status" class="status-display">
+                System not initialized
+            </div>
+            
+            <div id="component-status">
+                <h4>Component Status:</h4>
+                <span class="component-status working" id="status-tabs">Tabs: Working</span>
+                <span class="component-status working" id="status-menu">Menu: Working</span>
+                <span class="component-status working" id="status-forms">Forms: Working</span>
+                <span class="component-status working" id="status-state">State: Working</span>
+                <span class="component-status working" id="status-events">Events: Working</span>
+            </div>
+            
+            <div id="degradation-info">
+                <h4>Degradation Level: <span id="degradation-level">0</span></h4>
+                <p id="degradation-description">Normal operation</p>
+            </div>
+        </div>
+        
+        <!-- Test UI Components -->
+        <div class="las-fresh-settings-wrap">
+            <!-- Tab Navigation Test -->
+            <div class="test-section">
+                <h3>Tab Navigation Test</h3>
+                <div class="las-tabs-container">
+                    <button class="las-tab active" data-tab="general">General Settings</button>
+                    <button class="las-tab" data-tab="menu">Menu Settings</button>
+                    <button class="las-tab" data-tab="advanced">Advanced Settings</button>
+                </div>
+                
+                <div class="las-tab-panel active" id="las-tab-general">
+                    <h4>General Settings Panel</h4>
+                    <p>This is the general settings content. Tab switching should work even in degraded mode.</p>
+                </div>
+                
+                <div class="las-tab-panel" id="las-tab-menu">
+                    <h4>Menu Settings Panel</h4>
+                    <p>This is the menu settings content. Fallback tab functionality provides basic switching.</p>
+                </div>
+                
+                <div class="las-tab-panel" id="las-tab-advanced">
+                    <h4>Advanced Settings Panel</h4>
+                    <p>This is the advanced settings content. Emergency mode ensures basic accessibility.</p>
+                </div>
+            </div>
+            
+            <!-- Menu Test -->
+            <div class="test-section">
+                <h3>Menu Interaction Test</h3>
+                <div class="las-menu-item">Layout Settings</div>
+                <div class="wp-submenu">
+                    <a href="#">Header Layout</a>
+                    <a href="#">Footer Layout</a>
+                    <a href="#">Sidebar Layout</a>
+                </div>
+                
+                <div class="las-menu-item">Color Settings</div>
+                <div class="wp-submenu">
+                    <a href="#">Primary Colors</a>
+                    <a href="#">Secondary Colors</a>
+                    <a href="#">Accent Colors</a>
+                </div>
+                
+                <div class="las-menu-item">Typography Settings</div>
+                <div class="wp-submenu">
+                    <a href="#">Font Families</a>
+                    <a href="#">Font Sizes</a>
+                    <a href="#">Line Heights</a>
+                </div>
+            </div>
+            
+            <!-- Form Test -->
+            <div class="test-section">
+                <h3>Form Validation Test</h3>
+                <form id="test-form">
+                    <div style="margin: 10px 0;">
+                        <label for="required-field">Required Field:</label>
+                        <input type="text" id="required-field" name="required-field" required>
+                    </div>
+                    
+                    <div style="margin: 10px 0;">
+                        <label for="email-field">Email Field:</label>
+                        <input type="email" id="email-field" name="email-field" required>
+                    </div>
+                    
+                    <div style="margin: 10px 0;">
+                        <label for="optional-field">Optional Field:</label>
+                        <input type="text" id="optional-field" name="optional-field">
+                    </div>
+                    
+                    <button type="submit">Submit Form</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Log Output -->
+        <div class="test-section">
+            <h3>System Log</h3>
+            <div id="log-output" class="log-output">
+                System log will appear here...
+            </div>
+        </div>
+    </div>
+
+    <!-- Include UI Repair System -->
+    <script src="../assets/js/ui-repair.js"></script>
+    
+    <script>
+        let uiCore = null;
+        let gracefulDegradation = null;
+        let logOutput = document.getElementById('log-output');
+        
+        // Override console methods to capture logs
+        const originalLog = console.log;
+        const originalWarn = console.warn;
+        const originalError = console.error;
+        
+        function logToOutput(message, level = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${level.toUpperCase()}: ${message}\n`;
+            logOutput.textContent += logEntry;
+            logOutput.scrollTop = logOutput.scrollHeight;
+        }
+        
+        console.log = function(...args) {
+            logToOutput(args.join(' '), 'info');
+            originalLog.apply(console, args);
+        };
+        
+        console.warn = function(...args) {
+            logToOutput(args.join(' '), 'warn');
+            originalWarn.apply(console, args);
+        };
+        
+        console.error = function(...args) {
+            logToOutput(args.join(' '), 'error');
+            originalError.apply(console, args);
+        };
+        
+        // Initialize the UI system
+        async function initializeSystem() {
+            try {
+                logToOutput('Initializing UI Core Manager...', 'info');
+                
+                // Create UI Core Manager
+                uiCore = new LASUICoreManager({
+                    debug: true,
+                    timeout: 5000
+                });
+                
+                // Initialize the system
+                await uiCore.init();
+                
+                // Get graceful degradation component
+                gracefulDegradation = uiCore.get('gracefulDegradation');
+                
+                // Bind events for monitoring
+                bindSystemEvents();
+                
+                updateSystemStatus();
+                logToOutput('System initialized successfully', 'info');
+                
+            } catch (error) {
+                logToOutput(`System initialization failed: ${error.message}`, 'error');
+                updateSystemStatus();
+            }
+        }
+        
+        // Bind system events for monitoring
+        function bindSystemEvents() {
+            if (!uiCore) return;
+            
+            // Listen for degradation events
+            uiCore.on('degradation:enabled', (event) => {
+                logToOutput(`Degradation enabled at level ${event.detail.level}`, 'warn');
+                updateSystemStatus();
+            });
+            
+            uiCore.on('degradation:disabled', () => {
+                logToOutput('Degradation disabled', 'info');
+                updateSystemStatus();
+            });
+            
+            uiCore.on('degradation:component-failed', (event) => {
+                const { component, level } = event.detail;
+                logToOutput(`Component failed: ${component} (degradation level: ${level})`, 'error');
+                updateComponentStatus(component, 'failed');
+                updateSystemStatus();
+            });
+            
+            uiCore.on('degradation:level-increased', (event) => {
+                logToOutput(`Degradation level increased to ${event.detail.level}`, 'warn');
+                updateSystemStatus();
+            });
+            
+            uiCore.on('degradation:emergency-enabled', () => {
+                logToOutput('Emergency mode enabled!', 'error');
+                updateSystemStatus();
+            });
+            
+            // Listen for component errors
+            uiCore.on('error:occurred', (event) => {
+                const { error } = event.detail;
+                logToOutput(`Runtime error: ${error.message}`, 'error');
+            });
+        }
+        
+        // Simulate component failure
+        function simulateComponentFailure(componentName) {
+            if (!gracefulDegradation) {
+                logToOutput('System not initialized', 'error');
+                return;
+            }
+            
+            logToOutput(`Simulating ${componentName} component failure...`, 'warn');
+            
+            const error = new Error(`Simulated ${componentName} component failure`);
+            gracefulDegradation.handleComponentFailure(componentName, error);
+            
+            updateComponentStatus(componentName, 'failed');
+        }
+        
+        // Simulate multiple failures
+        function simulateMultipleFailures() {
+            logToOutput('Simulating multiple component failures...', 'warn');
+            
+            setTimeout(() => simulateComponentFailure('tabs'), 100);
+            setTimeout(() => simulateComponentFailure('menu'), 200);
+            setTimeout(() => simulateComponentFailure('forms'), 300);
+        }
+        
+        // Trigger emergency mode
+        function triggerEmergencyMode() {
+            if (!gracefulDegradation) {
+                logToOutput('System not initialized', 'error');
+                return;
+            }
+            
+            logToOutput('Triggering emergency mode...', 'error');
+            
+            // Force max degradation level
+            gracefulDegradation.degradationLevel = gracefulDegradation.config.maxDegradationLevel;
+            gracefulDegradation.enableEmergencyMode();
+        }
+        
+        // Reset system
+        function resetSystem() {
+            if (uiCore) {
+                logToOutput('Resetting system...', 'info');
+                uiCore.destroy();
+                uiCore = null;
+                gracefulDegradation = null;
+            }
+            
+            // Reset DOM classes
+            document.body.classList.remove('las-ui-degraded', 'las-ui-emergency');
+            document.body.removeAttribute('data-degradation-level');
+            
+            // Clear notifications
+            const notifications = document.querySelectorAll('.las-degradation-notice');
+            notifications.forEach(n => n.remove());
+            
+            // Reset component status
+            ['tabs', 'menu', 'forms', 'state', 'events'].forEach(component => {
+                updateComponentStatus(component, 'working');
+            });
+            
+            updateSystemStatus();
+            logToOutput('System reset complete', 'info');
+        }
+        
+        // Clear log
+        function clearLog() {
+            logOutput.textContent = 'Log cleared...\n';
+        }
+        
+        // Update system status display
+        function updateSystemStatus() {
+            const statusEl = document.getElementById('system-status');
+            const levelEl = document.getElementById('degradation-level');
+            const descEl = document.getElementById('degradation-description');
+            
+            if (!uiCore) {
+                statusEl.textContent = 'System not initialized';
+                statusEl.className = 'error-display';
+                levelEl.textContent = '0';
+                descEl.textContent = 'System offline';
+                return;
+            }
+            
+            const status = uiCore.getStatus();
+            const degradationStatus = gracefulDegradation ? gracefulDegradation.getStatus() : null;
+            
+            if (status.initialized) {
+                if (degradationStatus && degradationStatus.enabled) {
+                    statusEl.textContent = `System running in degraded mode (Level ${degradationStatus.level})`;
+                    statusEl.className = 'error-display';
+                    
+                    levelEl.textContent = degradationStatus.level;
+                    
+                    const descriptions = {
+                        0: 'Normal operation',
+                        1: 'Partial degradation - some features limited',
+                        2: 'Significant degradation - basic functionality only',
+                        3: 'Emergency mode - minimal functionality'
+                    };
+                    
+                    descEl.textContent = descriptions[degradationStatus.level] || 'Unknown state';
+                    
+                    if (document.body.classList.contains('las-ui-emergency')) {
+                        statusEl.textContent += ' - EMERGENCY MODE ACTIVE';
+                    }
+                } else {
+                    statusEl.textContent = 'System running normally';
+                    statusEl.className = 'success-display';
+                    levelEl.textContent = '0';
+                    descEl.textContent = 'All components operational';
+                }
+            } else {
+                statusEl.textContent = 'System initialization failed';
+                statusEl.className = 'error-display';
+                levelEl.textContent = 'N/A';
+                descEl.textContent = 'System error';
+            }
+        }
+        
+        // Update component status display
+        function updateComponentStatus(componentName, status) {
+            const statusEl = document.getElementById(`status-${componentName}`);
+            if (!statusEl) return;
+            
+            statusEl.className = `component-status ${status}`;
+            
+            const statusText = {
+                working: 'Working',
+                failed: 'Failed',
+                degraded: 'Degraded'
+            };
+            
+            statusEl.textContent = `${componentName.charAt(0).toUpperCase() + componentName.slice(1)}: ${statusText[status] || 'Unknown'}`;
+        }
+        
+        // Test fallback functionality
+        function testFallbackFunctionality() {
+            logToOutput('Testing fallback functionality...', 'info');
+            
+            // Test tab switching
+            const tabs = document.querySelectorAll('.las-tab');
+            tabs.forEach((tab, index) => {
+                setTimeout(() => {
+                    tab.click();
+                    logToOutput(`Clicked tab: ${tab.textContent}`, 'info');
+                }, index * 1000);
+            });
+            
+            // Test menu interactions
+            setTimeout(() => {
+                const menuItems = document.querySelectorAll('.las-menu-item');
+                menuItems.forEach((item, index) => {
+                    setTimeout(() => {
+                        item.click();
+                        logToOutput(`Clicked menu item: ${item.textContent}`, 'info');
+                    }, index * 500);
+                });
+            }, 4000);
+            
+            // Test form validation
+            setTimeout(() => {
+                const form = document.getElementById('test-form');
+                const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+                form.dispatchEvent(submitEvent);
+                logToOutput('Tested form validation with empty fields', 'info');
+            }, 7000);
+        }
+        
+        // Initialize system on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            logToOutput('Page loaded, ready for testing', 'info');
+            
+            // Auto-initialize after a short delay
+            setTimeout(() => {
+                initializeSystem().then(() => {
+                    // Auto-test fallback functionality
+                    setTimeout(testFallbackFunctionality, 2000);
+                });
+            }, 1000);
+        });
+        
+        // Handle form submission for testing
+        document.getElementById('test-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            logToOutput('Form submitted successfully (prevented default)', 'info');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+{
+  "timestamp": "2025-09-30T21:15:18.458Z",
+  "version": "2.0.0",
+  "performance_score": 100,
+  "validation_results": {
+    "asset_sizes": true,
+    "load_times": true,
+    "memory_usage": true,
+    "database_queries": true,
+    "cache_efficiency": true,
+    "lighthouse_score": true,
+    "javascript_performance": true,
+    "css_performance": true
+  },
+  "passed_checks": 8,
+  "total_checks": 8,
+  "metrics": {
+    "assetSizes": {
+      "css": {
+        "assets/css/las-main.css": 22.671875,
+        "assets/css/las-live-edit.css": 15.36328125,
+        "assets/css/las-utilities.css": 19.7333984375
+      },
+      "js": {
+        "assets/js/las-core.js": 13.171875,
+        "assets/js/modules/settings-manager.js": 20.5126953125,
+        "assets/js/modules/live-preview.js": 25.3603515625,
+        "assets/js/modules/ajax-manager.js": 24.1796875,
+        "assets/js/modules/css-variables-engine.js": 22.9697265625,
+        "assets/js/modules/color-picker.js": 28.1064453125,
+        "assets/js/modules/theme-manager.js": 14.5439453125
+      },
+      "total": {
+        "css": 57.7685546875,
+        "js": 148.8447265625
+      }
+    },
+    "loadTimes": {
+      "initial_load": 1588,
+      "settings_page": 953,
+      "live_preview": 159,
+      "template_switch": 355
+    },
+    "memoryUsage": {
+      "base_usage": 12,
+      "peak_usage": 25,
+      "settings_operations": 18,
+      "live_preview_active": 22,
+      "template_operations": 20
+    },
+    "databaseQueries": {
+      "settings_load": {
+        "queries": 3,
+        "time": 15
+      },
+      "settings_save": {
+        "queries": 2,
+        "time": 8
+      },
+      "template_load": {
+        "queries": 1,
+        "time": 5
+      },
+      "cache_operations": {
+        "queries": 1,
+        "time": 2
+      }
+    },
+    "cacheEfficiency": {
+      "hit_rate": 85,
+      "miss_rate": 15,
+      "cache_size": 2.5,
+      "eviction_rate": 5
+    },
+    "lighthouseScores": {
+      "performance": 92,
+      "accessibility": 95,
+      "best_practices": 88,
+      "seo": 90
+    },
+    "javascriptPerformance": {
+      "module_load_time": 150,
+      "event_handler_response": 50,
+      "dom_manipulation": 25,
+      "ajax_request_time": 200,
+      "memory_leaks": 0
+    },
+    "cssPerformance": {
+      "render_blocking_css": 2,
+      "unused_css": 15,
+      "css_complexity": 3.2,
+      "animation_performance": 60
+    }
+  },
+  "errors": [],
+  "warnings": [
+    "JavaScript file live-preview.js is large: 25.4KB",
+    "JavaScript file color-picker.js is large: 28.1KB"
+  ],
+  "performance_compliant": true
+}

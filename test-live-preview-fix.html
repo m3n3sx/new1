@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live Preview Test</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .success { color: green; }
+        .error { color: red; }
+        .warning { color: orange; }
+        #test-results { margin-top: 20px; }
+        .test-form { margin: 10px 0; }
+        .test-form input, .test-form select { margin: 5px; padding: 5px; }
+        #preview-area { 
+            background: #f1f1f1; 
+            padding: 20px; 
+            margin: 20px 0; 
+            border: 1px solid #ccc;
+            min-height: 100px;
+        }
+        .admin-menu-preview {
+            background: #23282d;
+            color: #f0f0f1;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+        }
+        .admin-bar-preview {
+            background: #1d2327;
+            color: #f0f0f1;
+            padding: 8px;
+            margin: 10px 0;
+            height: 32px;
+            line-height: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Live Preview Repair Test</h1>
+    
+    <div class="test-section">
+        <h2>1. Configuration Test</h2>
+        <div id="config-test">Testing configuration...</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Live Preview Test</h2>
+        <div class="test-form">
+            <label>Menu Background Color:</label>
+            <input type="color" id="menu-bg-color" value="#23282d">
+            <button onclick="testPreview('admin_menu_bg_color', document.getElementById('menu-bg-color').value)">Test</button>
+        </div>
+        
+        <div class="test-form">
+            <label>Menu Text Color:</label>
+            <input type="color" id="menu-text-color" value="#f0f0f1">
+            <button onclick="testPreview('admin_menu_text_color', document.getElementById('menu-text-color').value)">Test</button>
+        </div>
+        
+        <div class="test-form">
+            <label>Admin Bar Background:</label>
+            <input type="color" id="adminbar-bg-color" value="#1d2327">
+            <button onclick="testPreview('admin_bar_bg_color', document.getElementById('adminbar-bg-color').value)">Test</button>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Preview Area</h2>
+        <div id="preview-area">
+            <div class="admin-bar-preview" id="adminbar-preview">WordPress Admin Bar Preview</div>
+            <div class="admin-menu-preview" id="menu-preview">
+                <div>Dashboard</div>
+                <div>Posts</div>
+                <div>Media</div>
+                <div>Pages</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. Test Results</h2>
+        <div id="test-results"></div>
+    </div>
+
+    <script>
+        // Mock WordPress AJAX configuration for testing
+        const mockConfig = {
+            ajax_url: '/wp-admin/admin-ajax.php',
+            nonce: 'test_nonce_12345',
+            ajax_actions: {
+                get_preview_css: 'las_get_preview_css',
+                save_settings: 'las_save_settings',
+                load_settings: 'las_load_settings'
+            }
+        };
+        
+        // Test configuration
+        function testConfiguration() {
+            const results = [];
+            
+            // Check if we're in WordPress environment
+            if (typeof ajaxurl !== 'undefined') {
+                results.push('<span class="success">✓ WordPress AJAX URL available</span>');
+                mockConfig.ajax_url = ajaxurl;
+            } else {
+                results.push('<span class="warning">⚠ Not in WordPress environment, using mock</span>');
+            }
+            
+            // Check for lasAdminData
+            if (typeof lasAdminData !== 'undefined') {
+                results.push('<span class="success">✓ lasAdminData available</span>');
+                
+                if (lasAdminData.ajax_actions && lasAdminData.ajax_actions.get_preview_css) {
+                    results.push('<span class="success">✓ get_preview_css action configured</span>');
+                } else {
+                    results.push('<span class="error">✗ get_preview_css action missing</span>');
+                }
+                
+                if (lasAdminData.nonce) {
+                    results.push('<span class="success">✓ Nonce available</span>');
+                    mockConfig.nonce = lasAdminData.nonce;
+                } else {
+                    results.push('<span class="error">✗ Nonce missing</span>');
+                }
+            } else {
+                results.push('<span class="warning">⚠ lasAdminData not available, using mock</span>');
+            }
+            
+            document.getElementById('config-test').innerHTML = results.join('<br>');
+        }
+        
+        // Test live preview functionality
+        function testPreview(setting, value) {
+            const config = typeof lasAdminData !== 'undefined' ? lasAdminData : mockConfig;
+            
+            addResult(`Testing ${setting} = ${value}...`);
+            
+            // Update local preview immediately
+            updateLocalPreview(setting, value);
+            
+            // Test AJAX call
+            $.post(config.ajax_url, {
+                action: config.ajax_actions.get_preview_css || 'las_get_preview_css',
+                nonce: config.nonce,
+                setting: setting,
+                value: value
+            })
+            .done(function(response) {
+                console.log('AJAX Success:', response);
+                
+                if (response.success && response.data && response.data.css) {
+                    addResult(`<span class="success">✓ ${setting} preview generated (${response.data.css.length} chars)</span>`);
+                    
+                    // Apply CSS to page
+                    applyCSSToPage(response.data.css);
+                } else {
+                    addResult(`<span class="error">✗ ${setting} preview failed: ${response.data || 'Unknown error'}</span>`);
+                }
+            })
+            .fail(function(xhr, status, error) {
+                console.error('AJAX Failed:', status, error, xhr.responseText);
+                addResult(`<span class="error">✗ ${setting} AJAX failed: ${status} - ${error}</span>`);
+                
+                if (xhr.responseText) {
+                    addResult(`<span class="error">Response: ${xhr.responseText.substring(0, 200)}...</span>`);
+                }
+            });
+        }
+        
+        // Update local preview (fallback)
+        function updateLocalPreview(setting, value) {
+            const menuPreview = document.getElementById('menu-preview');
+            const adminbarPreview = document.getElementById('adminbar-preview');
+            
+            switch(setting) {
+                case 'admin_menu_bg_color':
+                    menuPreview.style.backgroundColor = value;
+                    break;
+                case 'admin_menu_text_color':
+                    menuPreview.style.color = value;
+                    break;
+                case 'admin_bar_bg_color':
+                    adminbarPreview.style.backgroundColor = value;
+                    break;
+            }
+        }
+        
+        // Apply generated CSS to page
+        function applyCSSToPage(css) {
+            // Remove existing preview styles
+            const existingStyle = document.getElementById('las-preview-styles');
+            if (existingStyle) {
+                existingStyle.remove();
+            }
+            
+            // Add new styles
+            const style = document.createElement('style');
+            style.id = 'las-preview-styles';
+            style.textContent = css;
+            document.head.appendChild(style);
+            
+            addResult('<span class="success">✓ CSS applied to page</span>');
+        }
+        
+        // Add result to test results
+        function addResult(message) {
+            const results = document.getElementById('test-results');
+            const timestamp = new Date().toLocaleTimeString();
+            results.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        // Initialize tests
+        $(document).ready(function() {
+            testConfiguration();
+            addResult('Live Preview Test initialized');
+        });
+    </script>
+</body>
+</html>

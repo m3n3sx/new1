@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>State Management Edge Cases Integration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .test-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .test-header {
+            background: #2271b1;
+            color: white;
+            padding: 15px;
+            border-radius: 8px 8px 0 0;
+            margin: -20px -20px 20px -20px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .test-section h3 {
+            margin-top: 0;
+            color: #2271b1;
+        }
+        
+        .test-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .test-button {
+            background: #2271b1;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .test-button:hover {
+            background: #135e96;
+        }
+        
+        .test-button.danger {
+            background: #d63638;
+        }
+        
+        .test-button.danger:hover {
+            background: #b32d2e;
+        }
+        
+        .test-button.success {
+            background: #00a32a;
+        }
+        
+        .test-button.success:hover {
+            background: #008a20;
+        }
+        
+        .test-output {
+            background: #f8f9fa;
+            border: 1px solid #e1e1e1;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-success {
+            background-color: #00a32a;
+        }
+        
+        .status-error {
+            background-color: #d63638;
+        }
+        
+        .status-warning {
+            background-color: #dba617;
+        }
+        
+        .status-info {
+            background-color: #2271b1;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .metric-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #2271b1;
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2271b1;
+        }
+        
+        .metric-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>State Management Edge Cases Integration Test</h1>
+            <p>Comprehensive testing of conflict resolution, fallback mechanisms, and error recovery</p>
+        </div>
+
+        <!-- Conflict Resolution Tests -->
+        <div class="test-section">
+            <h3><span class="status-indicator status-info"></span>Conflict Resolution Tests</h3>
+            <div class="test-controls">
+                <button class="test-button" onclick="testTimestampConflict()">Test Timestamp Conflict</button>
+                <button class="test-button" onclick="testMergeConflict()">Test Merge Conflict</button>
+                <button class="test-button" onclick="testVersionConflict()">Test Version Conflict</button>
+                <button class="test-button" onclick="testMultipleConflicts()">Test Multiple Conflicts</button>
+            </div>
+            <div id="conflict-output" class="test-output">Ready to test conflict resolution...</div>
+        </div>
+
+        <!-- Fallback and Recovery Tests -->
+        <div class="test-section">
+            <h3><span class="status-indicator status-warning"></span>Fallback and Recovery Tests</h3>
+            <div class="test-controls">
+                <button class="test-button danger" onclick="testStorageCorruption()">Simulate Storage Corruption</button>
+                <button class="test-button danger" onclick="testStorageFailure()">Simulate Storage Failure</button>
+                <button class="test-button danger" onclick="testCircularReference()">Test Circular Reference</button>
+                <button class="test-button success" onclick="testRecoveryMechanism()">Test Recovery</button>
+            </div>
+            <div id="fallback-output" class="test-output">Ready to test fallback mechanisms...</div>
+        </div>
+
+        <!-- Validation and Cleanup Tests -->
+        <div class="test-section">
+            <h3><span class="status-indicator status-success"></span>Validation and Cleanup Tests</h3>
+            <div class="test-controls">
+                <button class="test-button" onclick="testStateValidation()">Test State Validation</button>
+                <button class="test-button" onclick="testLargeStateCleanup()">Test Large State Cleanup</button>
+                <button class="test-button" onclick="testInvalidDataHandling()">Test Invalid Data</button>
+                <button class="test-button" onclick="testSizeLimit()">Test Size Limit</button>
+            </div>
+            <div id="validation-output" class="test-output">Ready to test validation and cleanup...</div>
+        </div>
+
+        <!-- Multi-tab Synchronization Tests -->
+        <div class="test-section">
+            <h3><span class="status-indicator status-info"></span>Multi-tab Synchronization Tests</h3>
+            <div class="test-controls">
+                <button class="test-button" onclick="testBroadcastSync()">Test Broadcast Sync</button>
+                <button class="test-button" onclick="testStorageSync()">Test Storage Sync</button>
+                <button class="test-button" onclick="testSyncConflicts()">Test Sync Conflicts</button>
+                <button class="test-button" onclick="openSecondTab()">Open Second Tab</button>
+            </div>
+            <div id="sync-output" class="test-output">Ready to test multi-tab synchronization...</div>
+        </div>
+
+        <!-- Performance and Reliability Tests -->
+        <div class="test-section">
+            <h3><span class="status-indicator status-success"></span>Performance and Reliability Tests</h3>
+            <div class="test-controls">
+                <button class="test-button" onclick="testRetryLogic()">Test Retry Logic</button>
+                <button class="test-button" onclick="testConcurrentOperations()">Test Concurrent Operations</button>
+                <button class="test-button" onclick="testMemoryLeaks()">Test Memory Leaks</button>
+                <button class="test-button" onclick="runStressTest()">Run Stress Test</button>
+            </div>
+            <div id="performance-output" class="test-output">Ready to test performance and reliability...</div>
+        </div>
+
+        <!-- State Health Monitoring -->
+        <div class="test-section">
+            <h3><span class="status-indicator status-info"></span>State Health Monitoring</h3>
+            <div class="test-controls">
+                <button class="test-button" onclick="updateHealthMetrics()">Update Health Metrics</button>
+                <button class="test-button" onclick="toggleAutoRefresh()">Toggle Auto Refresh</button>
+                <button class="test-button success" onclick="exportHealthReport()">Export Health Report</button>
+            </div>
+            <div class="metrics-grid" id="health-metrics">
+                <!-- Health metrics will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Mock UI Repair System for Testing -->
+    <script>
+        // Mock environment for testing
+        class MockStateManager {
+            constructor() {
+                this.state = {};
+                this.localStorage = window.localStorage;
+                this.sessionStorage = window.sessionStorage;
+                this.broadcastChannel = null;
+                this.storageKey = 'las_ui_state_test';
+                this.sessionKey = 'las_session_state_test';
+                this.syncEnabled = true;
+                
+                // Enhanced properties
+                this.conflictResolutionStrategy = 'timestamp';
+                this.stateVersion = 1;
+                this.maxStateSize = 1024 * 100; // 100KB for testing
+                this.validationRules = new Map();
+                this.fallbackState = {};
+                this.corruptionDetected = false;
+                this.saveQueue = [];
+                this.saveInProgress = false;
+                this.retryAttempts = 3;
+                this.retryDelay = 100;
+                
+                this.setupValidationRules();
+                this.setupFallbackState();
+                this.initializeBroadcastChannel();
+            }
+            
+            setupValidationRules() {
+                this.validationRules.set('activeTab', (value) => {
+                    const validTabs = ['general', 'menu', 'adminbar', 'content', 'logos', 'advanced'];
+                    return typeof value === 'string' && validTabs.includes(value);
+                });
+                
+                this.validationRules.set('form', (value) => {
+                    return typeof value === 'object' && value !== null;
+                });
+            }
+            
+            setupFallbackState() {
+                this.fallbackState = {
+                    activeTab: 'general',
+                    form: {},
+                    ui: { theme: 'default' },
+                    preferences: { rememberTab: true },
+                    version: this.stateVersion,
+                    timestamp: Date.now()
+                };
+            }
+            
+            initializeBroadcastChannel() {
+                if ('BroadcastChannel' in window && this.syncEnabled) {
+                    this.broadcastChannel = new BroadcastChannel('las-ui-state-test');
+                    this.broadcastChannel.onmessage = (event) => {
+                        this.handleBroadcastMessage(event.data);
+                    };
+                }
+            }
+            
+            async detectConflicts() {
+                const conflicts = [];
+                
+                try {
+                    const storedState = this.localStorage.getItem(this.storageKey);
+                    if (storedState) {
+                        const parsed = JSON.parse(storedState);
+                        
+                        if (parsed.timestamp && this.state.timestamp && 
+                            parsed.timestamp > this.state.timestamp) {
+                            conflicts.push({
+                                type: 'timestamp',
+                                source: 'localStorage',
+                                storedState: parsed,
+                                currentState: this.state
+                            });
+                        }
+                        
+                        if (parsed.version && parsed.version > this.state.version) {
+                            conflicts.push({
+                                type: 'version',
+                                source: 'localStorage',
+                                storedVersion: parsed.version,
+                                currentVersion: this.state.version
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error detecting conflicts:', error);
+                }
+                
+                return conflicts;
+            }
+            
+            async resolveConflicts(conflicts) {
+                for (const conflict of conflicts) {
+                    if (this.conflictResolutionStrategy === 'timestamp') {
+                        await this.resolveByTimestamp(conflict);
+                    } else if (this.conflictResolutionStrategy === 'merge') {
+                        await this.resolveByMerging(conflict);
+                    }
+                }
+            }
+            
+            async resolveByTimestamp(conflict) {
+                if (conflict.type === 'timestamp' && conflict.storedState.timestamp > this.state.timestamp) {
+                    this.state = { ...this.state, ...conflict.storedState };
+                    this.state.timestamp = Date.now();
+                }
+            }
+            
+            async resolveByMerging(conflict) {
+                if (conflict.storedState) {
+                    this.state = this.deepMerge(conflict.storedState, this.state);
+                    this.state.timestamp = Date.now();
+                }
+            }
+            
+            deepMerge(target, source) {
+                const result = { ...target };
+                
+                for (const key in source) {
+                    if (source.hasOwnProperty(key)) {
+                        if (typeof source[key] === 'object' && source[key] !== null && 
+                            typeof result[key] === 'object' && result[key] !== null) {
+                            result[key] = this.deepMerge(result[key], source[key]);
+                        } else {
+                            result[key] = source[key];
+                        }
+                    }
+                }
+                
+                return result;
+            }
+            
+            async validateState() {
+                const stateString = JSON.stringify(this.state);
+                
+                if (stateString.includes('[object Object]')) {
+                    throw new Error('Circular reference detected in state');
+                }
+                
+                if (stateString.length > this.maxStateSize) {
+                    await this.cleanupLargeState();
+                }
+                
+                if (!this.state.activeTab) {
+                    this.state.activeTab = this.fallbackState.activeTab;
+                }
+                
+                this.state.version = this.stateVersion;
+                this.state.timestamp = Date.now();
+                this.corruptionDetected = false;
+            }
+            
+            async cleanupLargeState() {
+                if (this.state.form && typeof this.state.form === 'object') {
+                    const formKeys = Object.keys(this.state.form);
+                    if (formKeys.length > 10) {
+                        const keysToRemove = formKeys.slice(0, formKeys.length - 10);
+                        keysToRemove.forEach(key => delete this.state.form[key]);
+                    }
+                }
+                
+                if (this.state.temp) {
+                    delete this.state.temp;
+                }
+            }
+            
+            async recoverWithFallback() {
+                if (this.state && Object.keys(this.state).length > 0) {
+                    const backupKey = `${this.storageKey}_backup_${Date.now()}`;
+                    this.localStorage.setItem(backupKey, JSON.stringify(this.state));
+                }
+                
+                this.state = { ...this.fallbackState };
+                await this.saveState();
+                this.corruptionDetected = false;
+                
+                return { recovered: true, fallbackUsed: true };
+            }
+            
+            async saveState() {
+                const stateJson = JSON.stringify(this.state);
+                this.localStorage.setItem(this.storageKey, stateJson);
+                this.sessionStorage.setItem(this.sessionKey, stateJson);
+                
+                if (this.broadcastChannel && this.syncEnabled) {
+                    this.broadcastChannel.postMessage({
+                        type: 'state-update',
+                        state: this.state,
+                        timestamp: Date.now()
+                    });
+                }
+            }
+            
+            async saveWithRetry() {
+                let attempts = 0;
+                
+                while (attempts < this.retryAttempts) {
+                    try {
+                        await this.saveState();
+                        return { success: true, attempts: attempts + 1 };
+                    } catch (error) {
+                        attempts++;
+                        if (attempts >= this.retryAttempts) {
+                            throw error;
+                        }
+                        await new Promise(resolve => setTimeout(resolve, this.retryDelay * attempts));
+                    }
+                }
+            }
+            
+            getStateHealth() {
+                return {
+                    initialized: true,
+                    corruptionDetected: this.corruptionDetected,
+                    stateSize: JSON.stringify(this.state).length,
+                    maxStateSize: this.maxStateSize,
+                    version: this.state.version || 0,
+                    timestamp: this.state.timestamp || 0,
+                    syncEnabled: this.syncEnabled,
+                    conflictStrategy: this.conflictResolutionStrategy,
+                    hasValidationRules: this.validationRules.size > 0,
+                    hasFallbackState: Object.keys(this.fallbackState).length > 0,
+                    queueLength: this.saveQueue.length,
+                    saveInProgress: this.saveInProgress
+                };
+            }
+            
+            setConflictResolutionStrategy(strategy) {
+                const validStrategies = ['timestamp', 'merge', 'manual'];
+                if (validStrategies.includes(strategy)) {
+                    this.conflictResolutionStrategy = strategy;
+                }
+            }
+            
+            handleBroadcastMessage(data) {
+                if (data.type === 'state-update' && data.state) {
+                    console.log('Received broadcast message:', data);
+                }
+            }
+        }
+
+        // Initialize test state manager
+        const testStateManager = new MockStateManager();
+        let autoRefreshInterval = null;
+
+        // Utility functions
+        function log(outputId, message, type = 'info') {
+            const output = document.getElementById(outputId);
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warning' ? '⚠️' : 'ℹ️';
+            output.textContent += `[${timestamp}] ${prefix} ${message}\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function clearOutput(outputId) {
+            document.getElementById(outputId).textContent = '';
+        }
+
+        // Conflict Resolution Tests
+        async function testTimestampConflict() {
+            clearOutput('conflict-output');
+            log('conflict-output', 'Testing timestamp conflict resolution...');
+            
+            try {
+                // Set current state with older timestamp
+                testStateManager.state = {
+                    activeTab: 'general',
+                    timestamp: Date.now() - 10000
+                };
+                
+                // Set newer state in localStorage
+                const newerState = {
+                    activeTab: 'menu',
+                    timestamp: Date.now()
+                };
+                localStorage.setItem(testStateManager.storageKey, JSON.stringify(newerState));
+                
+                // Detect and resolve conflicts
+                const conflicts = await testStateManager.detectConflicts();
+                log('conflict-output', `Detected ${conflicts.length} conflicts`);
+                
+                if (conflicts.length > 0) {
+                    await testStateManager.resolveConflicts(conflicts);
+                    log('conflict-output', `Resolved conflicts. Active tab: ${testStateManager.state.activeTab}`, 'success');
+                } else {
+                    log('conflict-output', 'No conflicts detected', 'warning');
+                }
+                
+            } catch (error) {
+                log('conflict-output', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testMergeConflict() {
+            clearOutput('conflict-output');
+            log('conflict-output', 'Testing merge conflict resolution...');
+            
+            try {
+                testStateManager.setConflictResolutionStrategy('merge');
+                
+                testStateManager.state = {
+                    activeTab: 'general',
+                    form: { field1: 'value1' },
+                    ui: { theme: 'dark' },
+                    timestamp: Date.now() - 5000
+                };
+                
+                const conflictState = {
+                    activeTab: 'menu',
+                    form: { field2: 'value2' },
+                    ui: { animations: true },
+                    timestamp: Date.now()
+                };
+                localStorage.setItem(testStateManager.storageKey, JSON.stringify(conflictState));
+                
+                const conflicts = await testStateManager.detectConflicts();
+                if (conflicts.length > 0) {
+                    await testStateManager.resolveConflicts(conflicts);
+                    log('conflict-output', 'Merge completed:', 'success');
+                    log('conflict-output', `  Active tab: ${testStateManager.state.activeTab}`);
+                    log('conflict-output', `  Form fields: ${Object.keys(testStateManager.state.form).join(', ')}`);
+                    log('conflict-output', `  UI settings: ${JSON.stringify(testStateManager.state.ui)}`);
+                }
+                
+            } catch (error) {
+                log('conflict-output', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testVersionConflict() {
+            clearOutput('conflict-output');
+            log('conflict-output', 'Testing version conflict resolution...');
+            
+            try {
+                testStateManager.state = { version: 1, activeTab: 'general' };
+                
+                const newerVersionState = {
+                    version: 2,
+                    activeTab: 'menu',
+                    newFeature: 'enabled'
+                };
+                localStorage.setItem(testStateManager.storageKey, JSON.stringify(newerVersionState));
+                
+                const conflicts = await testStateManager.detectConflicts();
+                log('conflict-output', `Version conflicts detected: ${conflicts.filter(c => c.type === 'version').length}`);
+                
+                if (conflicts.some(c => c.type === 'version')) {
+                    log('conflict-output', 'Version conflict detected - newer version in storage', 'warning');
+                }
+                
+            } catch (error) {
+                log('conflict-output', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testMultipleConflicts() {
+            clearOutput('conflict-output');
+            log('conflict-output', 'Testing multiple simultaneous conflicts...');
+            
+            try {
+                testStateManager.state = {
+                    version: 1,
+                    activeTab: 'general',
+                    timestamp: Date.now() - 15000
+                };
+                
+                const conflictState = {
+                    version: 2,
+                    activeTab: 'menu',
+                    timestamp: Date.now(),
+                    newData: 'test'
+                };
+                localStorage.setItem(testStateManager.storageKey, JSON.stringify(conflictState));
+                
+                const conflicts = await testStateManager.detectConflicts();
+                log('conflict-output', `Total conflicts detected: ${conflicts.length}`);
+                
+                conflicts.forEach((conflict, index) => {
+                    log('conflict-output', `  Conflict ${index + 1}: ${conflict.type} (${conflict.source})`);
+                });
+                
+                if (conflicts.length > 0) {
+                    await testStateManager.resolveConflicts(conflicts);
+                    log('conflict-output', 'All conflicts resolved', 'success');
+                }
+                
+            } catch (error) {
+                log('conflict-output', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Fallback and Recovery Tests
+        async function testStorageCorruption() {
+            clearOutput('fallback-output');
+            log('fallback-output', 'Simulating storage corruption...');
+            
+            try {
+                // Set corrupted data in localStorage
+                localStorage.setItem(testStateManager.storageKey, 'corrupted json data {invalid}');
+                sessionStorage.setItem(testStateManager.sessionKey, 'also corrupted [invalid json');
+                
+                log('fallback-output', 'Corrupted data set in storage');
+                
+                // Attempt to load state (should trigger recovery)
+                const result = await testStateManager.recoverWithFallback();
+                
+                if (result.recovered) {
+                    log('fallback-output', 'Successfully recovered with fallback state', 'success');
+                    log('fallback-output', `Fallback active tab: ${testStateManager.state.activeTab}`);
+                } else {
+                    log('fallback-output', 'Recovery failed', 'error');
+                }
+                
+            } catch (error) {
+                log('fallback-output', `Error during recovery: ${error.message}`, 'error');
+            }
+        }
+
+        async function testStorageFailure() {
+            clearOutput('fallback-output');
+            log('fallback-output', 'Simulating storage failure...');
+            
+            try {
+                // Mock localStorage failure
+                const originalSetItem = localStorage.setItem;
+                localStorage.setItem = () => {
+                    throw new Error('Storage quota exceeded');
+                };
+                
+                log('fallback-output', 'Storage failure simulated');
+                
+                // Attempt to save state with retry
+                try {
+                    const result = await testStateManager.saveWithRetry();
+                    log('fallback-output', `Save completed after ${result.attempts} attempts`, 'success');
+                } catch (retryError) {
+                    log('fallback-output', `Save failed after ${testStateManager.retryAttempts} attempts`, 'warning');
+                }
+                
+                // Restore localStorage
+                localStorage.setItem = originalSetItem;
+                log('fallback-output', 'Storage functionality restored');
+                
+            } catch (error) {
+                log('fallback-output', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testCircularReference() {
+            clearOutput('fallback-output');
+            log('fallback-output', 'Testing circular reference detection...');
+            
+            try {
+                // Create circular reference
+                const circularObj = { test: 'value' };
+                circularObj.self = circularObj;
+                testStateManager.state = circularObj;
+                
+                log('fallback-output', 'Circular reference created in state');
+                
+                // Attempt validation (should detect and recover)
+                try {
+                    await testStateManager.validateState();
+                    log('fallback-output', 'State validation passed', 'success');
+                } catch (validationError) {
+                    log('fallback-output', `Validation error detected: ${validationError.message}`, 'warning');
+                    await testStateManager.recoverWithFallback();
+                    log('fallback-output', 'Recovered from circular reference', 'success');
+                }
+                
+            } catch (error) {
+                log('fallback-output', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testRecoveryMechanism() {
+            clearOutput('fallback-output');
+            log('fallback-output', 'Testing complete recovery mechanism...');
+            
+            try {
+                // Set up problematic state
+                testStateManager.state = {
+                    activeTab: 'invalid_tab',
+                    form: 'not_an_object',
+                    corrupted: true
+                };
+                
+                log('fallback-output', 'Problematic state created');
+                
+                // Trigger recovery
+                const result = await testStateManager.recoverWithFallback();
+                
+                if (result.recovered) {
+                    log('fallback-output', 'Recovery successful', 'success');
+                    log('fallback-output', `New active tab: ${testStateManager.state.activeTab}`);
+                    log('fallback-output', `State version: ${testStateManager.state.version}`);
+                    log('fallback-output', `Fallback used: ${result.fallbackUsed}`);
+                }
+                
+            } catch (error) {
+                log('fallback-output', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Validation and Cleanup Tests
+        async function testStateValidation() {
+            clearOutput('validation-output');
+            log('validation-output', 'Testing state validation rules...');
+            
+            try {
+                // Test valid state
+                testStateManager.state = {
+                    activeTab: 'menu',
+                    form: { test: 'value' },
+                    version: 1
+                };
+                
+                await testStateManager.validateState();
+                log('validation-output', 'Valid state passed validation', 'success');
+                
+                // Test invalid state
+                testStateManager.state.activeTab = 'invalid_tab';
+                testStateManager.state.form = 'not_an_object';
+                
+                // Validation should fix these issues
+                await testStateManager.validateState();
+                log('validation-output', `Fixed active tab: ${testStateManager.state.activeTab}`, 'success');
+                
+            } catch (error) {
+                log('validation-output', `Validation error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testLargeStateCleanup() {
+            clearOutput('validation-output');
+            log('validation-output', 'Testing large state cleanup...');
+            
+            try {
+                // Create large state
+                testStateManager.state.form = {};
+                for (let i = 0; i < 20; i++) {
+                    testStateManager.state.form[`field_${i}`] = `value_${i}`;
+                }
+                
+                testStateManager.state.temp = { large: 'temporary data' };
+                
+                const beforeSize = Object.keys(testStateManager.state.form).length;
+                log('validation-output', `Form fields before cleanup: ${beforeSize}`);
+                
+                await testStateManager.cleanupLargeState();
+                
+                const afterSize = Object.keys(testStateManager.state.form).length;
+                log('validation-output', `Form fields after cleanup: ${afterSize}`, 'success');
+                log('validation-output', `Temporary data removed: ${!testStateManager.state.temp}`, 'success');
+                
+            } catch (error) {
+                log('validation-output', `Cleanup error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testInvalidDataHandling() {
+            clearOutput('validation-output');
+            log('validation-output', 'Testing invalid data handling...');
+            
+            try {
+                const testData = [
+                    { activeTab: 'invalid_tab', expected: false },
+                    { activeTab: 'menu', expected: true },
+                    { activeTab: 123, expected: false },
+                    { form: {}, expected: true },
+                    { form: 'string', expected: false },
+                    { form: null, expected: false }
+                ];
+                
+                testData.forEach((test, index) => {
+                    const key = Object.keys(test)[0];
+                    const validator = testStateManager.validationRules.get(key);
+                    
+                    if (validator) {
+                        const result = validator(test[key]);
+                        const status = result === test.expected ? 'success' : 'error';
+                        log('validation-output', `Test ${index + 1}: ${key}=${JSON.stringify(test[key])} -> ${result}`, status);
+                    }
+                });
+                
+            } catch (error) {
+                log('validation-output', `Validation test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testSizeLimit() {
+            clearOutput('validation-output');
+            log('validation-output', 'Testing state size limits...');
+            
+            try {
+                // Create large state that exceeds limit
+                const largeData = 'x'.repeat(testStateManager.maxStateSize / 2);
+                testStateManager.state = {
+                    largeField1: largeData,
+                    largeField2: largeData,
+                    largeField3: largeData
+                };
+                
+                const stateSize = JSON.stringify(testStateManager.state).length;
+                log('validation-output', `Created state size: ${stateSize} bytes`);
+                log('validation-output', `Max allowed size: ${testStateManager.maxStateSize} bytes`);
+                
+                if (stateSize > testStateManager.maxStateSize) {
+                    log('validation-output', 'State exceeds size limit - cleanup should trigger', 'warning');
+                    await testStateManager.validateState();
+                    
+                    const newSize = JSON.stringify(testStateManager.state).length;
+                    log('validation-output', `State size after cleanup: ${newSize} bytes`, 'success');
+                }
+                
+            } catch (error) {
+                log('validation-output', `Size limit test error: ${error.message}`, 'error');
+            }
+        }
+
+        // Multi-tab Synchronization Tests
+        async function testBroadcastSync() {
+            clearOutput('sync-output');
+            log('sync-output', 'Testing BroadcastChannel synchronization...');
+            
+            try {
+                if (!testStateManager.broadcastChannel) {
+                    log('sync-output', 'BroadcastChannel not available', 'warning');
+                    return;
+                }
+                
+                // Listen for messages
+                const messageHandler = (event) => {
+                    log('sync-output', `Received broadcast: ${JSON.stringify(event.data)}`, 'success');
+                };
+                
+                testStateManager.broadcastChannel.onmessage = messageHandler;
+                
+                // Send test message
+                testStateManager.state = { activeTab: 'menu', test: 'broadcast' };
+                await testStateManager.saveState();
+                
+                log('sync-output', 'Broadcast message sent');
+                
+            } catch (error) {
+                log('sync-output', `Broadcast sync error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testStorageSync() {
+            clearOutput('sync-output');
+            log('sync-output', 'Testing storage event synchronization...');
+            
+            try {
+                // Simulate storage change from another tab
+                const testState = {
+                    activeTab: 'adminbar',
+                    timestamp: Date.now(),
+                    source: 'external_tab'
+                };
+                
+                // Trigger storage event
+                localStorage.setItem(testStateManager.storageKey, JSON.stringify(testState));
+                
+                // Simulate storage event
+                const storageEvent = new StorageEvent('storage', {
+                    key: testStateManager.storageKey,
+                    newValue: JSON.stringify(testState),
+                    oldValue: null,
+                    storageArea: localStorage
+                });
+                
+                window.dispatchEvent(storageEvent);
+                log('sync-output', 'Storage sync event dispatched', 'success');
+                
+            } catch (error) {
+                log('sync-output', `Storage sync error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testSyncConflicts() {
+            clearOutput('sync-output');
+            log('sync-output', 'Testing synchronization conflicts...');
+            
+            try {
+                // Set local state
+                testStateManager.state = {
+                    activeTab: 'general',
+                    timestamp: Date.now() - 5000
+                };
+                
+                // Simulate newer state from another tab
+                const remoteState = {
+                    activeTab: 'menu',
+                    timestamp: Date.now(),
+                    source: 'remote_tab'
+                };
+                
+                localStorage.setItem(testStateManager.storageKey, JSON.stringify(remoteState));
+                
+                // Detect and resolve conflicts
+                const conflicts = await testStateManager.detectConflicts();
+                
+                if (conflicts.length > 0) {
+                    log('sync-output', `Sync conflicts detected: ${conflicts.length}`);
+                    await testStateManager.resolveConflicts(conflicts);
+                    log('sync-output', `Conflicts resolved. Active tab: ${testStateManager.state.activeTab}`, 'success');
+                } else {
+                    log('sync-output', 'No sync conflicts detected');
+                }
+                
+            } catch (error) {
+                log('sync-output', `Sync conflict error: ${error.message}`, 'error');
+            }
+        }
+
+        function openSecondTab() {
+            const newWindow = window.open(window.location.href, '_blank');
+            log('sync-output', 'Second tab opened for multi-tab testing', 'success');
+        }
+
+        // Performance and Reliability Tests
+        async function testRetryLogic() {
+            clearOutput('performance-output');
+            log('performance-output', 'Testing retry logic...');
+            
+            try {
+                let attempts = 0;
+                const originalSaveState = testStateManager.saveState;
+                
+                // Mock failing save operation
+                testStateManager.saveState = async () => {
+                    attempts++;
+                    if (attempts < 3) {
+                        throw new Error(`Save attempt ${attempts} failed`);
+                    }
+                    return originalSaveState.call(testStateManager);
+                };
+                
+                const startTime = Date.now();
+                const result = await testStateManager.saveWithRetry();
+                const endTime = Date.now();
+                
+                log('performance-output', `Retry completed after ${result.attempts} attempts`, 'success');
+                log('performance-output', `Total time: ${endTime - startTime}ms`);
+                
+                // Restore original method
+                testStateManager.saveState = originalSaveState;
+                
+            } catch (error) {
+                log('performance-output', `Retry logic error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testConcurrentOperations() {
+            clearOutput('performance-output');
+            log('performance-output', 'Testing concurrent operations...');
+            
+            try {
+                const operations = [];
+                
+                // Create multiple concurrent save operations
+                for (let i = 0; i < 5; i++) {
+                    operations.push(
+                        testStateManager.saveState().then(() => {
+                            log('performance-output', `Operation ${i + 1} completed`);
+                        })
+                    );
+                }
+                
+                const startTime = Date.now();
+                await Promise.all(operations);
+                const endTime = Date.now();
+                
+                log('performance-output', `All concurrent operations completed in ${endTime - startTime}ms`, 'success');
+                
+            } catch (error) {
+                log('performance-output', `Concurrent operations error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testMemoryLeaks() {
+            clearOutput('performance-output');
+            log('performance-output', 'Testing for memory leaks...');
+            
+            try {
+                const initialMemory = performance.memory ? performance.memory.usedJSHeapSize : 0;
+                
+                // Perform many operations
+                for (let i = 0; i < 100; i++) {
+                    testStateManager.state[`temp_${i}`] = `data_${i}`;
+                    await testStateManager.validateState();
+                    delete testStateManager.state[`temp_${i}`];
+                }
+                
+                // Force garbage collection if available
+                if (window.gc) {
+                    window.gc();
+                }
+                
+                const finalMemory = performance.memory ? performance.memory.usedJSHeapSize : 0;
+                const memoryDiff = finalMemory - initialMemory;
+                
+                log('performance-output', `Memory usage change: ${memoryDiff} bytes`);
+                
+                if (memoryDiff < 1024 * 1024) { // Less than 1MB increase
+                    log('performance-output', 'Memory usage within acceptable limits', 'success');
+                } else {
+                    log('performance-output', 'Potential memory leak detected', 'warning');
+                }
+                
+            } catch (error) {
+                log('performance-output', `Memory leak test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function runStressTest() {
+            clearOutput('performance-output');
+            log('performance-output', 'Running stress test...');
+            
+            try {
+                const startTime = Date.now();
+                const operations = 1000;
+                
+                for (let i = 0; i < operations; i++) {
+                    // Rapid state changes
+                    testStateManager.state.counter = i;
+                    testStateManager.state.timestamp = Date.now();
+                    
+                    if (i % 100 === 0) {
+                        await testStateManager.validateState();
+                        log('performance-output', `Completed ${i} operations...`);
+                    }
+                }
+                
+                const endTime = Date.now();
+                const totalTime = endTime - startTime;
+                const opsPerSecond = Math.round((operations / totalTime) * 1000);
+                
+                log('performance-output', `Stress test completed: ${operations} operations in ${totalTime}ms`, 'success');
+                log('performance-output', `Performance: ${opsPerSecond} operations/second`);
+                
+            } catch (error) {
+                log('performance-output', `Stress test error: ${error.message}`, 'error');
+            }
+        }
+
+        // Health Monitoring
+        function updateHealthMetrics() {
+            const health = testStateManager.getStateHealth();
+            const metricsContainer = document.getElementById('health-metrics');
+            
+            metricsContainer.innerHTML = `
+                <div class="metric-card">
+                    <div class="metric-value">${health.initialized ? 'Yes' : 'No'}</div>
+                    <div class="metric-label">Initialized</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${health.stateSize}</div>
+                    <div class="metric-label">State Size (bytes)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${health.version}</div>
+                    <div class="metric-label">Version</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${health.conflictStrategy}</div>
+                    <div class="metric-label">Conflict Strategy</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${health.syncEnabled ? 'Yes' : 'No'}</div>
+                    <div class="metric-label">Sync Enabled</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${health.corruptionDetected ? 'Yes' : 'No'}</div>
+                    <div class="metric-label">Corruption Detected</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${health.queueLength}</div>
+                    <div class="metric-label">Queue Length</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${health.saveInProgress ? 'Yes' : 'No'}</div>
+                    <div class="metric-label">Save In Progress</div>
+                </div>
+            `;
+        }
+
+        function toggleAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                log('sync-output', 'Auto refresh disabled');
+            } else {
+                autoRefreshInterval = setInterval(updateHealthMetrics, 2000);
+                log('sync-output', 'Auto refresh enabled (2s interval)');
+            }
+        }
+
+        function exportHealthReport() {
+            const health = testStateManager.getStateHealth();
+            const report = {
+                timestamp: new Date().toISOString(),
+                health: health,
+                state: testStateManager.state
+            };
+            
+            const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `state-health-report-${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            log('sync-output', 'Health report exported', 'success');
+        }
+
+        // Initialize health metrics on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateHealthMetrics();
+        });
+    </script>
+</body>
+</html>

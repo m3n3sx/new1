@@ -1,0 +1,791 @@
+/**
+ * Auto-Save Module
+ * 
+ * Handles debounced auto-save functionality, undo/redo system,
+ * and change tracking for live editing
+ * 
+ * @since 2.0.0
+ */
+
+(function(window, document) {
+    'use strict';
+
+    /**
+     * AutoSave Class
+     */
+    class AutoSave {
+        constructor(core, options = {}) {
+            this.core = core;
+            this.options = {
+                debounceDelay: 2000, // 2 seconds
+                maxHistorySize: 50,
+                enableKeyboardShortcuts: true,
+                autoSaveInterval: 30000, // 30 seconds
+                storageKey: 'las_autosave_data',
+                ...options
+            };
+            
+            // State management
+            this.isDirty = false;
+            this.isSaving = false;
+            this.lastSaveTime = null;
+            this.currentState = null;
+            
+            // History management for undo/redo
+            this.history = [];
+            this.historyIndex = -1;
+            this.maxHistorySize = this.options.maxHistorySize;
+            
+            // Debounce timers
+            this.saveTimer = null;
+            this.autoSaveTimer = null;
+            
+            // Change tracking
+            this.trackedChanges = new Map();
+            this.changeListeners = new Map();
+            
+            // Keyboard shortcuts
+            this.keyboardShortcuts = new Map([
+                ['ctrl+s', this.saveNow.bind(this)],
+                ['cmd+s', this.saveNow.bind(this)],
+                ['ctrl+z', this.undo.bind(this)],
+                ['cmd+z', this.undo.bind(this)],
+                ['ctrl+y', this.redo.bind(this)],
+                ['cmd+y', this.redo.bind(this)],
+                ['ctrl+shift+z', this.redo.bind(this)]
+            ]);
+            
+            // Event handlers (bound to maintain context)
+            this.handleKeyDown = this.handleKeyDown.bind(this);
+            this.handleBeforeUnload = this.handleBeforeUnload.bind(this);
+            this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
+            
+            this.init();
+        }
+
+        /**
+         * Initialize the auto-save system
+         */
+        init() {
+            this.setupEventListeners();
+            this.loadInitialState();
+            this.startAutoSaveTimer();
+            
+            this.core.log('AutoSave initialized', {
+                debounceDelay: this.options.debounceDelay,
+                maxHistorySize: this.maxHistorySize,
+                keyboardShortcuts: this.options.enableKeyboardShortcuts
+            });
+        }
+
+        /**
+         * Setup event listeners
+         */
+        setupEventListeners() {
+            // Listen for settings changes
+            this.core.on('settings:changed', (data) => {
+                this.trackChange('setting', data.key, data.value, data.oldValue);
+            });
+            
+            // Listen for bulk settings changes
+            this.core.on('settings:bulk-changed', (data) => {
+                this.trackBulkChanges('settings', data.changes);
+            });
+            
+            // Listen for style changes from micro panels
+            this.core.on('micro-panel:style-changed', (data) => {
+                this.trackChange('style', data.property, data.value, null, data.targetElement);
+            });
+            
+            // Listen for styles saved from micro panels
+            this.core.on('micro-panel:styles-saved', (data) => {
+                this.trackBulkChanges('styles', data.styles, data.targetElement);
+            });
+            
+            // Keyboard shortcuts
+            if (this.options.enableKeyboardShortcuts) {
+                document.addEventListener('keydown', this.handleKeyDown);
+            }
+            
+            // Page unload handling
+            window.addEventListener('beforeunload', this.handleBeforeUnload);
+            
+            // Visibility change handling (for mobile/tab switching)
+            document.addEventListener('visibilitychange', this.handleVisibilityChange);
+        }
+
+        /**
+         * Load initial state from storage
+         */
+        loadInitialState() {
+            try {
+                const stored = localStorage.getItem(this.options.storageKey);
+                if (stored) {
+                    const data = JSON.parse(stored);
+                    
+                    if (data.state) {
+                        this.currentState = data.state;
+                    }
+                    
+                    if (data.history && Array.isArray(data.history)) {
+                        this.history = data.history.slice(-this.maxHistorySize);
+                        this.historyIndex = this.history.length - 1;
+                    }
+                    
+                    if (data.lastSaveTime) {
+                        this.lastSaveTime = new Date(data.lastSaveTime);
+                    }
+                    
+                    this.core.emit('auto-save:state-loaded', {
+                        state: this.currentState,
+                        historySize: this.history.length,
+                        lastSaveTime: this.lastSaveTime
+                    });
+                }
+            } catch (error) {
+                this.core.handleError('Failed to load auto-save state', error);
+            }
+        }
+
+        /**
+         * Track a single change
+         * @param {string} type - Change type (setting, style, etc.)
+         * @param {string} key - Change key/property
+         * @param {*} newValue - New value
+         * @param {*} oldValue - Old value
+         * @param {Element} element - Target element (for style changes)
+         */
+        trackChange(type, key, newValue, oldValue, element = null) {
+            const changeId = this.generateChangeId(type, key, element);
+            
+            const change = {
+                id: changeId,
+                type: type,
+                key: key,
+                newValue: newValue,
+                oldValue: oldValue,
+                element: element ? this.getElementSelector(element) : null,
+                timestamp: Date.now()
+            };
+            
+            this.trackedChanges.set(changeId, change);
+            this.markDirty();
+            
+            // Notify change listeners
+            this.notifyChangeListeners(change);
+            
+            // Trigger debounced save
+            this.debouncedSave();
+            
+            this.core.emit('auto-save:change-tracked', change);
+        }
+
+        /**
+         * Track bulk changes
+         * @param {string} type - Change type
+         * @param {Object} changes - Changes object
+         * @param {Element} element - Target element (optional)
+         */
+        trackBulkChanges(type, changes, element = null) {
+            const bulkChange = {
+                id: this.generateChangeId(type, 'bulk', element),
+                type: type,
+                changes: changes,
+                element: element ? this.getElementSelector(element) : null,
+                timestamp: Date.now()
+            };
+            
+            Object.entries(changes).forEach(([key, change]) => {
+                const changeId = this.generateChangeId(type, key, element);
+                this.trackedChanges.set(changeId, {
+                    id: changeId,
+                    type: type,
+                    key: key,
+                    newValue: change.value || change,
+                    oldValue: change.oldValue || null,
+                    element: element ? this.getElementSelector(element) : null,
+                    timestamp: Date.now()
+                });
+            });
+            
+            this.markDirty();
+            this.debouncedSave();
+            
+            this.core.emit('auto-save:bulk-changes-tracked', bulkChange);
+        }
+
+        /**
+         * Generate unique change ID
+         * @param {string} type - Change type
+         * @param {string} key - Change key
+         * @param {Element} element - Target element
+         * @returns {string} Unique change ID
+         */
+        generateChangeId(type, key, element) {
+            const elementId = element ? this.getElementSelector(element) : 'global';
+            return `${type}:${elementId}:${key}`;
+        }
+
+        /**
+         * Get element selector for tracking
+         * @param {Element} element - Target element
+         * @returns {string} Element selector
+         */
+        getElementSelector(element) {
+            if (element.id) {
+                return `#${element.id}`;
+            }
+            
+            if (element.className) {
+                const classes = element.className.split(' ').filter(c => c.trim());
+                if (classes.length > 0) {
+                    return `${element.tagName.toLowerCase()}.${classes[0]}`;
+                }
+            }
+            
+            return element.tagName.toLowerCase();
+        }
+
+        /**
+         * Mark state as dirty (has unsaved changes)
+         */
+        markDirty() {
+            if (!this.isDirty) {
+                this.isDirty = true;
+                this.core.emit('auto-save:dirty-state-changed', { isDirty: true });
+            }
+        }
+
+        /**
+         * Mark state as clean (saved)
+         */
+        markClean() {
+            if (this.isDirty) {
+                this.isDirty = false;
+                this.core.emit('auto-save:dirty-state-changed', { isDirty: false });
+            }
+        }
+
+        /**
+         * Debounced save functionality
+         */
+        debouncedSave() {
+            // Clear existing timer
+            if (this.saveTimer) {
+                clearTimeout(this.saveTimer);
+            }
+            
+            // Set new timer
+            this.saveTimer = setTimeout(() => {
+                this.saveNow();
+            }, this.options.debounceDelay);
+            
+            this.core.emit('auto-save:save-scheduled', {
+                delay: this.options.debounceDelay,
+                changeCount: this.trackedChanges.size
+            });
+        }
+
+        /**
+         * Save immediately
+         * @param {boolean} addToHistory - Whether to add to undo history
+         * @returns {Promise<boolean>} Save success
+         */
+        async saveNow(addToHistory = true) {
+            if (this.isSaving || !this.isDirty) {
+                return false;
+            }
+            
+            this.isSaving = true;
+            
+            try {
+                // Create state snapshot
+                const state = await this.createStateSnapshot();
+                
+                // Add to history if requested
+                if (addToHistory) {
+                    this.addToHistory(state);
+                }
+                
+                // Save to server
+                const success = await this.saveToServer(state);
+                
+                if (success) {
+                    // Save to local storage
+                    this.saveToLocalStorage(state);
+                    
+                    // Update current state
+                    this.currentState = state;
+                    this.lastSaveTime = new Date();
+                    
+                    // Clear tracked changes
+                    this.trackedChanges.clear();
+                    this.markClean();
+                    
+                    this.core.emit('auto-save:saved', {
+                        state: state,
+                        timestamp: this.lastSaveTime,
+                        historySize: this.history.length
+                    });
+                    
+                    this.core.log('Auto-save completed successfully');
+                    return true;
+                } else {
+                    throw new Error('Server save failed');
+                }
+                
+            } catch (error) {
+                this.core.handleError('Auto-save failed', error);
+                this.core.emit('auto-save:save-failed', { error: error.message });
+                return false;
+            } finally {
+                this.isSaving = false;
+            }
+        }
+
+        /**
+         * Create state snapshot
+         * @returns {Promise<Object>} State snapshot
+         */
+        async createStateSnapshot() {
+            const settingsManager = this.core.getModule('settings-manager');
+            
+            const state = {
+                timestamp: Date.now(),
+                settings: settingsManager ? settingsManager.getAll() : {},
+                changes: Array.from(this.trackedChanges.values()),
+                metadata: {
+                    userAgent: navigator.userAgent,
+                    url: window.location.href,
+                    viewport: {
+                        width: window.innerWidth,
+                        height: window.innerHeight
+                    }
+                }
+            };
+            
+            return state;
+        }
+
+        /**
+         * Save state to server
+         * @param {Object} state - State to save
+         * @returns {Promise<boolean>} Save success
+         */
+        async saveToServer(state) {
+            try {
+                const ajaxManager = this.core.getModule('ajax-manager');
+                if (!ajaxManager) {
+                    this.core.log('AjaxManager not available, skipping server save');
+                    return true; // Consider local-only save as success
+                }
+
+                const response = await ajaxManager.request('auto_save_state', {
+                    state: state,
+                    timestamp: state.timestamp
+                });
+                
+                return response && response.success;
+                
+            } catch (error) {
+                this.core.handleError('Failed to save to server', error);
+                return false;
+            }
+        }
+
+        /**
+         * Save state to local storage
+         * @param {Object} state - State to save
+         */
+        saveToLocalStorage(state) {
+            try {
+                const data = {
+                    state: state,
+                    history: this.history,
+                    lastSaveTime: this.lastSaveTime ? this.lastSaveTime.toISOString() : null
+                };
+                
+                localStorage.setItem(this.options.storageKey, JSON.stringify(data));
+            } catch (error) {
+                this.core.handleError('Failed to save to localStorage', error);
+            }
+        }
+
+        /**
+         * Add state to undo history
+         * @param {Object} state - State to add
+         */
+        addToHistory(state) {
+            // Remove any history after current index (for redo functionality)
+            if (this.historyIndex < this.history.length - 1) {
+                this.history = this.history.slice(0, this.historyIndex + 1);
+            }
+            
+            // Add new state
+            this.history.push(state);
+            
+            // Limit history size
+            if (this.history.length > this.maxHistorySize) {
+                this.history = this.history.slice(-this.maxHistorySize);
+            }
+            
+            this.historyIndex = this.history.length - 1;
+            
+            this.core.emit('auto-save:history-updated', {
+                historySize: this.history.length,
+                currentIndex: this.historyIndex,
+                canUndo: this.canUndo(),
+                canRedo: this.canRedo()
+            });
+        }
+
+        /**
+         * Undo last change
+         * @returns {Promise<boolean>} Undo success
+         */
+        async undo() {
+            if (!this.canUndo()) {
+                return false;
+            }
+            
+            try {
+                this.historyIndex--;
+                const targetState = this.history[this.historyIndex];
+                
+                await this.restoreState(targetState);
+                
+                this.core.emit('auto-save:undo', {
+                    historyIndex: this.historyIndex,
+                    state: targetState,
+                    canUndo: this.canUndo(),
+                    canRedo: this.canRedo()
+                });
+                
+                this.core.log('Undo completed', { historyIndex: this.historyIndex });
+                return true;
+                
+            } catch (error) {
+                this.core.handleError('Undo failed', error);
+                this.historyIndex++; // Revert index change
+                return false;
+            }
+        }
+
+        /**
+         * Redo last undone change
+         * @returns {Promise<boolean>} Redo success
+         */
+        async redo() {
+            if (!this.canRedo()) {
+                return false;
+            }
+            
+            try {
+                this.historyIndex++;
+                const targetState = this.history[this.historyIndex];
+                
+                await this.restoreState(targetState);
+                
+                this.core.emit('auto-save:redo', {
+                    historyIndex: this.historyIndex,
+                    state: targetState,
+                    canUndo: this.canUndo(),
+                    canRedo: this.canRedo()
+                });
+                
+                this.core.log('Redo completed', { historyIndex: this.historyIndex });
+                return true;
+                
+            } catch (error) {
+                this.core.handleError('Redo failed', error);
+                this.historyIndex--; // Revert index change
+                return false;
+            }
+        }
+
+        /**
+         * Check if undo is possible
+         * @returns {boolean}
+         */
+        canUndo() {
+            return this.historyIndex > 0;
+        }
+
+        /**
+         * Check if redo is possible
+         * @returns {boolean}
+         */
+        canRedo() {
+            return this.historyIndex < this.history.length - 1;
+        }
+
+        /**
+         * Restore state from history
+         * @param {Object} state - State to restore
+         */
+        async restoreState(state) {
+            const settingsManager = this.core.getModule('settings-manager');
+            
+            if (settingsManager && state.settings) {
+                // Restore settings without triggering auto-save
+                settingsManager.setMultiple(state.settings, true);
+            }
+            
+            // Apply any style changes
+            if (state.changes) {
+                state.changes.forEach(change => {
+                    if (change.type === 'style' && change.element) {
+                        const element = document.querySelector(change.element);
+                        if (element) {
+                            element.style.setProperty(change.key, change.newValue);
+                        }
+                    }
+                });
+            }
+            
+            this.currentState = state;
+            this.trackedChanges.clear();
+            this.markClean();
+        }
+
+        /**
+         * Handle keyboard shortcuts
+         * @param {KeyboardEvent} event - Keyboard event
+         */
+        handleKeyDown(event) {
+            const key = this.getKeyboardShortcut(event);
+            const handler = this.keyboardShortcuts.get(key);
+            
+            if (handler) {
+                event.preventDefault();
+                handler();
+            }
+        }
+
+        /**
+         * Get keyboard shortcut string from event
+         * @param {KeyboardEvent} event - Keyboard event
+         * @returns {string} Shortcut string
+         */
+        getKeyboardShortcut(event) {
+            const parts = [];
+            
+            if (event.ctrlKey) parts.push('ctrl');
+            if (event.metaKey) parts.push('cmd');
+            if (event.shiftKey) parts.push('shift');
+            if (event.altKey) parts.push('alt');
+            
+            parts.push(event.key.toLowerCase());
+            
+            return parts.join('+');
+        }
+
+        /**
+         * Handle page unload
+         * @param {BeforeUnloadEvent} event - Unload event
+         */
+        handleBeforeUnload(event) {
+            if (this.isDirty) {
+                // Try to save with sendBeacon
+                this.saveWithBeacon();
+                
+                // Show confirmation dialog
+                const message = 'You have unsaved changes. Are you sure you want to leave?';
+                event.returnValue = message;
+                return message;
+            }
+        }
+
+        /**
+         * Handle visibility change (tab switching, mobile app switching)
+         */
+        handleVisibilityChange() {
+            if (document.hidden && this.isDirty) {
+                // Save when tab becomes hidden
+                this.saveNow();
+            }
+        }
+
+        /**
+         * Save using sendBeacon for reliable page unload saving
+         */
+        saveWithBeacon() {
+            if (!navigator.sendBeacon || !this.core.config.ajaxUrl) {
+                return;
+            }
+            
+            try {
+                const state = {
+                    timestamp: Date.now(),
+                    settings: this.core.getModule('settings-manager')?.getAll() || {},
+                    changes: Array.from(this.trackedChanges.values())
+                };
+                
+                const formData = new FormData();
+                formData.append('action', 'las_auto_save_beacon');
+                formData.append('state', JSON.stringify(state));
+                formData.append('nonce', this.core.config.nonce);
+                
+                navigator.sendBeacon(this.core.config.ajaxUrl, formData);
+                
+            } catch (error) {
+                this.core.handleError('Beacon save failed', error);
+            }
+        }
+
+        /**
+         * Start auto-save timer
+         */
+        startAutoSaveTimer() {
+            if (this.autoSaveTimer) {
+                clearInterval(this.autoSaveTimer);
+            }
+            
+            this.autoSaveTimer = setInterval(() => {
+                if (this.isDirty && !this.isSaving) {
+                    this.saveNow();
+                }
+            }, this.options.autoSaveInterval);
+        }
+
+        /**
+         * Stop auto-save timer
+         */
+        stopAutoSaveTimer() {
+            if (this.autoSaveTimer) {
+                clearInterval(this.autoSaveTimer);
+                this.autoSaveTimer = null;
+            }
+        }
+
+        /**
+         * Add change listener
+         * @param {string} type - Change type to listen for
+         * @param {Function} callback - Callback function
+         */
+        onChangeTracked(type, callback) {
+            if (!this.changeListeners.has(type)) {
+                this.changeListeners.set(type, []);
+            }
+            this.changeListeners.get(type).push(callback);
+        }
+
+        /**
+         * Remove change listener
+         * @param {string} type - Change type
+         * @param {Function} callback - Callback function
+         */
+        offChangeTracked(type, callback) {
+            if (this.changeListeners.has(type)) {
+                const listeners = this.changeListeners.get(type);
+                const index = listeners.indexOf(callback);
+                if (index !== -1) {
+                    listeners.splice(index, 1);
+                }
+            }
+        }
+
+        /**
+         * Notify change listeners
+         * @param {Object} change - Change object
+         */
+        notifyChangeListeners(change) {
+            const listeners = this.changeListeners.get(change.type) || [];
+            listeners.forEach(callback => {
+                try {
+                    callback(change);
+                } catch (error) {
+                    this.core.handleError(`Change listener error for ${change.type}`, error);
+                }
+            });
+        }
+
+        /**
+         * Get current auto-save status
+         * @returns {Object} Status object
+         */
+        getStatus() {
+            return {
+                isDirty: this.isDirty,
+                isSaving: this.isSaving,
+                lastSaveTime: this.lastSaveTime,
+                changeCount: this.trackedChanges.size,
+                historySize: this.history.length,
+                historyIndex: this.historyIndex,
+                canUndo: this.canUndo(),
+                canRedo: this.canRedo()
+            };
+        }
+
+        /**
+         * Clear all tracked changes and history
+         */
+        clear() {
+            this.trackedChanges.clear();
+            this.history = [];
+            this.historyIndex = -1;
+            this.currentState = null;
+            this.markClean();
+            
+            // Clear localStorage
+            try {
+                localStorage.removeItem(this.options.storageKey);
+            } catch (error) {
+                this.core.handleError('Failed to clear localStorage', error);
+            }
+            
+            this.core.emit('auto-save:cleared');
+        }
+
+        /**
+         * Cleanup resources
+         */
+        destroy() {
+            // Save any pending changes
+            if (this.isDirty) {
+                this.saveWithBeacon();
+            }
+            
+            // Clear timers
+            if (this.saveTimer) {
+                clearTimeout(this.saveTimer);
+            }
+            this.stopAutoSaveTimer();
+            
+            // Remove event listeners
+            if (this.options.enableKeyboardShortcuts) {
+                document.removeEventListener('keydown', this.handleKeyDown);
+            }
+            window.removeEventListener('beforeunload', this.handleBeforeUnload);
+            document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+            
+            // Clear collections
+            this.trackedChanges.clear();
+            this.changeListeners.clear();
+            this.history = [];
+            
+            this.core.log('AutoSave destroyed');
+        }
+    }
+
+    // Export for ES6 modules
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = AutoSave;
+    }
+    
+    // Export for AMD
+    if (typeof define === 'function' && define.amd) {
+        define([], function() {
+            return AutoSave;
+        });
+    }
+    
+    // Register with LAS core for IE11 compatibility
+    if (window.LAS && typeof window.LAS.registerModule === 'function') {
+        window.LAS.registerModule('auto-save', AutoSave);
+    }
+    
+    // Global export as fallback
+    window.LASAutoSave = AutoSave;
+
+})(window, document);

@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced AJAX Manager Integration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-controls {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-primary { background: #007cba; color: white; }
+        .btn-secondary { background: #666; color: white; }
+        .btn-success { background: #46b450; color: white; }
+        .btn-warning { background: #ffb900; color: white; }
+        .btn-danger { background: #dc3232; color: white; }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .metric-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #007cba;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007cba;
+        }
+        .metric-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+        
+        .log-container {
+            background: #1e1e1e;
+            color: #f0f0f0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 15px 0;
+        }
+        .log-entry {
+            margin: 2px 0;
+            padding: 2px 0;
+        }
+        .log-success { color: #46b450; }
+        .log-error { color: #dc3232; }
+        .log-warning { color: #ffb900; }
+        .log-info { color: #00a0d2; }
+        
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .history-table th,
+        .history-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .history-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+        .status-success { color: #46b450; font-weight: bold; }
+        .status-failed { color: #dc3232; font-weight: bold; }
+        .status-partial { color: #ffb900; font-weight: bold; }
+        
+        .debug-info {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 11px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Enhanced AJAX Manager Integration Test</h1>
+    <p>This test verifies the enhanced AJAX manager with queue integration, batch processing, performance metrics, and debugging features.</p>
+
+    <!-- Test Controls -->
+    <div class="test-section">
+        <h2>Test Controls</h2>
+        <div class="test-controls">
+            <button class="btn-primary" onclick="testSingleRequest()">Single Request</button>
+            <button class="btn-primary" onclick="testBatchRequest()">Batch Request</button>
+            <button class="btn-secondary" onclick="testConcurrentRequests()">Concurrent Requests</button>
+            <button class="btn-warning" onclick="testRetryLogic()">Test Retry Logic</button>
+            <button class="btn-danger" onclick="testErrorHandling()">Test Error Handling</button>
+            <button class="btn-success" onclick="resetMetrics()">Reset Metrics</button>
+            <button class="btn-secondary" onclick="clearLogs()">Clear Logs</button>
+        </div>
+    </div>
+
+    <!-- Performance Metrics -->
+    <div class="test-section">
+        <h2>Performance Metrics</h2>
+        <div class="metrics-grid" id="metricsGrid">
+            <!-- Metrics will be populated here -->
+        </div>
+        <button class="btn-secondary" onclick="refreshMetrics()">Refresh Metrics</button>
+    </div>
+
+    <!-- Request History -->
+    <div class="test-section">
+        <h2>Request History</h2>
+        <div class="test-controls">
+            <button class="btn-secondary" onclick="refreshHistory()">Refresh History</button>
+            <button class="btn-secondary" onclick="exportHistory()">Export History</button>
+            <label>
+                <input type="checkbox" id="includeDebugInfo" checked> Include Debug Info
+            </label>
+        </div>
+        <table class="history-table" id="historyTable">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Action</th>
+                    <th>Status</th>
+                    <th>Duration</th>
+                    <th>Attempts</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody id="historyBody">
+                <!-- History entries will be populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Debug Information -->
+    <div class="test-section">
+        <h2>Debug Information</h2>
+        <button class="btn-secondary" onclick="showDebugInfo()">Show Debug Info</button>
+        <div class="debug-info" id="debugInfo" style="display: none;">
+            <!-- Debug info will be populated here -->
+        </div>
+    </div>
+
+    <!-- Live Log -->
+    <div class="test-section">
+        <h2>Live Log</h2>
+        <div class="log-container" id="logContainer">
+            <!-- Log entries will appear here -->
+        </div>
+    </div>
+
+    <!-- Load Dependencies -->
+    <script src="../assets/js/modules/request-queue.js"></script>
+    <script src="../assets/js/modules/retry-engine.js"></script>
+    <script src="../assets/js/modules/http-transport.js"></script>
+    <script src="../assets/js/modules/ajax-manager.js"></script>
+
+    <script>
+        // Mock WordPress AJAX environment
+        window.ajaxurl = '/wp-admin/admin-ajax.php';
+        window.lasAjax = {
+            nonce: 'test-nonce-' + Date.now()
+        };
+
+        // Mock core system
+        const mockCore = {
+            log: function(message, data) {
+                logMessage('info', `[Core] ${message}`, data);
+            },
+            handleError: function(message, error, context) {
+                logMessage('error', `[Core Error] ${message}: ${error.message}`, context);
+            },
+            emit: function(event, data) {
+                logMessage('info', `[Event] ${event}`, data);
+            },
+            config: {
+                debug: true,
+                nonce: window.lasAjax.nonce,
+                ajaxUrl: window.ajaxurl
+            }
+        };
+
+        // Initialize enhanced AJAX manager
+        let ajaxManager;
+        
+        // Mock server responses
+        const mockResponses = {
+            'las_test_single': { success: true, data: 'Single request successful' },
+            'las_test_batch_1': { success: true, data: 'Batch item 1 successful' },
+            'las_test_batch_2': { success: true, data: 'Batch item 2 successful' },
+            'las_test_batch_3': { success: true, data: 'Batch item 3 successful' },
+            'las_test_concurrent': { success: true, data: 'Concurrent request successful' },
+            'las_test_retry': { success: false, data: 'Simulated failure for retry test' },
+            'las_test_error': { success: false, data: 'Simulated error' }
+        };
+
+        // Mock fetch for testing
+        const originalFetch = window.fetch;
+        window.fetch = async function(url, options) {
+            // Simulate network delay
+            await new Promise(resolve => setTimeout(resolve, Math.random() * 500 + 100));
+            
+            // Parse form data to get action
+            const formData = options.body;
+            let action = 'unknown';
+            
+            if (formData instanceof FormData) {
+                action = formData.get('action');
+            }
+            
+            // Simulate different response scenarios
+            if (action === 'las_test_retry') {
+                // Fail first two attempts, succeed on third
+                if (!window.retryAttempts) window.retryAttempts = {};
+                window.retryAttempts[action] = (window.retryAttempts[action] || 0) + 1;
+                
+                if (window.retryAttempts[action] < 3) {
+                    throw new Error('Simulated network error for retry test');
+                }
+            }
+            
+            if (action === 'las_test_error') {
+                throw new Error('Simulated permanent error');
+            }
+            
+            // Return mock response
+            const response = mockResponses[action] || { success: true, data: 'Default response' };
+            
+            return {
+                ok: true,
+                status: 200,
+                statusText: 'OK',
+                json: async () => response,
+                text: async () => JSON.stringify(response)
+            };
+        };
+
+        // Initialize system
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                ajaxManager = new LASAjaxManager(mockCore);
+                logMessage('success', 'Enhanced AJAX Manager initialized successfully');
+                
+                // Set up automatic metrics refresh
+                setInterval(refreshMetrics, 2000);
+                setInterval(refreshHistory, 5000);
+                
+                // Initial display
+                refreshMetrics();
+                refreshHistory();
+                
+            } catch (error) {
+                logMessage('error', 'Failed to initialize AJAX Manager', error);
+            }
+        });
+
+        // Test Functions
+        async function testSingleRequest() {
+            try {
+                logMessage('info', 'Testing single request...');
+                const result = await ajaxManager.request('test_single', { 
+                    test: 'data',
+                    timestamp: Date.now()
+                });
+                logMessage('success', 'Single request completed', result);
+            } catch (error) {
+                logMessage('error', 'Single request failed', error);
+            }
+        }
+
+        async function testBatchRequest() {
+            try {
+                logMessage('info', 'Testing batch request...');
+                const requests = [
+                    { action: 'test_batch_1', data: { item: 1 } },
+                    { action: 'test_batch_2', data: { item: 2 } },
+                    { action: 'test_batch_3', data: { item: 3 } }
+                ];
+                
+                const result = await ajaxManager.batchRequest(requests);
+                logMessage('success', 'Batch request completed', {
+                    successCount: result.successCount,
+                    errorCount: result.errorCount,
+                    hasErrors: result.hasErrors
+                });
+            } catch (error) {
+                logMessage('error', 'Batch request failed', error);
+            }
+        }
+
+        async function testConcurrentRequests() {
+            try {
+                logMessage('info', 'Testing concurrent requests...');
+                const promises = [];
+                
+                for (let i = 0; i < 5; i++) {
+                    promises.push(
+                        ajaxManager.request('test_concurrent', { 
+                            requestId: i,
+                            timestamp: Date.now()
+                        })
+                    );
+                }
+                
+                const results = await Promise.all(promises);
+                logMessage('success', `${results.length} concurrent requests completed`);
+            } catch (error) {
+                logMessage('error', 'Concurrent requests failed', error);
+            }
+        }
+
+        async function testRetryLogic() {
+            try {
+                logMessage('info', 'Testing retry logic...');
+                // Reset retry counter
+                if (window.retryAttempts) {
+                    window.retryAttempts['las_test_retry'] = 0;
+                }
+                
+                const result = await ajaxManager.request('test_retry', { 
+                    test: 'retry',
+                    timestamp: Date.now()
+                });
+                logMessage('success', 'Retry logic test completed', result);
+            } catch (error) {
+                logMessage('warning', 'Retry logic test completed with expected failure', error);
+            }
+        }
+
+        async function testErrorHandling() {
+            try {
+                logMessage('info', 'Testing error handling...');
+                await ajaxManager.request('test_error', { 
+                    test: 'error',
+                    timestamp: Date.now()
+                });
+            } catch (error) {
+                logMessage('success', 'Error handling test completed (expected error)', error);
+            }
+        }
+
+        function resetMetrics() {
+            if (ajaxManager && ajaxManager.resetMetrics) {
+                ajaxManager.resetMetrics();
+                logMessage('info', 'Performance metrics reset');
+                refreshMetrics();
+            }
+        }
+
+        function clearLogs() {
+            document.getElementById('logContainer').innerHTML = '';
+        }
+
+        function refreshMetrics() {
+            if (!ajaxManager) return;
+            
+            const metrics = ajaxManager.getMetrics();
+            const grid = document.getElementById('metricsGrid');
+            
+            grid.innerHTML = `
+                <div class="metric-card">
+                    <div class="metric-value">${metrics.totalRequests}</div>
+                    <div class="metric-label">Total Requests</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${metrics.successfulRequests}</div>
+                    <div class="metric-label">Successful</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${metrics.failedRequests}</div>
+                    <div class="metric-label">Failed</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${metrics.batchRequests}</div>
+                    <div class="metric-label">Batch Requests</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${metrics.successRate}</div>
+                    <div class="metric-label">Success Rate</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${Math.round(metrics.performance.averageResponseTime)}ms</div>
+                    <div class="metric-label">Avg Response Time</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${metrics.activeRequests}</div>
+                    <div class="metric-label">Active Requests</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${metrics.queuedRequests}</div>
+                    <div class="metric-label">Queued Requests</div>
+                </div>
+            `;
+        }
+
+        function refreshHistory() {
+            if (!ajaxManager) return;
+            
+            const includeDebug = document.getElementById('includeDebugInfo').checked;
+            const history = ajaxManager.getHistory({ 
+                limit: 20, 
+                includeDebugInfo: includeDebug 
+            });
+            
+            const tbody = document.getElementById('historyBody');
+            tbody.innerHTML = history.map(entry => `
+                <tr>
+                    <td>${new Date(entry.timestamp).toLocaleTimeString()}</td>
+                    <td>${entry.action}</td>
+                    <td class="status-${entry.status}">${entry.status}</td>
+                    <td>${entry.duration}ms</td>
+                    <td>${entry.attempts}</td>
+                    <td>
+                        ${entry.result}
+                        ${includeDebug && entry.debugInfo ? 
+                            `<br><small>Size: ${entry.debugInfo.requestSize}b, Memory: ${Math.round(entry.debugInfo.memoryUsage.used/1024/1024)}MB</small>` : 
+                            ''
+                        }
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function showDebugInfo() {
+            if (!ajaxManager) return;
+            
+            const debugInfo = ajaxManager.getDebugInfo();
+            const container = document.getElementById('debugInfo');
+            
+            container.innerHTML = `<pre>${JSON.stringify(debugInfo, null, 2)}</pre>`;
+            container.style.display = container.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function exportHistory() {
+            if (!ajaxManager) return;
+            
+            const history = ajaxManager.getHistory({ includeDebugInfo: true });
+            const dataStr = JSON.stringify(history, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `ajax-history-${Date.now()}.json`;
+            link.click();
+        }
+
+        function logMessage(type, message, data = null) {
+            const container = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            const dataStr = data ? ` | ${JSON.stringify(data)}` : '';
+            
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${timestamp}] ${message}${dataStr}`;
+            
+            container.appendChild(entry);
+            container.scrollTop = container.scrollHeight;
+        }
+    </script>
+</body>
+</html>

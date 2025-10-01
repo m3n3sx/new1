@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live Preview AJAX Test</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .result { margin: 10px 0; padding: 10px; background: #f9f9f9; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .warning { background: #fff3cd; color: #856404; }
+        button { padding: 8px 16px; margin: 5px; }
+        input[type="color"] { width: 50px; height: 30px; }
+        .slider-test { margin: 10px 0; }
+        .slider-test input[type="range"] { width: 200px; }
+    </style>
+</head>
+<body>
+    <h1>Live Preview AJAX Test</h1>
+    
+    <div class="test-section">
+        <h2>Configuration Test</h2>
+        <div id="config-results"></div>
+        <button onclick="testConfiguration()">Test Configuration</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>AJAX Endpoint Test</h2>
+        <div id="ajax-results"></div>
+        <button onclick="testAjaxEndpoint()">Test AJAX Endpoint</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Live Preview Test</h2>
+        <div class="slider-test">
+            <label>Menu Background Color:</label>
+            <input type="color" id="test-menu-bg" value="#ff0000">
+            <button onclick="testLivePreview('admin_menu_bg_color', document.getElementById('test-menu-bg').value)">Test</button>
+        </div>
+        <div class="slider-test">
+            <label>Menu Width:</label>
+            <input type="range" id="test-menu-width" min="180" max="300" value="220">
+            <span id="width-value">220</span>px
+            <button onclick="testLivePreview('admin_menu_width', document.getElementById('test-menu-width').value)">Test</button>
+        </div>
+        <div id="preview-results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>CSS Preview</h2>
+        <div id="css-preview" style="background: #f0f0f0; padding: 10px; font-family: monospace; white-space: pre-wrap; max-height: 200px; overflow-y: auto;"></div>
+    </div>
+
+    <script>
+        // Configuration for WordPress AJAX (you need to set these)
+        const AJAX_URL = '/wp-admin/admin-ajax.php'; // Update this to your WordPress AJAX URL
+        const NONCE = 'your-nonce-here'; // Update this with actual nonce
+        
+        // Update slider display
+        document.getElementById('test-menu-width').addEventListener('input', function() {
+            document.getElementById('width-value').textContent = this.value;
+        });
+        
+        function addResult(containerId, message, type = 'result') {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        function testConfiguration() {
+            addResult('config-results', 'Testing configuration...', 'result');
+            
+            // Test jQuery
+            if (typeof jQuery !== 'undefined') {
+                addResult('config-results', '✅ jQuery available: ' + jQuery.fn.jquery, 'success');
+            } else {
+                addResult('config-results', '❌ jQuery not available', 'error');
+                return;
+            }
+            
+            // Test AJAX URL
+            if (AJAX_URL && AJAX_URL !== '/wp-admin/admin-ajax.php') {
+                addResult('config-results', '✅ AJAX URL configured: ' + AJAX_URL, 'success');
+            } else {
+                addResult('config-results', '⚠️ AJAX URL needs to be configured', 'warning');
+            }
+            
+            // Test nonce
+            if (NONCE && NONCE !== 'your-nonce-here') {
+                addResult('config-results', '✅ Nonce configured', 'success');
+            } else {
+                addResult('config-results', '⚠️ Nonce needs to be configured', 'warning');
+            }
+        }
+        
+        function testAjaxEndpoint() {
+            addResult('ajax-results', 'Testing AJAX endpoint...', 'result');
+            
+            if (AJAX_URL === '/wp-admin/admin-ajax.php' || NONCE === 'your-nonce-here') {
+                addResult('ajax-results', '❌ Please configure AJAX_URL and NONCE first', 'error');
+                return;
+            }
+            
+            jQuery.post(AJAX_URL, {
+                action: 'las_get_preview_css',
+                nonce: NONCE,
+                setting: 'admin_menu_bg_color',
+                value: '#ff0000'
+            })
+            .done(function(response) {
+                console.log('AJAX Response:', response);
+                if (response.success) {
+                    addResult('ajax-results', '✅ AJAX endpoint working', 'success');
+                    if (response.data && response.data.css) {
+                        addResult('ajax-results', `✅ CSS generated (${response.data.css.length} chars)`, 'success');
+                        document.getElementById('css-preview').textContent = response.data.css;
+                    } else {
+                        addResult('ajax-results', '⚠️ No CSS in response', 'warning');
+                    }
+                } else {
+                    addResult('ajax-results', '❌ AJAX error: ' + (response.data || response.message || 'Unknown'), 'error');
+                }
+            })
+            .fail(function(xhr, status, error) {
+                addResult('ajax-results', '❌ AJAX failed: ' + status + ' - ' + error, 'error');
+                if (xhr.responseText) {
+                    addResult('ajax-results', 'Response: ' + xhr.responseText.substring(0, 200), 'error');
+                }
+            });
+        }
+        
+        function testLivePreview(setting, value) {
+            addResult('preview-results', `Testing live preview: ${setting} = ${value}`, 'result');
+            
+            if (AJAX_URL === '/wp-admin/admin-ajax.php' || NONCE === 'your-nonce-here') {
+                addResult('preview-results', '❌ Please configure AJAX_URL and NONCE first', 'error');
+                return;
+            }
+            
+            jQuery.post(AJAX_URL, {
+                action: 'las_get_preview_css',
+                nonce: NONCE,
+                setting: setting,
+                value: value
+            })
+            .done(function(response) {
+                if (response.success && response.data && response.data.css) {
+                    addResult('preview-results', `✅ Live preview working for ${setting}`, 'success');
+                    
+                    // Apply CSS to page
+                    let existingStyle = document.getElementById('live-preview-styles');
+                    if (existingStyle) {
+                        existingStyle.remove();
+                    }
+                    
+                    const style = document.createElement('style');
+                    style.id = 'live-preview-styles';
+                    style.textContent = response.data.css;
+                    document.head.appendChild(style);
+                    
+                    addResult('preview-results', '✅ CSS applied to page', 'success');
+                    document.getElementById('css-preview').textContent = response.data.css;
+                } else {
+                    addResult('preview-results', `❌ Live preview failed for ${setting}: ${response.data || 'No CSS'}`, 'error');
+                }
+            })
+            .fail(function(xhr, status, error) {
+                addResult('preview-results', `❌ Live preview AJAX failed: ${status}`, 'error');
+            });
+        }
+        
+        // Auto-run configuration test on load
+        window.addEventListener('load', function() {
+            testConfiguration();
+        });
+    </script>
+    
+    <div style="margin-top: 30px; padding: 15px; background: #e7f3ff; border-left: 4px solid #2196F3;">
+        <h3>Instructions:</h3>
+        <ol>
+            <li>Update the <code>AJAX_URL</code> variable to point to your WordPress admin-ajax.php</li>
+            <li>Update the <code>NONCE</code> variable with a valid WordPress nonce</li>
+            <li>Run the tests to verify live preview functionality</li>
+        </ol>
+        <p><strong>Note:</strong> This test should be run in the context of a WordPress admin page where the Live Admin Styler plugin is active.</p>
+    </div>
+</body>
+</html>

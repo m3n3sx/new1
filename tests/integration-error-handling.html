@@ -3,315 +3,1048 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Error Handling Integration Test</title>
-    <link rel="stylesheet" href="../assets/css/design-system.css">
-    <link rel="stylesheet" href="../assets/css/graceful-degradation.css">
+    <title>LAS Error Handling Integration Test</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            margin: 0;
+            max-width: 1200px;
+            margin: 0 auto;
             padding: 20px;
-            background: var(--las-neutral-50, #fafafa);
+            background-color: #f5f5f5;
         }
         
-        .test-section {
-            margin-bottom: 2rem;
-            padding: 1.5rem;
+        .test-container {
             background: white;
             border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
-        .test-button {
-            background: var(--las-primary-500, #2271b1);
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
             border-radius: 4px;
-            cursor: pointer;
-            margin: 0.25rem;
         }
         
-        .status-display {
-            margin-top: 1rem;
-            padding: 1rem;
-            background: var(--las-neutral-100, #f5f5f5);
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #007cba;
+            padding-bottom: 5px;
+        }
+        
+        .test-button {
+            background: #007cba;
+            color: white;
+            border: none;
+            padding: 10px 15px;
             border-radius: 4px;
-            font-family: monospace;
-            font-size: 0.875rem;
-            max-height: 200px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        .test-button:hover {
+            background: #005a87;
+        }
+        
+        .test-button.danger {
+            background: #dc3545;
+        }
+        
+        .test-button.danger:hover {
+            background: #c82333;
+        }
+        
+        .test-button.warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .test-button.warning:hover {
+            background: #e0a800;
+        }
+        
+        .test-results {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
             overflow-y: auto;
         }
         
-        .error-boundary-test {
-            border: 2px dashed #ccc;
-            padding: 1rem;
-            margin: 1rem 0;
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-healthy { background-color: #28a745; }
+        .status-warning { background-color: #ffc107; }
+        .status-error { background-color: #dc3545; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #007cba;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007cba;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+        
+        .error-log {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 5px 0;
+            font-size: 12px;
+        }
+        
+        .error-log.error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        
+        .error-log.success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+        }
+        
+        .config-panel {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .config-option {
+            margin: 10px 0;
+        }
+        
+        .config-option label {
+            display: inline-block;
+            width: 200px;
+            font-weight: bold;
+        }
+        
+        .config-option input[type="checkbox"] {
+            margin-right: 5px;
+        }
+        
+        .config-option input[type="number"] {
+            width: 80px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
         }
     </style>
 </head>
 <body>
-    <h1>Error Handling & Graceful Degradation Integration Test</h1>
+    <h1>🛡️ LAS Error Handling System Integration Test</h1>
     
-    <div class="test-section">
-        <h2>Error Manager Status</h2>
-        <p>Tests the error manager initialization and basic functionality.</p>
-        <button class="test-button" onclick="checkErrorManager()">Check Error Manager</button>
-        <button class="test-button" onclick="testFeatureDetection()">Test Feature Detection</button>
-        <div class="status-display" id="error-manager-status">
-            Click buttons to test error manager functionality...
+    <div class="test-container">
+        <h2>Configuration</h2>
+        <div class="config-panel">
+            <div class="config-option">
+                <label>
+                    <input type="checkbox" id="enableAutoRetry" checked> Enable Auto Retry
+                </label>
+            </div>
+            <div class="config-option">
+                <label>
+                    <input type="checkbox" id="enableNonceRefresh" checked> Enable Nonce Refresh
+                </label>
+            </div>
+            <div class="config-option">
+                <label>
+                    <input type="checkbox" id="enableUserNotifications" checked> Enable User Notifications
+                </label>
+            </div>
+            <div class="config-option">
+                <label>
+                    <input type="checkbox" id="enableContextLogging" checked> Enable Context Logging
+                </label>
+            </div>
+            <div class="config-option">
+                <label>Max Retry Attempts:</label>
+                <input type="number" id="maxRetryAttempts" value="3" min="1" max="10">
+            </div>
+            <div class="config-option">
+                <label>Retry Delay (ms):</label>
+                <input type="number" id="retryDelay" value="1000" min="100" max="10000" step="100">
+            </div>
+            <button class="test-button" onclick="updateConfiguration()">Update Configuration</button>
         </div>
     </div>
     
-    <div class="test-section">
-        <h2>Error Simulation</h2>
-        <p>Simulate different types of errors to test handling.</p>
-        <button class="test-button" onclick="simulateJSError()">Simulate JS Error</button>
-        <button class="test-button" onclick="simulatePromiseError()">Simulate Promise Error</button>
-        <button class="test-button" onclick="simulateComponentError()">Simulate Component Error</button>
-        <div class="status-display" id="error-simulation-status">
-            Error simulation results will appear here...
-        </div>
-    </div>
-    
-    <div class="test-section">
-        <h2>Component Error Boundaries</h2>
-        <p>Test error boundaries for components.</p>
-        
-        <div class="error-boundary-test">
-            <div data-component="theme-manager" class="las-theme-manager">
-                <button class="las-theme-toggle test-button">Toggle Theme</button>
-                <div class="theme-status">Current theme: <span id="current-theme">light</span></div>
+    <div class="test-container">
+        <h2>System Status</h2>
+        <div id="systemStatus">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="errorCount">0</div>
+                    <div class="stat-label">Total Errors</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="successfulRecoveries">0</div>
+                    <div class="stat-label">Successful Recoveries</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="nonceRefreshCount">0</div>
+                    <div class="stat-label">Nonce Refreshes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="networkStatus">Online</div>
+                    <div class="stat-label">Network Status</div>
+                </div>
             </div>
         </div>
-        
-        <div class="error-boundary-test">
-            <div data-component="color-picker" class="las-color-picker">
-                <input type="color" value="#2271b1" aria-label="Choose color">
-                <div class="las-color-preview" style="width: 44px; height: 44px; background: #2271b1; border-radius: 4px; display: inline-block; margin-left: 0.5rem;"></div>
-            </div>
+    </div>
+    
+    <div class="test-container">
+        <div class="test-section">
+            <h3>🌐 Network Error Tests</h3>
+            <button class="test-button" onclick="testNetworkTimeout()">Test Network Timeout</button>
+            <button class="test-button" onclick="testNetworkError()">Test Network Error</button>
+            <button class="test-button" onclick="testOfflineError()">Test Offline Error</button>
+            <button class="test-button" onclick="testConnectionRecovery()">Test Connection Recovery</button>
+            <div class="test-results" id="networkResults"></div>
         </div>
         
-        <button class="test-button" onclick="testErrorBoundaries()">Test Error Boundaries</button>
-        <div class="status-display" id="error-boundary-status">
-            Error boundary test results will appear here...
+        <div class="test-section">
+            <h3>🔒 Security Error Tests</h3>
+            <button class="test-button" onclick="testNonceError()">Test Nonce Error</button>
+            <button class="test-button" onclick="testPermissionError()">Test Permission Error</button>
+            <button class="test-button" onclick="testRateLimitError()">Test Rate Limit Error</button>
+            <button class="test-button" onclick="testCSRFError()">Test CSRF Error</button>
+            <div class="test-results" id="securityResults"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🖥️ Server Error Tests</h3>
+            <button class="test-button danger" onclick="testServerError()">Test Server Error (500)</button>
+            <button class="test-button danger" onclick="testServiceUnavailable()">Test Service Unavailable (503)</button>
+            <button class="test-button danger" onclick="testGatewayError()">Test Gateway Error (502)</button>
+            <button class="test-button danger" onclick="testDatabaseError()">Test Database Error</button>
+            <div class="test-results" id="serverResults"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📝 Client Error Tests</h3>
+            <button class="test-button warning" onclick="testValidationError()">Test Validation Error</button>
+            <button class="test-button warning" onclick="testBadRequest()">Test Bad Request (400)</button>
+            <button class="test-button warning" onclick="testNotFound()">Test Not Found (404)</button>
+            <button class="test-button warning" onclick="testJavaScriptError()">Test JavaScript Error</button>
+            <div class="test-results" id="clientResults"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔄 Recovery Strategy Tests</h3>
+            <button class="test-button" onclick="testRetryWithBackoff()">Test Retry with Backoff</button>
+            <button class="test-button" onclick="testExponentialBackoff()">Test Exponential Backoff</button>
+            <button class="test-button" onclick="testNonceRefresh()">Test Nonce Refresh</button>
+            <button class="test-button" onclick="testMaxRetryLimit()">Test Max Retry Limit</button>
+            <div class="test-results" id="recoveryResults"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔔 Notification Tests</h3>
+            <button class="test-button" onclick="testErrorNotification()">Test Error Notification</button>
+            <button class="test-button" onclick="testWarningNotification()">Test Warning Notification</button>
+            <button class="test-button" onclick="testSuccessNotification()">Test Success Notification</button>
+            <button class="test-button" onclick="testNotificationClosing()">Test Notification Closing</button>
+            <div class="test-results" id="notificationResults"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📊 Performance and Logging Tests</h3>
+            <button class="test-button" onclick="testContextLogging()">Test Context Logging</button>
+            <button class="test-button" onclick="testErrorStatistics()">Test Error Statistics</button>
+            <button class="test-button" onclick="testServerErrorReporting()">Test Server Error Reporting</button>
+            <button class="test-button" onclick="testMemoryTracking()">Test Memory Tracking</button>
+            <div class="test-results" id="performanceResults"></div>
         </div>
     </div>
     
-    <div class="test-section">
-        <h2>Progressive Enhancement</h2>
-        <p>Test progressive enhancement features.</p>
-        
-        <div data-component="navigation" class="las-navigation">
-            <div class="las-tabs">
-                <button class="las-tab active" role="tab">Tab 1</button>
-                <button class="las-tab" role="tab">Tab 2</button>
-                <button class="las-tab" role="tab">Tab 3</button>
-            </div>
-            <div class="las-tab-panels">
-                <div class="las-tab-panel active">Content for Tab 1</div>
-                <div class="las-tab-panel">Content for Tab 2</div>
-                <div class="las-tab-panel">Content for Tab 3</div>
-            </div>
-        </div>
-        
-        <button class="test-button" onclick="testProgressiveEnhancement()">Test Enhancement</button>
-        <div class="status-display" id="enhancement-status">
-            Progressive enhancement results will appear here...
-        </div>
+    <div class="test-container">
+        <h2>Error History</h2>
+        <button class="test-button" onclick="showErrorHistory()">Show Error History</button>
+        <button class="test-button" onclick="clearErrorHistory()">Clear Error History</button>
+        <div class="test-results" id="errorHistory"></div>
     </div>
     
-    <div class="test-section">
-        <h2>Graceful Degradation</h2>
-        <p>Test fallback mechanisms and graceful degradation.</p>
-        
-        <div class="las-card" style="margin-bottom: 1rem;">
-            <h3>Glass Morphism Card</h3>
-            <p>This card should fall back to solid background if backdrop-filter is not supported.</p>
-        </div>
-        
-        <div class="las-loading las-skeleton" style="height: 20px; margin-bottom: 0.5rem;"></div>
-        <div class="las-loading las-skeleton" style="height: 20px; width: 80%; margin-bottom: 0.5rem;"></div>
-        
-        <button class="test-button" onclick="testGracefulDegradation()">Test Degradation</button>
-        <button class="test-button" onclick="simulateSlowConnection()">Simulate Slow Connection</button>
-        <div class="status-display" id="degradation-status">
-            Graceful degradation results will appear here...
-        </div>
-    </div>
-    
-    <div class="test-section">
-        <h2>Error Report</h2>
-        <p>Generate comprehensive error report.</p>
-        <button class="test-button" onclick="generateErrorReport()">Generate Report</button>
-        <button class="test-button" onclick="clearErrors()">Clear Errors</button>
-        <div class="status-display" id="error-report">
-            Error report will appear here...
-        </div>
+    <div class="test-container">
+        <h2>Real-time Error Log</h2>
+        <div id="errorLog" style="max-height: 400px; overflow-y: auto; background: #f8f9fa; padding: 15px; border-radius: 4px;"></div>
     </div>
 
-    <!-- Scripts -->
-    <script src="../assets/js/error-manager.js"></script>
-    <script src="../assets/js/progressive-enhancement.js"></script>
-    <script src="validate-error-handling.js"></script>
+    <!-- Load dependencies -->
     <script>
-        // Test functions
-        function checkErrorManager() {
-            const status = document.getElementById('error-manager-status');
-            if (window.lasErrorManager) {
-                status.innerHTML = `
-                    ✅ Error Manager loaded<br>
-                    📊 Feature Support: ${Object.keys(window.lasErrorManager.featureSupport).length} features detected<br>
-                    🔢 Current Errors: ${window.lasErrorManager.errors.length}<br>
-                    🕒 Initialized: ${new Date().toLocaleTimeString()}
-                `;
-            } else {
-                status.innerHTML = '❌ Error Manager not found';
-            }
-        }
+        // Mock WordPress globals for testing
+        window.lasComm = {
+            ajaxUrl: '/wp-admin/admin-ajax.php',
+            restUrl: '/wp-json/',
+            nonces: {
+                ajax: 'test_nonce_' + Date.now(),
+                rest: 'test_rest_nonce_' + Date.now()
+            },
+            loginUrl: '/wp-login.php'
+        };
         
-        function testFeatureDetection() {
-            const status = document.getElementById('error-manager-status');
-            if (window.lasErrorManager) {
-                const features = window.lasErrorManager.featureSupport;
-                status.innerHTML = Object.entries(features)
-                    .map(([feature, supported]) => 
-                        `${supported ? '✅' : '❌'} ${feature}`
-                    ).join('<br>');
-            }
-        }
+        window.lasUser = {
+            id: 1,
+            name: 'Test User'
+        };
         
-        function simulateJSError() {
-            try {
-                throw new Error('Simulated JavaScript error for testing');
-            } catch (error) {
-                // Error should be caught by global handler
-                updateErrorStatus('JavaScript error simulated');
-            }
-        }
-        
-        function simulatePromiseError() {
-            Promise.reject(new Error('Simulated promise rejection'))
-                .catch(() => {
-                    updateErrorStatus('Promise rejection simulated');
+        // Mock fetch for testing
+        const originalFetch = window.fetch;
+        window.fetch = function(url, options) {
+            // Log all fetch requests
+            logMessage(`Fetch request: ${url}`, 'info');
+            
+            // Handle nonce refresh requests
+            if (url.includes('las_refresh_nonce')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve({
+                        success: true,
+                        data: {
+                            nonce: 'refreshed_nonce_' + Date.now()
+                        }
+                    })
                 });
-        }
-        
-        function simulateComponentError() {
-            if (window.lasErrorManager) {
-                window.lasErrorManager.handleError({
-                    type: 'component',
-                    componentId: 'test-component',
-                    message: 'Simulated component error',
-                    timestamp: new Date().toISOString()
+            }
+            
+            // Handle error reporting requests
+            if (url.includes('las/v1/error-report')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve({
+                        success: true,
+                        data: { logged: true }
+                    })
                 });
-                updateErrorStatus('Component error simulated');
             }
-        }
+            
+            // Default to original fetch for other requests
+            return originalFetch.apply(this, arguments);
+        };
+    </script>
+    
+    <!-- Load the error handler -->
+    <script src="../assets/js/modules/error-handler.js"></script>
+    
+    <script>
+        // Initialize error handler with test configuration
+        let errorHandler;
+        let testStats = {
+            errorCount: 0,
+            successfulRecoveries: 0,
+            nonceRefreshCount: 0
+        };
         
-        function updateErrorStatus(message) {
-            const status = document.getElementById('error-simulation-status');
-            const timestamp = new Date().toLocaleTimeString();
-            status.innerHTML += `${timestamp}: ${message}<br>`;
-            status.scrollTop = status.scrollHeight;
-        }
-        
-        function testErrorBoundaries() {
-            const status = document.getElementById('error-boundary-status');
-            if (window.lasErrorManager) {
-                window.lasErrorManager.setupComponentErrorBoundaries();
-                status.innerHTML = '✅ Error boundaries set up for components';
-            } else {
-                status.innerHTML = '❌ Error Manager not available';
-            }
-        }
-        
-        function testProgressiveEnhancement() {
-            const status = document.getElementById('enhancement-status');
-            if (window.lasProgressiveEnhancement) {
-                const report = window.lasProgressiveEnhancement.getEnhancementReport();
-                status.innerHTML = `
-                    📊 Enhancement Report:<br>
-                    Enhanced: ${report.enhancedComponents}<br>
-                    Basic: ${report.basicComponents}<br>
-                    Failed: ${report.failedComponents}<br>
-                    Total: ${report.totalComponents}
-                `;
-            } else {
-                status.innerHTML = '❌ Progressive Enhancement not available';
-            }
-        }
-        
-        function testGracefulDegradation() {
-            const status = document.getElementById('degradation-status');
-            if (window.lasErrorManager) {
-                // Test fallback message
-                window.lasErrorManager.showFallbackMessage('Testing graceful degradation');
+        function initializeErrorHandler() {
+            const config = {
+                enableAutoRetry: document.getElementById('enableAutoRetry').checked,
+                enableNonceRefresh: document.getElementById('enableNonceRefresh').checked,
+                enableUserNotifications: document.getElementById('enableUserNotifications').checked,
+                enableContextLogging: document.getElementById('enableContextLogging').checked,
+                maxRetryAttempts: parseInt(document.getElementById('maxRetryAttempts').value),
+                retryDelay: parseInt(document.getElementById('retryDelay').value),
+                notificationDuration: 3000,
+                debugMode: true
+            };
+            
+            errorHandler = new window.LAS.ErrorHandler(config);
+            
+            // Listen for error events
+            document.addEventListener('las:error', function(event) {
+                testStats.errorCount++;
                 
-                // Check CSS support
-                const hasBackdrop = window.lasErrorManager.supportsCSSFeature('backdrop-filter', 'blur(10px)');
-                const hasGrid = window.lasErrorManager.supportsCSSFeature('display', 'grid');
+                if (event.detail.recovery.success) {
+                    testStats.successfulRecoveries++;
+                }
                 
-                status.innerHTML = `
-                    🔧 Degradation Test Results:<br>
-                    Backdrop Filter: ${hasBackdrop ? '✅ Supported' : '❌ Fallback active'}<br>
-                    CSS Grid: ${hasGrid ? '✅ Supported' : '❌ Flexbox fallback'}<br>
-                    Fallback message shown: ✅
-                `;
-            }
-        }
-        
-        function simulateSlowConnection() {
-            const loaders = document.querySelectorAll('.las-loading');
-            loaders.forEach(loader => {
-                loader.classList.add('las-skeleton');
-                setTimeout(() => {
-                    loader.classList.remove('las-loading', 'las-skeleton');
-                    loader.classList.add('las-loaded');
-                    loader.textContent = 'Content loaded!';
-                }, 2000);
+                if (event.detail.recovery.action === 'refresh_nonce_and_retry') {
+                    testStats.nonceRefreshCount++;
+                }
+                
+                updateStats();
+                
+                logMessage(`Error handled: ${event.detail.error.classification.code} - Recovery: ${event.detail.recovery.action}`, 
+                          event.detail.recovery.success ? 'success' : 'error');
             });
             
-            document.getElementById('degradation-status').innerHTML = 
-                '⏳ Simulating slow connection... Content will load in 2 seconds';
+            logMessage('Error handler initialized with configuration', 'success');
         }
         
-        function generateErrorReport() {
-            const reportDiv = document.getElementById('error-report');
-            if (window.lasErrorManager) {
-                const report = window.lasErrorManager.getErrorReport();
-                reportDiv.innerHTML = `
-                    <strong>Error Report (${new Date().toLocaleString()})</strong><br><br>
-                    <strong>Errors (${report.errors.length}):</strong><br>
-                    ${report.errors.slice(-5).map(error => 
-                        `${error.timestamp}: ${error.type} - ${error.message}`
-                    ).join('<br>')}<br><br>
-                    <strong>Feature Support:</strong><br>
-                    ${Object.entries(report.featureSupport)
-                        .map(([feature, supported]) => 
-                            `${feature}: ${supported ? '✅' : '❌'}`
-                        ).join('<br>')}<br><br>
-                    <strong>Browser:</strong> ${navigator.userAgent.substring(0, 100)}...
-                `;
-            }
+        function updateConfiguration() {
+            initializeErrorHandler();
+            logMessage('Configuration updated', 'info');
         }
         
-        function clearErrors() {
-            if (window.lasErrorManager) {
-                window.lasErrorManager.clearErrors();
-                document.getElementById('error-report').innerHTML = 'Error log cleared.';
-                updateErrorStatus('Error log cleared');
-            }
+        function updateStats() {
+            document.getElementById('errorCount').textContent = testStats.errorCount;
+            document.getElementById('successfulRecoveries').textContent = testStats.successfulRecoveries;
+            document.getElementById('nonceRefreshCount').textContent = testStats.nonceRefreshCount;
+            document.getElementById('networkStatus').textContent = navigator.onLine ? 'Online' : 'Offline';
         }
         
-        // Initialize demo
-        document.addEventListener('DOMContentLoaded', () => {
+        function logMessage(message, type = 'info') {
+            const logContainer = document.getElementById('errorLog');
+            const logEntry = document.createElement('div');
+            logEntry.className = `error-log ${type}`;
+            logEntry.innerHTML = `
+                <strong>[${new Date().toLocaleTimeString()}]</strong> ${message}
+            `;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        
+        function logToResults(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const entry = document.createElement('div');
+            entry.className = `error-log ${type}`;
+            entry.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong> ${message}`;
+            container.appendChild(entry);
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        // Network Error Tests
+        async function testNetworkTimeout() {
+            logToResults('networkResults', 'Testing network timeout...', 'info');
+            
+            const error = new Error('Request timed out');
+            error.name = 'AbortError';
+            error.code = 'TIMEOUT';
+            
+            const result = await errorHandler.handleError(error, {
+                action: 'test_network_timeout',
+                requestId: 'timeout_' + Date.now()
+            });
+            
+            logToResults('networkResults', 
+                `Network timeout test: ${result.classification.code} - ${result.classification.userMessage}`, 
+                result.success ? 'success' : 'error');
+        }
+        
+        async function testNetworkError() {
+            logToResults('networkResults', 'Testing network error...', 'info');
+            
+            const error = new Error('Network request failed');
+            error.name = 'TypeError';
+            
+            const result = await errorHandler.handleError(error, {
+                action: 'test_network_error',
+                requestId: 'network_' + Date.now()
+            });
+            
+            logToResults('networkResults', 
+                `Network error test: ${result.classification.code} - Retryable: ${result.retryable}`, 
+                result.success ? 'success' : 'error');
+        }
+        
+        async function testOfflineError() {
+            logToResults('networkResults', 'Testing offline error...', 'info');
+            
+            // Temporarily set offline
+            Object.defineProperty(navigator, 'onLine', {
+                writable: true,
+                value: false
+            });
+            
+            const error = new Error('Network unavailable');
+            
+            const result = await errorHandler.handleError(error, {
+                action: 'test_offline_error',
+                requestId: 'offline_' + Date.now()
+            });
+            
+            // Restore online status
+            Object.defineProperty(navigator, 'onLine', {
+                writable: true,
+                value: true
+            });
+            
+            logToResults('networkResults', 
+                `Offline error test: ${result.classification.code} - Recovery: ${result.recoveryAction}`, 
+                result.success ? 'success' : 'error');
+            
+            updateStats();
+        }
+        
+        function testConnectionRecovery() {
+            logToResults('networkResults', 'Testing connection recovery...', 'info');
+            
+            // Simulate going offline
+            Object.defineProperty(navigator, 'onLine', {
+                writable: true,
+                value: false
+            });
+            window.dispatchEvent(new Event('offline'));
+            
             setTimeout(() => {
-                checkErrorManager();
-                testFeatureDetection();
-            }, 500);
+                // Simulate coming back online
+                Object.defineProperty(navigator, 'onLine', {
+                    writable: true,
+                    value: true
+                });
+                window.dispatchEvent(new Event('online'));
+                
+                logToResults('networkResults', 'Connection recovery test completed', 'success');
+            }, 2000);
+        }
+        
+        // Security Error Tests
+        async function testNonceError() {
+            logToResults('securityResults', 'Testing nonce error...', 'info');
+            
+            const error = {
+                status: 403,
+                response: {
+                    status: 403,
+                    data: {
+                        code: 'rest_cookie_invalid_nonce',
+                        message: 'Cookie nonce is invalid'
+                    }
+                }
+            };
+            
+            const result = await errorHandler.handleError(error, {
+                action: 'test_nonce_error',
+                requestId: 'nonce_' + Date.now()
+            });
+            
+            logToResults('securityResults', 
+                `Nonce error test: ${result.classification.code} - Recovery: ${result.recoveryAction}`, 
+                result.success ? 'success' : 'error');
+        }
+        
+        async function testPermissionError() {
+            logToResults('securityResults', 'Testing permission error...', 'info');
+            
+            const error = {
+                status: 403,
+                response: {
+                    status: 403,
+                    data: {
+                        code: 'rest_forbidden',
+                        message: 'You do not have permission to access this resource'
+                    }
+                }
+            };
+            
+            const result = await errorHandler.handleError(error, {
+                action: 'test_permission_error',
+                requestId: 'permission_' + Date.now()
+            });
+            
+            logToResults('securityResults', 
+                `Permission error test: ${result.classification.code} - Retryable: ${result.retryable}`, 
+                result.success ? 'success' : 'error');
+        }
+        
+        async function testRateLimitError() {
+            logToResults('securityResults', 'Testing rate limit error...', 'info');
+            
+            const error = {
+                status: 429,
+                response: {
+                    status: 429,
+                    headers: {
+                        'retry-after': '60'
+                    },
+                    data: {
+                        message: 'Too many requests'
+                    }
+                }
+            };
+            
+            const result = await errorHandler.handleError(error, {
+                action: 'test_rate_limit',
+                requestId: 'rate_limit_' + Date.now()
+            });
+            
+            logToResults('securityResults', 
+                `Rate limit test: ${result.classification.code} - Recovery: ${result.recoveryAction}`, 
+                result.success ? 'success' : 'error');
+        }
+        
+        async function testCSRFError() {
+            logToResults('securityResults', 'Testing CSRF error...', 'info');
+            
+            const error = {
+                status: 403,
+                response: {
+                    status: 403,
+                    data: {
+                        code: 'rest_forbidden',
+                        message: 'CSRF token validation failed'
+                    }
+                }
+            };
+            
+            const result = await errorHandler.handleError(error, {
+                action: 'test_csrf_error',
+                requestId: 'csrf_' + Date.now()
+            });
+            
+            logToResults('securityResults', 
+                `CSRF error test: ${result.classification.code} - Recovery: ${result.recoveryAction}`, 
+                result.success ? 'success' : 'error');
+        }
+        
+        // Server Error Tests
+        async function testServerError() {
+            logToResults('serverResults', 'Testing server error (500)...', 'info');
+            
+            const error = {
+                status: 500,
+                response: {
+                    status: 500,
+                    statusText: 'Internal Server Error',
+                    data: {
+                        message: 'Internal server error occurred'
+                    }
+                }
+            };
+            
+            const result = await errorHandler.handleError(error, {
+                action: 'test_server_error',
+                requestId: 'server_500_' + Date.now()
+            });
+            
+            logToResults('serverResults', 
+                `Server error test: ${result.classification.code} - Recovery: ${result.recoveryAction}`, 
+                result.success ? 'success' : 'error');
+        }
+        
+        async function testServiceUnavailable() {
+            logToResults('serverResults', 'Testing service unavailable (503)...', 'info');
+            
+            const error = {
+                status: 503,
+                response: {
+                    status: 503,
+                    statusText: 'Service Unavailable'
+                }
+            };
+            
+            const result = await errorHandler.handleError(error, {
+                action: 'test_service_unavailable',
+                requestId: 'service_503_' + Date.now()
+            });
+            
+            logToResults('serverResults', 
+                `Service unavailable test: ${result.classification.code} - Retryable: ${result.retryable}`, 
+                result.success ? 'success' : 'error');
+        }
+        
+        async function testGatewayError() {
+            logToResults('serverResults', 'Testing gateway error (502)...', 'info');
+            
+            const error = {
+                status: 502,
+                response: {
+                    status: 502,
+                    statusText: 'Bad Gateway'
+                }
+            };
+            
+            const result = await errorHandler.handleError(error, {
+                action: 'test_gateway_error',
+                requestId: 'gateway_502_' + Date.now()
+            });
+            
+            logToResults('serverResults', 
+                `Gateway error test: ${result.classification.code} - Recovery: ${result.recoveryAction}`, 
+                result.success ? 'success' : 'error');
+        }
+        
+        async function testDatabaseError() {
+            logToResults('serverResults', 'Testing database error...', 'info');
+            
+            const error = new Error('Database connection failed');
+            
+            const result = await errorHandler.handleError(error, {
+                action: 'test_database_error',
+                requestId: 'database_' + Date.now()
+            });
+            
+            logToResults('serverResults', 
+                `Database error test: ${result.classification.code} - Severity: ${result.classification.severity}`, 
+                result.success ? 'success' : 'error');
+        }
+        
+        // Client Error Tests
+        async function testValidationError() {
+            logToResults('clientResults', 'Testing validation error...', 'info');
+            
+            const error = {
+                status: 400,
+                response: {
+                    status: 400,
+                    data: {
+                        code: 'rest_invalid_param',
+                        message: 'Invalid parameter: email',
+                        data: {
+                            params: {
+                                email: 'Invalid email format'
+                            }
+                        }
+                    }
+                }
+            };
+            
+            const result = await errorHandler.handleError(error, {
+                action: 'test_validation_error',
+                requestId: 'validation_' + Date.now()
+            });
+            
+            logToResults('clientResults', 
+                `Validation error test: ${result.classification.code} - Retryable: ${result.retryable}`, 
+                result.success ? 'success' : 'error');
+        }
+        
+        async function testBadRequest() {
+            logToResults('clientResults', 'Testing bad request (400)...', 'info');
+            
+            const error = {
+                status: 400,
+                response: {
+                    status: 400,
+                    statusText: 'Bad Request',
+                    data: {
+                        message: 'Malformed request data'
+                    }
+                }
+            };
+            
+            const result = await errorHandler.handleError(error, {
+                action: 'test_bad_request',
+                requestId: 'bad_request_' + Date.now()
+            });
+            
+            logToResults('clientResults', 
+                `Bad request test: ${result.classification.code} - Recovery: ${result.recoveryAction}`, 
+                result.success ? 'success' : 'error');
+        }
+        
+        async function testNotFound() {
+            logToResults('clientResults', 'Testing not found (404)...', 'info');
+            
+            const error = {
+                status: 404,
+                response: {
+                    status: 404,
+                    statusText: 'Not Found'
+                }
+            };
+            
+            const result = await errorHandler.handleError(error, {
+                action: 'test_not_found',
+                requestId: 'not_found_' + Date.now()
+            });
+            
+            logToResults('clientResults', 
+                `Not found test: ${result.classification.code} - Retryable: ${result.retryable}`, 
+                result.success ? 'success' : 'error');
+        }
+        
+        async function testJavaScriptError() {
+            logToResults('clientResults', 'Testing JavaScript error...', 'info');
+            
+            const error = new TypeError('Cannot read property of undefined');
+            error.stack = 'TypeError: Cannot read property of undefined\n    at test.js:1:1';
+            
+            const result = await errorHandler.handleError(error, {
+                action: 'test_javascript_error',
+                requestId: 'js_error_' + Date.now()
+            });
+            
+            logToResults('clientResults', 
+                `JavaScript error test: ${result.classification.code} - Category: ${result.classification.category}`, 
+                result.success ? 'success' : 'error');
+        }
+        
+        // Recovery Strategy Tests
+        async function testRetryWithBackoff() {
+            logToResults('recoveryResults', 'Testing retry with backoff...', 'info');
+            
+            const error = new Error('Temporary network error');
+            
+            const result = await errorHandler.handleError(error, {
+                action: 'test_retry_backoff',
+                requestId: 'retry_backoff_' + Date.now(),
+                attempt: 1
+            });
+            
+            logToResults('recoveryResults', 
+                `Retry backoff test: Recovery strategy = ${result.classification.recoveryStrategy}`, 
+                result.success ? 'success' : 'error');
+        }
+        
+        async function testExponentialBackoff() {
+            logToResults('recoveryResults', 'Testing exponential backoff...', 'info');
+            
+            const error = { status: 500 };
+            
+            const result = await errorHandler.handleError(error, {
+                action: 'test_exponential_backoff',
+                requestId: 'exp_backoff_' + Date.now(),
+                attempt: 2
+            });
+            
+            logToResults('recoveryResults', 
+                `Exponential backoff test: Recovery strategy = ${result.classification.recoveryStrategy}`, 
+                result.success ? 'success' : 'error');
+        }
+        
+        async function testNonceRefresh() {
+            logToResults('recoveryResults', 'Testing nonce refresh...', 'info');
+            
+            const originalNonce = window.lasComm.nonces.ajax;
+            
+            const error = {
+                status: 403,
+                response: {
+                    data: {
+                        code: 'rest_cookie_invalid_nonce'
+                    }
+                }
+            };
+            
+            const result = await errorHandler.handleError(error, {
+                action: 'test_nonce_refresh',
+                requestId: 'nonce_refresh_' + Date.now()
+            });
+            
+            const nonceChanged = window.lasComm.nonces.ajax !== originalNonce;
+            
+            logToResults('recoveryResults', 
+                `Nonce refresh test: Nonce changed = ${nonceChanged}, Recovery = ${result.recoveryAction}`, 
+                result.success && nonceChanged ? 'success' : 'error');
+        }
+        
+        async function testMaxRetryLimit() {
+            logToResults('recoveryResults', 'Testing max retry limit...', 'info');
+            
+            const error = new Error('Persistent error');
+            
+            const result = await errorHandler.handleError(error, {
+                action: 'test_max_retry',
+                requestId: 'max_retry_' + Date.now(),
+                attempt: 5 // Exceeds max attempts
+            });
+            
+            logToResults('recoveryResults', 
+                `Max retry test: Should not retry due to max attempts exceeded`, 
+                'info');
+        }
+        
+        // Notification Tests
+        function testErrorNotification() {
+            logToResults('notificationResults', 'Testing error notification...', 'info');
+            
+            errorHandler.showNotification('This is a test error notification', 'error');
+            
+            setTimeout(() => {
+                const notification = document.querySelector('.las-error-notification.error');
+                logToResults('notificationResults', 
+                    `Error notification test: ${notification ? 'Notification shown' : 'Notification not found'}`, 
+                    notification ? 'success' : 'error');
+            }, 100);
+        }
+        
+        function testWarningNotification() {
+            logToResults('notificationResults', 'Testing warning notification...', 'info');
+            
+            errorHandler.showNotification('This is a test warning notification', 'warning');
+            
+            setTimeout(() => {
+                const notification = document.querySelector('.las-error-notification.warning');
+                logToResults('notificationResults', 
+                    `Warning notification test: ${notification ? 'Notification shown' : 'Notification not found'}`, 
+                    notification ? 'success' : 'error');
+            }, 100);
+        }
+        
+        function testSuccessNotification() {
+            logToResults('notificationResults', 'Testing success notification...', 'info');
+            
+            errorHandler.showNotification('This is a test success notification', 'success');
+            
+            setTimeout(() => {
+                const notification = document.querySelector('.las-error-notification.success');
+                logToResults('notificationResults', 
+                    `Success notification test: ${notification ? 'Notification shown' : 'Notification not found'}`, 
+                    notification ? 'success' : 'error');
+            }, 100);
+        }
+        
+        function testNotificationClosing() {
+            logToResults('notificationResults', 'Testing notification closing...', 'info');
+            
+            const notification = errorHandler.showNotification('Click the X to close this notification', 'info', { persistent: true });
+            
+            setTimeout(() => {
+                const closeButton = notification.querySelector('.las-error-notification-close');
+                if (closeButton) {
+                    logToResults('notificationResults', 'Close button found - click it to test closing', 'success');
+                } else {
+                    logToResults('notificationResults', 'Close button not found', 'error');
+                }
+            }, 100);
+        }
+        
+        // Performance and Logging Tests
+        async function testContextLogging() {
+            logToResults('performanceResults', 'Testing context logging...', 'info');
+            
+            const error = new Error('Context logging test error');
+            
+            const result = await errorHandler.handleError(error, {
+                action: 'test_context_logging',
+                requestId: 'context_' + Date.now(),
+                customData: 'test_data',
+                userId: 123
+            });
+            
+            const hasContext = result.errorEntry && result.errorEntry.context;
+            
+            logToResults('performanceResults', 
+                `Context logging test: ${hasContext ? 'Context captured' : 'Context missing'}`, 
+                hasContext ? 'success' : 'error');
+        }
+        
+        function testErrorStatistics() {
+            logToResults('performanceResults', 'Testing error statistics...', 'info');
+            
+            const stats = errorHandler.getStatistics();
+            
+            logToResults('performanceResults', 
+                `Statistics test: Total errors = ${stats.totalErrors}, Categories = ${Object.keys(stats.errorsByCategory).length}`, 
+                'success');
+        }
+        
+        async function testServerErrorReporting() {
+            logToResults('performanceResults', 'Testing server error reporting...', 'info');
+            
+            const error = new Error('Server reporting test');
+            
+            const result = await errorHandler.handleError(error, {
+                action: 'test_server_reporting',
+                requestId: 'server_report_' + Date.now()
+            });
+            
+            // Check if fetch was called for error reporting
+            logToResults('performanceResults', 
+                'Server error reporting test: Check network tab for error report request', 
+                'info');
+        }
+        
+        function testMemoryTracking() {
+            logToResults('performanceResults', 'Testing memory tracking...', 'info');
+            
+            // Mock performance.memory if not available
+            if (!performance.memory) {
+                Object.defineProperty(performance, 'memory', {
+                    value: {
+                        usedJSHeapSize: 1000000,
+                        totalJSHeapSize: 2000000,
+                        jsHeapSizeLimit: 4000000
+                    },
+                    configurable: true
+                });
+            }
+            
+            const memoryInfo = errorHandler.getMemoryInfo();
+            
+            logToResults('performanceResults', 
+                `Memory tracking test: ${memoryInfo ? 'Memory info captured' : 'Memory info not available'}`, 
+                memoryInfo ? 'success' : 'warning');
+        }
+        
+        // Error History Functions
+        function showErrorHistory() {
+            const stats = errorHandler.getStatistics();
+            const historyContainer = document.getElementById('errorHistory');
+            
+            historyContainer.innerHTML = '';
+            
+            if (stats.recentErrors.length === 0) {
+                historyContainer.innerHTML = '<div class="error-log">No errors in history</div>';
+                return;
+            }
+            
+            stats.recentErrors.forEach((error, index) => {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-log';
+                errorDiv.innerHTML = `
+                    <strong>Error ${index + 1}:</strong> ${error.classification.code}<br>
+                    <strong>Message:</strong> ${error.classification.technicalMessage}<br>
+                    <strong>Category:</strong> ${error.classification.category}<br>
+                    <strong>Severity:</strong> ${error.classification.severity}<br>
+                    <strong>Time:</strong> ${error.timestamp}<br>
+                    <strong>Action:</strong> ${error.context.action || 'N/A'}
+                `;
+                historyContainer.appendChild(errorDiv);
+            });
+        }
+        
+        function clearErrorHistory() {
+            errorHandler.clearHistory();
+            testStats = {
+                errorCount: 0,
+                successfulRecoveries: 0,
+                nonceRefreshCount: 0
+            };
+            updateStats();
+            
+            const historyContainer = document.getElementById('errorHistory');
+            historyContainer.innerHTML = '<div class="error-log success">Error history cleared</div>';
+            
+            logMessage('Error history cleared', 'success');
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeErrorHandler();
+            updateStats();
+            
+            logMessage('Error handling integration test page loaded', 'success');
+            logMessage('Use the test buttons to simulate various error conditions', 'info');
         });
+        
+        // Update network status indicator
+        window.addEventListener('online', updateStats);
+        window.addEventListener('offline', updateStats);
     </script>
 </body>
 </html>

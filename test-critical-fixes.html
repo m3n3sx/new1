@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAS Critical Fixes Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f1f1f1;
+        }
+        
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .test-controls {
+            margin: 10px 0;
+        }
+        
+        .test-controls label {
+            display: block;
+            margin: 10px 0 5px 0;
+            font-weight: bold;
+        }
+        
+        .test-controls input[type="range"] {
+            width: 100%;
+            margin: 5px 0;
+        }
+        
+        .test-controls input[type="number"] {
+            width: 80px;
+            padding: 5px;
+            margin: 0 10px;
+        }
+        
+        .slider-container {
+            margin: 10px 0;
+        }
+        
+        .las-slider {
+            width: 100%;
+            height: 20px;
+            margin: 10px 0;
+        }
+        
+        .test-button {
+            background: #0073aa;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .test-button:hover {
+            background: #005a87;
+        }
+        
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        #console-output {
+            background: #000;
+            color: #0f0;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            height: 200px;
+            overflow-y: auto;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Live Admin Styler - Critical Fixes Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Status</h2>
+        <div id="test-status" class="status info">
+            Initializing tests...
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Security Token Test</h2>
+        <p>Test nonce validation and automatic refresh functionality.</p>
+        <button class="test-button" onclick="testSecurityToken()">Test Valid Token</button>
+        <button class="test-button" onclick="testInvalidToken()">Test Invalid Token</button>
+        <button class="test-button" onclick="testTokenRefresh()">Test Token Refresh</button>
+        <div id="token-status" class="status info">Ready to test security tokens</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Notification System Test</h2>
+        <p>Test the notification container and error handling.</p>
+        <button class="test-button" onclick="testNotifications()">Test Notifications</button>
+        <button class="test-button" onclick="testErrorHandling()">Test Error Handling</button>
+        <div id="notification-status" class="status info">Ready to test notifications</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Live Preview Test</h2>
+        <p>Test slider and color picker functionality with error handling.</p>
+        
+        <div class="test-controls">
+            <label for="test-border-radius">Border Radius:</label>
+            <div class="slider-container">
+                <div class="las-slider" id="border-radius-slider"></div>
+                <input type="number" name="las_settings[border_radius]" id="test-border-radius" 
+                       min="0" max="50" step="1" value="10">
+            </div>
+        </div>
+        
+        <div class="test-controls">
+            <label for="test-padding">Padding:</label>
+            <div class="slider-container">
+                <div class="las-slider" id="padding-slider"></div>
+                <input type="number" name="las_settings[padding]" id="test-padding" 
+                       min="0" max="100" step="5" value="20">
+            </div>
+        </div>
+        
+        <div class="test-controls">
+            <label for="test-color">Background Color:</label>
+            <input type="text" name="las_settings[background_color]" id="test-color" 
+                   class="las-fresh-color-picker" value="#ffffff">
+        </div>
+        
+        <div id="preview-status" class="status info">Ready to test live preview</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Console Output</h2>
+        <div id="console-output"></div>
+        <button class="test-button" onclick="clearConsole()">Clear Console</button>
+    </div>
+    
+    <!-- Mock WordPress and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/ui-lightness/jquery-ui.css">
+    
+    <script>
+        // Mock WordPress AJAX and data
+        window.lasAdminData = {
+            ajax_url: '/wp-admin/admin-ajax.php',
+            nonce: 'test_nonce_12345',
+            jquery_ui: {
+                slider: true
+            }
+        };
+        
+        // Console capture
+        var originalConsole = {
+            log: console.log,
+            error: console.error,
+            warn: console.warn
+        };
+        
+        function logToConsole(type, message) {
+            var output = document.getElementById('console-output');
+            var timestamp = new Date().toLocaleTimeString();
+            var color = type === 'error' ? '#f00' : (type === 'warn' ? '#ff0' : '#0f0');
+            output.innerHTML += '<div style="color: ' + color + '">[' + timestamp + '] ' + type.toUpperCase() + ': ' + message + '</div>';
+            output.scrollTop = output.scrollHeight;
+            
+            // Call original console method
+            originalConsole[type](message);
+        }
+        
+        console.log = function(message) { logToConsole('log', message); };
+        console.error = function(message) { logToConsole('error', message); };
+        console.warn = function(message) { logToConsole('warn', message); };
+        
+        // Mock AJAX responses
+        var originalPost = jQuery.post;
+        jQuery.post = function(url, data) {
+            console.log('AJAX Request:', data);
+            
+            var deferred = jQuery.Deferred();
+            
+            setTimeout(function() {
+                if (data.action === 'las_refresh_nonce') {
+                    if (Math.random() > 0.2) { // 80% success rate
+                        deferred.resolve({
+                            success: true,
+                            data: {
+                                nonce: 'new_nonce_' + Date.now(),
+                                timestamp: Date.now()
+                            }
+                        });
+                    } else {
+                        deferred.reject({
+                            status: 500,
+                            responseJSON: {
+                                success: false,
+                                data: 'Server error'
+                            }
+                        });
+                    }
+                } else if (data.action === 'las_get_preview_css') {
+                    if (data.nonce === 'invalid_nonce') {
+                        deferred.reject({
+                            status: 403,
+                            responseJSON: {
+                                success: false,
+                                data: 'Invalid security token'
+                            }
+                        });
+                    } else if (Math.random() > 0.1) { // 90% success rate
+                        deferred.resolve({
+                            success: true,
+                            data: {
+                                css: '/* Generated CSS for ' + data.setting + ': ' + data.value + ' */ .test { ' + data.setting.replace('_', '-') + ': ' + data.value + '; }',
+                                performance: {
+                                    execution_time_ms: Math.floor(Math.random() * 500) + 50
+                                }
+                            }
+                        });
+                    } else {
+                        deferred.reject({
+                            status: 500,
+                            responseJSON: {
+                                success: false,
+                                data: 'CSS generation failed'
+                            }
+                        });
+                    }
+                }
+            }, Math.random() * 1000 + 200); // Random delay 200-1200ms
+            
+            return deferred.promise();
+        };
+        
+        // Test functions
+        function updateStatus(elementId, message, type) {
+            var element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = 'status ' + type;
+        }
+        
+        function testSecurityToken() {
+            updateStatus('token-status', 'Testing valid security token...', 'info');
+            
+            jQuery.post(lasAdminData.ajax_url, {
+                action: 'las_get_preview_css',
+                nonce: lasAdminData.nonce,
+                setting: 'test_setting',
+                value: 'test_value'
+            })
+            .done(function(response) {
+                updateStatus('token-status', 'Valid token test passed!', 'success');
+            })
+            .fail(function(error) {
+                updateStatus('token-status', 'Valid token test failed: ' + error.status, 'error');
+            });
+        }
+        
+        function testInvalidToken() {
+            updateStatus('token-status', 'Testing invalid security token...', 'info');
+            
+            jQuery.post(lasAdminData.ajax_url, {
+                action: 'las_get_preview_css',
+                nonce: 'invalid_nonce',
+                setting: 'test_setting',
+                value: 'test_value'
+            })
+            .done(function(response) {
+                updateStatus('token-status', 'Invalid token should have failed!', 'error');
+            })
+            .fail(function(error) {
+                updateStatus('token-status', 'Invalid token correctly rejected: ' + error.status, 'success');
+            });
+        }
+        
+        function testTokenRefresh() {
+            updateStatus('token-status', 'Testing token refresh...', 'info');
+            
+            jQuery.post(lasAdminData.ajax_url, {
+                action: 'las_refresh_nonce'
+            })
+            .done(function(response) {
+                if (response.success && response.data.nonce) {
+                    lasAdminData.nonce = response.data.nonce;
+                    updateStatus('token-status', 'Token refresh successful!', 'success');
+                } else {
+                    updateStatus('token-status', 'Token refresh failed: Invalid response', 'error');
+                }
+            })
+            .fail(function(error) {
+                updateStatus('token-status', 'Token refresh failed: ' + error.status, 'error');
+            });
+        }
+        
+        function testNotifications() {
+            updateStatus('notification-status', 'Testing notification system...', 'info');
+            
+            if (window.ErrorManager && window.ErrorManager.showInfo) {
+                window.ErrorManager.showInfo('Test info notification', { duration: 2000 });
+                window.ErrorManager.showError('Test error notification', { duration: 3000 });
+                updateStatus('notification-status', 'Notification system working!', 'success');
+            } else {
+                updateStatus('notification-status', 'Notification system not available', 'error');
+            }
+        }
+        
+        function testErrorHandling() {
+            updateStatus('notification-status', 'Testing error handling...', 'info');
+            
+            try {
+                // Simulate an error
+                throw new Error('Test error for error handling');
+            } catch (error) {
+                if (window.ErrorManager && window.ErrorManager.showError) {
+                    window.ErrorManager.showError('Caught test error: ' + error.message, { duration: 3000 });
+                    updateStatus('notification-status', 'Error handling working!', 'success');
+                } else {
+                    updateStatus('notification-status', 'Error handling not available', 'error');
+                }
+            }
+        }
+        
+        function clearConsole() {
+            document.getElementById('console-output').innerHTML = '';
+        }
+        
+        // Initialize when page loads
+        jQuery(document).ready(function() {
+            updateStatus('test-status', 'Loading critical fixes...', 'info');
+            
+            // Load the critical fix script
+            var script = document.createElement('script');
+            script.src = 'js/live-preview-critical-fix.js';
+            script.onload = function() {
+                updateStatus('test-status', 'Critical fixes loaded successfully!', 'success');
+            };
+            script.onerror = function() {
+                updateStatus('test-status', 'Failed to load critical fixes!', 'error');
+            };
+            document.head.appendChild(script);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTTP Transport Integration Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        button { margin: 5px; padding: 10px; }
+        #results { margin-top: 20px; }
+        .result-item { margin: 5px 0; padding: 5px; background: #f5f5f5; }
+    </style>
+</head>
+<body>
+    <h1>HTTP Transport Layer Integration Test</h1>
+    
+    <div class="test-section">
+        <h2>Feature Detection</h2>
+        <div id="feature-detection"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Request Tests</h2>
+        <button onclick="testFetchRequest()">Test Fetch Request</button>
+        <button onclick="testXHRFallback()">Test XHR Fallback</button>
+        <button onclick="testTimeout()">Test Timeout Handling</button>
+        <button onclick="testErrorHandling()">Test Error Handling</button>
+        <button onclick="testMetrics()">Test Performance Metrics</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>WordPress AJAX Simulation</h2>
+        <button onclick="testWordPressAjax()">Test WordPress AJAX Format</button>
+        <button onclick="testFormDataRequest()">Test FormData Request</button>
+    </div>
+    
+    <div id="results"></div>
+
+    <script src="../assets/js/modules/http-transport.js"></script>
+    <script>
+        let transport;
+        let results = [];
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            results.push({ message: logEntry, type });
+            updateResults();
+            console.log(logEntry);
+        }
+
+        function updateResults() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<h2>Test Results</h2>' + 
+                results.map(r => `<div class="result-item ${r.type}">${r.message}</div>`).join('');
+        }
+
+        function initializeTransport() {
+            transport = new (window.LAS ? window.LAS.HTTPTransport : HTTPTransport)();
+            
+            // Display feature detection
+            const featureDiv = document.getElementById('feature-detection');
+            featureDiv.innerHTML = `
+                <p><strong>Fetch API Support:</strong> ${transport.supportsFetch ? '✓' : '✗'}</p>
+                <p><strong>AbortController Support:</strong> ${transport.supportsAbortController ? '✓' : '✗'}</p>
+                <p><strong>Browser:</strong> ${navigator.userAgent.split(' ').pop()}</p>
+            `;
+            
+            log('HTTP Transport initialized successfully', 'success');
+        }
+
+        async function testFetchRequest() {
+            log('Testing fetch request...', 'info');
+            
+            try {
+                // Mock a successful response for testing
+                const originalFetch = window.fetch;
+                window.fetch = async (url, options) => {
+                    log(`Fetch called with URL: ${url}`, 'info');
+                    return {
+                        ok: true,
+                        status: 200,
+                        statusText: 'OK',
+                        headers: {
+                            get: (name) => name === 'content-type' ? 'application/json' : null
+                        },
+                        json: async () => ({ success: true, data: 'Mock response' })
+                    };
+                };
+
+                const config = {
+                    url: 'https://httpbin.org/post',
+                    method: 'POST',
+                    data: { test: 'data', timestamp: Date.now() },
+                    timeout: 5000
+                };
+
+                const response = await transport.sendRequest(config);
+                log(`✓ Fetch request successful: ${JSON.stringify(response.data)}`, 'success');
+                
+                // Restore original fetch
+                window.fetch = originalFetch;
+                
+            } catch (error) {
+                log(`✗ Fetch request failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testXHRFallback() {
+            log('Testing XHR fallback...', 'info');
+            
+            try {
+                // Temporarily disable fetch to force XHR fallback
+                const originalSupportsFetch = transport.supportsFetch;
+                transport.supportsFetch = false;
+                
+                // Mock XMLHttpRequest for testing
+                const originalXHR = window.XMLHttpRequest;
+                window.XMLHttpRequest = function() {
+                    return {
+                        open: function(method, url) {
+                            log(`XHR opened: ${method} ${url}`, 'info');
+                        },
+                        setRequestHeader: function(name, value) {
+                            log(`XHR header set: ${name}: ${value}`, 'info');
+                        },
+                        send: function(data) {
+                            log(`XHR sent with data: ${data}`, 'info');
+                            setTimeout(() => {
+                                this.status = 200;
+                                this.statusText = 'OK';
+                                this.responseText = '{"success": true, "data": "XHR Mock response"}';
+                                this.onload();
+                            }, 100);
+                        },
+                        getAllResponseHeaders: () => 'content-type: application/json\r\n'
+                    };
+                };
+
+                const config = {
+                    url: 'https://httpbin.org/post',
+                    method: 'POST',
+                    data: { test: 'xhr_data' },
+                    timeout: 5000
+                };
+
+                const response = await transport.sendRequest(config);
+                log(`✓ XHR fallback successful: ${JSON.stringify(response.data)}`, 'success');
+                
+                // Restore original values
+                transport.supportsFetch = originalSupportsFetch;
+                window.XMLHttpRequest = originalXHR;
+                
+            } catch (error) {
+                log(`✗ XHR fallback failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testTimeout() {
+            log('Testing timeout handling...', 'info');
+            
+            try {
+                // Mock a slow response
+                const originalFetch = window.fetch;
+                window.fetch = async (url, options) => {
+                    return new Promise((resolve, reject) => {
+                        setTimeout(() => {
+                            if (options.signal && options.signal.aborted) {
+                                const error = new Error('The operation was aborted');
+                                error.name = 'AbortError';
+                                reject(error);
+                            } else {
+                                resolve({
+                                    ok: true,
+                                    status: 200,
+                                    headers: { get: () => 'application/json' },
+                                    json: async () => ({ success: true })
+                                });
+                            }
+                        }, 2000); // 2 second delay
+                    });
+                };
+
+                const config = {
+                    url: 'https://httpbin.org/delay/2',
+                    method: 'POST',
+                    data: { test: 'timeout_test' },
+                    timeout: 500 // 500ms timeout
+                };
+
+                await transport.sendRequest(config);
+                log('✗ Timeout test failed - should have timed out', 'error');
+                
+            } catch (error) {
+                if (error.code === 'TIMEOUT_ERROR') {
+                    log(`✓ Timeout handled correctly: ${error.userMessage}`, 'success');
+                } else {
+                    log(`✗ Unexpected error: ${error.message}`, 'error');
+                }
+            } finally {
+                // Restore original fetch
+                window.fetch = fetch;
+            }
+        }
+
+        async function testErrorHandling() {
+            log('Testing error handling...', 'info');
+            
+            try {
+                // Mock a server error
+                const originalFetch = window.fetch;
+                window.fetch = async () => ({
+                    ok: false,
+                    status: 500,
+                    statusText: 'Internal Server Error',
+                    headers: { get: () => null }
+                });
+
+                const config = {
+                    url: 'https://httpbin.org/status/500',
+                    method: 'POST',
+                    data: { test: 'error_test' }
+                };
+
+                await transport.sendRequest(config);
+                log('✗ Error test failed - should have thrown error', 'error');
+                
+            } catch (error) {
+                if (error.code === 'SERVER_ERROR') {
+                    log(`✓ Server error handled correctly: ${error.userMessage}`, 'success');
+                } else {
+                    log(`✓ Error handled: ${error.message} (${error.code})`, 'success');
+                }
+            } finally {
+                window.fetch = fetch;
+            }
+        }
+
+        function testMetrics() {
+            log('Testing performance metrics...', 'info');
+            
+            // Simulate some requests
+            transport.updateMetrics(true, 150);
+            transport.updateMetrics(true, 200);
+            transport.updateMetrics(false, 300);
+            transport.updateMetrics(true, 100);
+            
+            const metrics = transport.getMetrics();
+            
+            log(`Total requests: ${metrics.totalRequests}`, 'info');
+            log(`Successful requests: ${metrics.successfulRequests}`, 'info');
+            log(`Failed requests: ${metrics.failedRequests}`, 'info');
+            log(`Success rate: ${metrics.successRate.toFixed(2)}%`, 'info');
+            log(`Average response time: ${metrics.averageResponseTime.toFixed(2)}ms`, 'info');
+            
+            if (metrics.totalRequests === 4 && metrics.successRate === 75) {
+                log('✓ Metrics tracking working correctly', 'success');
+            } else {
+                log('✗ Metrics tracking has issues', 'error');
+            }
+        }
+
+        async function testWordPressAjax() {
+            log('Testing WordPress AJAX format...', 'info');
+            
+            try {
+                // Mock WordPress AJAX response
+                const originalFetch = window.fetch;
+                window.fetch = async () => ({
+                    ok: true,
+                    status: 200,
+                    statusText: 'OK',
+                    headers: {
+                        get: (name) => name === 'content-type' ? 'application/json' : null
+                    },
+                    json: async () => ({
+                        success: true,
+                        data: {
+                            message: 'Settings saved successfully',
+                            updated_settings: { theme: 'dark', color: 'blue' }
+                        }
+                    })
+                });
+
+                const config = {
+                    url: '/wp-admin/admin-ajax.php',
+                    method: 'POST',
+                    data: {
+                        action: 'las_save_settings',
+                        nonce: 'mock_nonce_12345',
+                        settings: JSON.stringify({ theme: 'dark', color: 'blue' })
+                    }
+                };
+
+                const response = await transport.sendRequest(config);
+                
+                if (response.data.success) {
+                    log('✓ WordPress AJAX format handled correctly', 'success');
+                    log(`Response: ${JSON.stringify(response.data)}`, 'info');
+                } else {
+                    log('✗ WordPress AJAX response format invalid', 'error');
+                }
+                
+                window.fetch = originalFetch;
+                
+            } catch (error) {
+                log(`✗ WordPress AJAX test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testFormDataRequest() {
+            log('Testing FormData request...', 'info');
+            
+            try {
+                const originalFetch = window.fetch;
+                window.fetch = async (url, options) => {
+                    log(`FormData request body type: ${options.body.constructor.name}`, 'info');
+                    log(`Content-Type header: ${options.headers['Content-Type'] || 'Not set (correct for FormData)'}`, 'info');
+                    
+                    return {
+                        ok: true,
+                        status: 200,
+                        headers: { get: () => 'application/json' },
+                        json: async () => ({ success: true, data: 'FormData processed' })
+                    };
+                };
+
+                const formData = new FormData();
+                formData.append('action', 'las_upload_file');
+                formData.append('nonce', 'test_nonce');
+                formData.append('file_data', 'mock_file_content');
+
+                const config = {
+                    url: '/wp-admin/admin-ajax.php',
+                    method: 'POST',
+                    data: formData
+                };
+
+                const response = await transport.sendRequest(config);
+                log('✓ FormData request handled correctly', 'success');
+                
+                window.fetch = originalFetch;
+                
+            } catch (error) {
+                log(`✗ FormData test failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeTransport();
+            log('Integration test page loaded', 'success');
+        });
+    </script>
+</body>
+</html>

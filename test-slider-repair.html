@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Slider Repair Test</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/ui-lightness/jquery-ui.css">
+    <link rel="stylesheet" href="assets/css/slider-fallback.css">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .result { margin: 10px 0; padding: 10px; background: #f9f9f9; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        button { padding: 8px 16px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Slider Repair Test</h1>
+    
+    <div class="test-section">
+        <h2>jQuery UI Slider Test</h2>
+        <div class="las-slider-container">
+            <input type="number" id="test-slider-input" class="las-slider-input" value="50" min="0" max="100" step="1">
+            <div id="test-slider" class="las-slider" data-setting="test-slider-input" data-min="0" data-max="100" data-step="1" data-unit="px"></div>
+            <span id="test-slider-input-value" class="las-slider-value">50px</span>
+        </div>
+        <div id="slider-results"></div>
+        <button onclick="testSlider()">Test Slider</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Multiple Sliders Test</h2>
+        <div class="las-slider-container">
+            <label>Border Radius:</label>
+            <input type="number" id="border-radius" class="las-slider-input" value="5" min="0" max="50" step="1">
+            <div id="border-radius-slider" class="las-slider" data-setting="border-radius" data-min="0" data-max="50" data-step="1" data-unit="px"></div>
+            <span id="border-radius-value" class="las-slider-value">5px</span>
+        </div>
+        
+        <div class="las-slider-container">
+            <label>Menu Width:</label>
+            <input type="number" id="menu-width" class="las-slider-input" value="220" min="180" max="300" step="5">
+            <div id="menu-width-slider" class="las-slider" data-setting="menu-width" data-min="180" data-max="300" data-step="5" data-unit="px"></div>
+            <span id="menu-width-value" class="las-slider-value">220px</span>
+        </div>
+        
+        <div class="las-slider-container">
+            <label>Font Size:</label>
+            <input type="number" id="font-size" class="las-slider-input" value="14" min="10" max="24" step="1">
+            <div id="font-size-slider" class="las-slider" data-setting="font-size" data-min="10" data-max="24" data-step="1" data-unit="px"></div>
+            <span id="font-size-value" class="las-slider-value">14px</span>
+        </div>
+        
+        <button onclick="initializeAllSliders()">Initialize All Sliders</button>
+        <button onclick="testAllSliders()">Test All Sliders</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Live Preview Simulation</h2>
+        <div id="preview-area" style="background: #23282d; color: #f0f0f1; padding: 20px; margin: 10px 0; border-radius: 5px;">
+            <div style="font-size: 14px;">Sample Admin Menu</div>
+            <div style="margin: 5px 0;">📊 Dashboard</div>
+            <div style="margin: 5px 0;">📝 Posts</div>
+            <div style="margin: 5px 0;">📄 Pages</div>
+        </div>
+        <button onclick="simulateLivePreview()">Simulate Live Preview</button>
+    </div>
+
+    <script>
+        function addResult(message, type = 'result') {
+            const container = document.getElementById('slider-results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            container.appendChild(div);
+        }
+        
+        function testSlider() {
+            addResult('Testing jQuery UI slider...', 'result');
+            
+            if (typeof jQuery === 'undefined') {
+                addResult('❌ jQuery not available', 'error');
+                return;
+            }
+            
+            if (typeof jQuery.ui === 'undefined' || typeof jQuery.ui.slider === 'undefined') {
+                addResult('❌ jQuery UI slider not available', 'error');
+                return;
+            }
+            
+            addResult('✅ jQuery and jQuery UI available', 'success');
+            
+            // Test slider initialization
+            const $slider = jQuery('#test-slider');
+            const $input = jQuery('#test-slider-input');
+            const $value = jQuery('#test-slider-input-value');
+            
+            try {
+                $slider.slider({
+                    min: 0,
+                    max: 100,
+                    step: 1,
+                    value: 50,
+                    slide: function(event, ui) {
+                        $input.val(ui.value);
+                        $value.text(ui.value + 'px');
+                        addResult(`Slider moved to: ${ui.value}`, 'success');
+                    }
+                });
+                
+                addResult('✅ Slider initialized successfully', 'success');
+                
+                // Test programmatic value change
+                setTimeout(() => {
+                    $slider.slider('value', 75);
+                    addResult('✅ Programmatic value change works', 'success');
+                }, 1000);
+                
+            } catch (error) {
+                addResult('❌ Slider initialization failed: ' + error.message, 'error');
+            }
+        }
+        
+        function initializeAllSliders() {
+            if (typeof jQuery === 'undefined' || typeof jQuery.ui === 'undefined') {
+                alert('jQuery UI not available');
+                return;
+            }
+            
+            const $ = jQuery;
+            let initialized = 0;
+            
+            $('.las-slider').each(function() {
+                const $sliderDiv = $(this);
+                const settingKey = $sliderDiv.data('setting');
+                const min = parseFloat($sliderDiv.data('min')) || 0;
+                const max = parseFloat($sliderDiv.data('max')) || 100;
+                const step = parseFloat($sliderDiv.data('step')) || 1;
+                const unit = $sliderDiv.data('unit') || '';
+                
+                const $input = $(`#${settingKey}`);
+                const $valueDisplay = $(`#${settingKey}-value`);
+                
+                if (!$input.length) {
+                    console.warn(`No input found for slider ${settingKey}`);
+                    return;
+                }
+                
+                const currentValue = parseFloat($input.val()) || min;
+                
+                try {
+                    $sliderDiv.slider({
+                        min: min,
+                        max: max,
+                        step: step,
+                        value: currentValue,
+                        slide: function(event, ui) {
+                            $input.val(ui.value);
+                            if ($valueDisplay.length) {
+                                $valueDisplay.text(ui.value + (unit === 'none' ? '' : unit));
+                            }
+                            console.log(`Slider ${settingKey} changed to ${ui.value}`);
+                        }
+                    });
+                    
+                    // Sync input changes back to slider
+                    $input.on('change', function() {
+                        const value = parseFloat($(this).val());
+                        if (!isNaN(value) && value >= min && value <= max) {
+                            $sliderDiv.slider('value', value);
+                            if ($valueDisplay.length) {
+                                $valueDisplay.text(value + (unit === 'none' ? '' : unit));
+                            }
+                        }
+                    });
+                    
+                    initialized++;
+                    console.log(`Initialized slider for ${settingKey}`);
+                } catch (error) {
+                    console.error(`Failed to initialize slider ${settingKey}:`, error);
+                }
+            });
+            
+            alert(`Initialized ${initialized} sliders`);
+        }
+        
+        function testAllSliders() {
+            const $ = jQuery;
+            
+            // Test each slider by setting random values
+            $('.las-slider').each(function() {
+                const $slider = $(this);
+                const min = $slider.slider('option', 'min');
+                const max = $slider.slider('option', 'max');
+                const randomValue = Math.floor(Math.random() * (max - min + 1)) + min;
+                
+                $slider.slider('value', randomValue);
+            });
+        }
+        
+        function simulateLivePreview() {
+            const previewArea = document.getElementById('preview-area');
+            const borderRadius = document.getElementById('border-radius').value;
+            const fontSize = document.getElementById('font-size').value;
+            
+            // Apply styles to simulate live preview
+            previewArea.style.borderRadius = borderRadius + 'px';
+            previewArea.style.fontSize = fontSize + 'px';
+            
+            alert(`Live preview applied: border-radius: ${borderRadius}px, font-size: ${fontSize}px`);
+        }
+        
+        // Auto-initialize on load
+        jQuery(document).ready(function() {
+            console.log('Document ready, testing slider functionality...');
+            setTimeout(() => {
+                testSlider();
+                setTimeout(() => {
+                    initializeAllSliders();
+                }, 1000);
+            }, 500);
+        });
+    </script>
+</body>
+</html>

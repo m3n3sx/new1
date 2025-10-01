@@ -1,0 +1,2207 @@
+(function($) {
+    'use strict';
+
+    var valueCache = {};
+    window.valueCache = valueCache; 
+    
+    // Enhanced value cache for menu states
+    var menuStateCache = {
+        isCollapsed: false,
+        currentWidth: 220,
+        submenuPositions: {},
+        lastCollapseState: null
+    };
+    window.menuStateCache = menuStateCache;
+
+    /**
+     * Enhanced Live Preview Manager with Performance Optimizations
+     * Provides debounced field change handlers, improved error handling,
+     * temporary CSS application, optimized AJAX calls, and CSS caching
+     */
+    var LivePreviewManager = {
+        debounceTimer: null,
+        debounceDelay: 150,
+        ajaxQueue: [],
+        isProcessingQueue: false,
+        tempStyleElement: null,
+        errorCount: 0,
+        maxErrors: 5,
+        lastOperation: null,
+        retryCount: 0,
+        maxRetries: 3,
+        
+        // CSS Caching System
+        cssCache: new Map(),
+        cacheMaxSize: 50,
+        cacheExpiryTime: 300000, // 5 minutes
+        cacheHits: 0,
+        cacheMisses: 0,
+        
+        init: function() {
+            this.createTempStyleElement();
+            this.bindEvents();
+            this.initCacheSystem();
+            this.setupResourceCleanup();
+            console.log('LAS: LivePreviewManager initialized with debounce delay:', this.debounceDelay + 'ms');
+        },
+        
+        initCacheSystem: function() {
+            // Initialize CSS cache with performance monitoring
+            this.cssCache = new Map();
+            this.cacheHits = 0;
+            this.cacheMisses = 0;
+            
+            // Periodic cache cleanup
+            setInterval(() => {
+                this.cleanupExpiredCache();
+            }, 60000); // Clean every minute
+            
+            console.log('LAS: CSS caching system initialized');
+        },
+        
+        setupResourceCleanup: function() {
+            var self = this;
+            
+            // Cleanup on page unload
+            $(window).on('beforeunload.las-cleanup', function() {
+                self.cleanup();
+            });
+            
+            // Cleanup on page visibility change (when tab becomes hidden)
+            $(document).on('visibilitychange.las-cleanup', function() {
+                if (document.hidden) {
+                    self.pauseOperations();
+                } else {
+                    self.resumeOperations();
+                }
+            });
+            
+            console.log('LAS: Resource cleanup handlers initialized');
+        },
+        
+        createTempStyleElement: function() {
+            // Create temporary style element for instant feedback
+            this.tempStyleElement = document.createElement('style');
+            this.tempStyleElement.id = 'las-temp-preview-style';
+            this.tempStyleElement.type = 'text/css';
+            
+            if (document.head) {
+                document.head.appendChild(this.tempStyleElement);
+            }
+        },
+        
+        bindEvents: function() {
+            var self = this;
+            
+            // Override the existing handleLiveUpdate function
+            window.handleLiveUpdate = function(setting, value) {
+                self.handleFieldChange(setting, value);
+            };
+        },
+        
+        handleFieldChange: function(setting, value) {
+            var self = this;
+            
+            try {
+                // Validate input parameters
+                if (typeof setting !== 'string' || setting.trim() === '') {
+                    console.warn('LAS LivePreviewManager: Invalid setting parameter:', setting);
+                    return;
+                }
+                
+                // Check for value changes using cache
+                var previousValue = valueCache[setting];
+                var hasChanged = this.hasValueChanged(previousValue, value);
+                
+                if (!hasChanged && previousValue !== undefined) {
+                    console.log('LAS LivePreviewManager: Value unchanged for setting "' + setting + '", skipping update');
+                    return;
+                }
+                
+                // Store last operation for retry functionality
+                this.lastOperation = { setting: setting, value: value };
+                this.retryCount = 0;
+                
+                // Update cache
+                this.updateCache(setting, value);
+                
+                // Apply temporary styles for instant feedback
+                this.applyTemporaryStyles(setting, value);
+                
+                // Show loading state
+                this.showLoadingState(setting);
+                
+                // Debounce the AJAX call
+                clearTimeout(this.debounceTimer);
+                this.debounceTimer = setTimeout(function() {
+                    self.requestFullUpdate(setting, value);
+                }, this.debounceDelay);
+                
+            } catch (error) {
+                this.handleError('Error in handleFieldChange', error);
+            }
+        },
+        
+        hasValueChanged: function(previousValue, newValue) {
+            if (typeof newValue === 'object' && newValue !== null && previousValue !== undefined) {
+                try {
+                    return JSON.stringify(previousValue) !== JSON.stringify(newValue);
+                } catch (jsonError) {
+                    console.warn('LAS LivePreviewManager: Error comparing object values, treating as changed:', jsonError);
+                    return true;
+                }
+            }
+            return previousValue !== newValue;
+        },
+        
+        updateCache: function(setting, value) {
+            try {
+                valueCache[setting] = (typeof value === 'object' && value !== null) 
+                    ? JSON.parse(JSON.stringify(value)) 
+                    : value;
+            } catch (cloneError) {
+                console.warn('LAS LivePreviewManager: Error cloning value for cache, using direct assignment:', cloneError);
+                valueCache[setting] = value;
+            }
+        },
+        
+        applyTemporaryStyles: function(setting, value) {
+            try {
+                var tempCSS = this.generateTemporaryCSS(setting, value);
+                if (tempCSS && this.tempStyleElement) {
+                    this.tempStyleElement.innerHTML = tempCSS;
+                }
+            } catch (error) {
+                console.warn('LAS LivePreviewManager: Error applying temporary styles:', error);
+            }
+        },
+        
+        generateTemporaryCSS: function(setting, value) {
+            // Generate basic CSS for common settings for instant feedback
+            var css = '';
+            
+            try {
+                switch (setting) {
+                    case 'admin_menu_bg_color':
+                        css = '#adminmenu { background-color: ' + value + ' !important; }';
+                        break;
+                    case 'admin_menu_text_color':
+                        css = '#adminmenu a { color: ' + value + ' !important; }';
+                        break;
+                    case 'admin_bar_bg_color':
+                        css = '#wpadminbar { background-color: ' + value + ' !important; }';
+                        break;
+                    case 'admin_bar_text_color':
+                        css = '#wpadminbar .ab-item { color: ' + value + ' !important; }';
+                        break;
+                    case 'admin_menu_width':
+                        css = '#adminmenu { width: ' + value + 'px !important; }';
+                        css += '#wpcontent, #wpfooter { margin-left: ' + value + 'px !important; }';
+                        break;
+                    case 'admin_bar_height':
+                        css = '#wpadminbar { height: ' + value + 'px !important; }';
+                        break;
+                    // Add more cases for other common settings
+                    default:
+                        // For unknown settings, don't generate temporary CSS
+                        return '';
+                }
+            } catch (error) {
+                console.warn('LAS LivePreviewManager: Error generating temporary CSS for setting:', setting, error);
+                return '';
+            }
+            
+            return css;
+        },
+        
+        requestFullUpdate: function(setting, value) {
+            // Check cache first
+            var cacheKey = this.generateCacheKey(setting, value);
+            var cachedResult = this.getCachedCSS(cacheKey);
+            
+            if (cachedResult) {
+                this.cacheHits++;
+                console.log('LAS: Cache hit for setting:', setting, '(hits:', this.cacheHits, 'misses:', this.cacheMisses, ')');
+                this.applyFullStyles(cachedResult.css);
+                this.clearTemporaryStyles();
+                this.showSuccessState(setting);
+                this.hideLoadingState(setting);
+                return;
+            }
+            
+            this.cacheMisses++;
+            
+            // Add to queue for batch processing
+            this.ajaxQueue.push({ setting: setting, value: value, cacheKey: cacheKey });
+            
+            if (!this.isProcessingQueue) {
+                this.processAjaxQueue();
+            }
+        },
+        
+        generateCacheKey: function(setting, value) {
+            // Create a unique cache key based on setting and value
+            var valueStr = typeof value === 'object' ? JSON.stringify(value) : String(value);
+            return setting + ':' + btoa(valueStr).substring(0, 20);
+        },
+        
+        getCachedCSS: function(cacheKey) {
+            var cached = this.cssCache.get(cacheKey);
+            if (cached && (Date.now() - cached.timestamp) < this.cacheExpiryTime) {
+                return cached;
+            }
+            
+            // Remove expired entry
+            if (cached) {
+                this.cssCache.delete(cacheKey);
+            }
+            
+            return null;
+        },
+        
+        setCachedCSS: function(cacheKey, css) {
+            // Implement LRU cache behavior
+            if (this.cssCache.size >= this.cacheMaxSize) {
+                var firstKey = this.cssCache.keys().next().value;
+                this.cssCache.delete(firstKey);
+            }
+            
+            this.cssCache.set(cacheKey, {
+                css: css,
+                timestamp: Date.now()
+            });
+        },
+        
+        cleanupExpiredCache: function() {
+            var now = Date.now();
+            var expiredKeys = [];
+            
+            this.cssCache.forEach((value, key) => {
+                if ((now - value.timestamp) > this.cacheExpiryTime) {
+                    expiredKeys.push(key);
+                }
+            });
+            
+            expiredKeys.forEach(key => {
+                this.cssCache.delete(key);
+            });
+            
+            if (expiredKeys.length > 0) {
+                console.log('LAS: Cleaned up', expiredKeys.length, 'expired cache entries');
+            }
+        },
+        
+        processAjaxQueue: function() {
+            var self = this;
+            
+            if (this.ajaxQueue.length === 0) {
+                this.isProcessingQueue = false;
+                return;
+            }
+            
+            this.isProcessingQueue = true;
+            
+            // Process the most recent item in queue (debouncing effect)
+            var queueItem = this.ajaxQueue.pop();
+            this.ajaxQueue = []; // Clear queue since we're processing the latest
+            
+            this.performAjaxRequest(queueItem.setting, queueItem.value, queueItem.cacheKey)
+                .always(function() {
+                    // Process next item if queue has grown
+                    setTimeout(function() {
+                        self.processAjaxQueue();
+                    }, 50);
+                });
+        },
+        
+        performAjaxRequest: function(setting, value, cacheKey) {
+            var self = this;
+            
+            // Validate lasAdminData
+            if (!this.validateAjaxData()) {
+                return $.Deferred().reject('Invalid AJAX data').promise();
+            }
+            
+            return $.ajax({
+                url: lasAdminData.ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'las_get_preview_css',
+                    nonce: lasAdminData.nonce,
+                    setting: setting,
+                    value: value
+                },
+                dataType: 'json',
+                timeout: 8000, // Reduced timeout for better performance
+                beforeSend: function() {
+                    console.log('LAS LivePreviewManager: Sending AJAX request for setting:', setting);
+                }
+            })
+            .done(function(response) {
+                self.handleAjaxSuccess(response, setting, cacheKey);
+            })
+            .fail(function(jqXHR, textStatus, errorThrown) {
+                self.handleAjaxError(jqXHR, textStatus, errorThrown, setting);
+            });
+        },
+        
+        validateAjaxData: function() {
+            if (typeof lasAdminData === 'undefined' || !lasAdminData || typeof lasAdminData !== 'object') {
+                this.handleError('lasAdminData is not defined or not an object');
+                return false;
+            }
+            
+            if (!lasAdminData.ajaxurl || typeof lasAdminData.ajaxurl !== 'string') {
+                this.handleError('lasAdminData.ajaxurl is missing or invalid');
+                return false;
+            }
+            
+            if (!lasAdminData.nonce || typeof lasAdminData.nonce !== 'string') {
+                this.handleError('lasAdminData.nonce is missing or invalid');
+                return false;
+            }
+            
+            return true;
+        },
+        
+        handleAjaxSuccess: function(response, setting, cacheKey) {
+            try {
+                // Hide loading state
+                this.hideLoadingState(setting);
+                
+                if (!response || typeof response !== 'object') {
+                    this.handleError('Invalid response format - not an object', response);
+                    return;
+                }
+                
+                if (typeof response.success === 'undefined') {
+                    this.handleError('Response missing success property', response);
+                    return;
+                }
+                
+                if (response.success && typeof response.data !== 'undefined') {
+                    // Handle new enhanced response format
+                    var cssData = response.data;
+                    if (typeof response.data === 'object' && response.data.css) {
+                        cssData = response.data.css;
+                        
+                        // Log performance metrics if available
+                        if (response.data.performance) {
+                            console.log('LAS LivePreviewManager: Performance metrics:', response.data.performance);
+                            
+                            // Show performance notification for slow operations
+                            if (response.data.performance.execution_time_ms > 1000) {
+                                if (window.ErrorManager) {
+                                    window.ErrorManager.showWarning('Podgląd wygenerowany w ' + response.data.performance.execution_time_ms + 'ms (wolno)', {
+                                        duration: 3000
+                                    });
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Cache the CSS result
+                    if (cacheKey && cssData) {
+                        this.setCachedCSS(cacheKey, cssData);
+                    }
+                    
+                    this.applyFullStyles(cssData);
+                    this.clearTemporaryStyles();
+                    
+                    // Show success feedback for field
+                    this.showSuccessState(setting);
+                    
+                    // Handle menu state-specific post-update actions
+                    if (setting === 'admin_menu_width' || setting === 'menu_collapse_state') {
+                        this.handleMenuStateUpdate(setting);
+                    }
+                    
+                    // Reset error count and retry count on successful request
+                    this.errorCount = 0;
+                    this.retryCount = 0;
+                    
+                } else if (response.data && response.data.message) {
+                    var errorMsg = 'Server returned error: ' + response.data.message;
+                    if (response.data.code) {
+                        errorMsg += ' (Code: ' + response.data.code + ')';
+                    }
+                    this.handleError(errorMsg);
+                } else {
+                    this.handleError('Server responded with success:false', response);
+                }
+                
+            } catch (error) {
+                this.handleError('Error in AJAX success handler', error);
+            }
+        },
+        
+        handleAjaxError: function(jqXHR, textStatus, errorThrown, setting) {
+            // Hide loading state
+            this.hideLoadingState(setting);
+            
+            // Show error state for field
+            this.showErrorState(setting);
+            
+            this.errorCount++;
+            
+            var errorMessage = 'AJAX error for setting "' + setting + '". Status: ' + textStatus + ', Error: ' + errorThrown;
+            
+            // Enhanced error reporting
+            if (textStatus === 'timeout') {
+                errorMessage += ' (Request timed out - server may be overloaded)';
+            } else if (textStatus === 'parsererror') {
+                errorMessage += ' (Received non-JSON response)';
+            } else if (jqXHR.status === 0) {
+                errorMessage += ' (Network error or CORS issue)';
+            } else if (jqXHR.status >= 500) {
+                errorMessage += ' (Server error 5xx)';
+            } else if (jqXHR.status >= 400) {
+                errorMessage += ' (Client error 4xx)';
+            }
+            
+            this.handleError(errorMessage);
+            
+            // If too many errors, disable live preview temporarily
+            if (this.errorCount >= this.maxErrors) {
+                console.warn('LAS LivePreviewManager: Too many errors (' + this.errorCount + '), temporarily disabling live preview');
+                this.temporarilyDisable();
+            }
+        },
+        
+        applyFullStyles: function(cssData) {
+            try {
+                // Remove existing static styles to prevent conflicts
+                var existingStaticStyle = document.getElementById('las-fresh-dynamic-admin-styles');
+                if (existingStaticStyle && existingStaticStyle.parentNode) {
+                    existingStaticStyle.parentNode.removeChild(existingStaticStyle);
+                }
+                
+                // Create or update live preview style element
+                var styleId = 'las-live-preview-style';
+                var styleEl = document.getElementById(styleId);
+                
+                if (!styleEl) {
+                    if (!document.head) {
+                        throw new Error('document.head is not available');
+                    }
+                    
+                    styleEl = document.createElement('style');
+                    styleEl.id = styleId;
+                    styleEl.type = 'text/css';
+                    document.head.appendChild(styleEl);
+                }
+                
+                // Set CSS content
+                styleEl.innerHTML = typeof cssData === 'string' ? cssData : String(cssData || '');
+                
+            } catch (error) {
+                this.handleError('Error applying full styles', error);
+            }
+        },
+        
+        clearTemporaryStyles: function() {
+            if (this.tempStyleElement) {
+                this.tempStyleElement.innerHTML = '';
+            }
+        },
+        
+        handleMenuStateUpdate: function(setting) {
+            var self = this;
+            setTimeout(function() {
+                try {
+                    if (typeof handleMenuStateTransitionComplete === 'function') {
+                        handleMenuStateTransitionComplete();
+                    }
+                    console.log('LAS LivePreviewManager: Menu state update completed for setting:', setting);
+                } catch (error) {
+                    self.handleError('Error in menu state transition handling', error);
+                }
+            }, 50);
+        },
+        
+        handleError: function(message, error) {
+            console.error('LAS LivePreviewManager: ' + message, error || '');
+            
+            // Report error to server for logging
+            this.reportErrorToServer(message, error);
+            
+            // Show user-friendly notification
+            this.showErrorNotification(message, error);
+        },
+        
+        showErrorNotification: function(message, error) {
+            // Use ErrorManager if available, otherwise fallback to console
+            if (window.ErrorManager && typeof window.ErrorManager.showError === 'function') {
+                var userMessage = this.getUserFriendlyErrorMessage(message);
+                window.ErrorManager.showError(userMessage, {
+                    duration: 8000,
+                    actions: [{
+                        label: 'Spróbuj ponownie',
+                        callback: function() {
+                            // Retry the last operation
+                            if (window.LivePreviewManager && window.LivePreviewManager.retryLastOperation) {
+                                window.LivePreviewManager.retryLastOperation();
+                            }
+                        },
+                        primary: true
+                    }, {
+                        label: 'Zgłoś problem',
+                        callback: function() {
+                            window.LivePreviewManager.reportDetailedError(message, error);
+                        }
+                    }]
+                });
+            } else {
+                // Fallback to console warning
+                console.warn('Live Preview Error: ' + message);
+            }
+        },
+        
+        getUserFriendlyErrorMessage: function(technicalMessage) {
+            var friendlyMessages = {
+                'Invalid response format': 'Otrzymano nieprawidłową odpowiedź z serwera',
+                'Response missing success property': 'Serwer zwrócił niepełną odpowiedź',
+                'Server returned error': 'Serwer zgłosił błąd podczas przetwarzania',
+                'AJAX error': 'Błąd komunikacji z serwerem',
+                'timeout': 'Przekroczono limit czasu oczekiwania na odpowiedź',
+                'parsererror': 'Błąd przetwarzania odpowiedzi serwera',
+                'Network error': 'Błąd połączenia sieciowego'
+            };
+            
+            for (var key in friendlyMessages) {
+                if (technicalMessage.toLowerCase().includes(key.toLowerCase())) {
+                    return friendlyMessages[key];
+                }
+            }
+            
+            return 'Wystąpił nieoczekiwany błąd podczas podglądu na żywo';
+        },
+        
+        reportErrorToServer: function(message, error) {
+            // Don't report if we don't have valid AJAX data
+            if (!this.validateAjaxData()) {
+                return;
+            }
+            
+            var errorData = {
+                action: 'las_report_error',
+                nonce: lasAdminData.nonce,
+                message: message,
+                type: 'live_preview',
+                source: 'live-preview.js',
+                stack: error && error.stack ? error.stack : '',
+                url: window.location.href,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Send error report (don't wait for response)
+            $.post(lasAdminData.ajaxurl, errorData).fail(function() {
+                console.warn('LAS: Failed to report error to server');
+            });
+        },
+        
+        reportDetailedError: function(message, error) {
+            var detailsWindow = window.open('', '_blank', 'width=600,height=400,scrollbars=yes');
+            if (detailsWindow) {
+                detailsWindow.document.write(`
+                    <html>
+                        <head><title>Szczegóły błędu - Live Admin Styler</title></head>
+                        <body style="font-family: Arial, sans-serif; padding: 20px;">
+                            <h2>Szczegóły błędu</h2>
+                            <p><strong>Komunikat:</strong> ${message}</p>
+                            <p><strong>Czas:</strong> ${new Date().toLocaleString()}</p>
+                            <p><strong>URL:</strong> ${window.location.href}</p>
+                            <p><strong>User Agent:</strong> ${navigator.userAgent}</p>
+                            ${error && error.stack ? `<p><strong>Stack trace:</strong><br><pre>${error.stack}</pre></p>` : ''}
+                            <p>Skopiuj powyższe informacje i wyślij je do wsparcia technicznego.</p>
+                        </body>
+                    </html>
+                `);
+            }
+        },
+        
+        temporarilyDisable: function() {
+            var self = this;
+            
+            // Clear any pending timers
+            clearTimeout(this.debounceTimer);
+            
+            // Re-enable after 30 seconds
+            setTimeout(function() {
+                self.errorCount = 0;
+                console.log('LAS LivePreviewManager: Re-enabled after temporary disable');
+            }, 30000);
+        },
+        
+        // Public methods for external use
+        updateDebounceDelay: function(delay) {
+            this.debounceDelay = Math.max(50, Math.min(1000, delay)); // Clamp between 50ms and 1000ms
+            console.log('LAS LivePreviewManager: Debounce delay updated to:', this.debounceDelay + 'ms');
+        },
+        
+        clearCache: function() {
+            valueCache = {};
+            window.valueCache = valueCache;
+            console.log('LAS LivePreviewManager: Cache cleared');
+        },
+        
+        showLoadingState: function(setting) {
+            // Find the field element and add loading class
+            var fieldSelector = '[name*="[' + setting + ']"]';
+            var $field = $(fieldSelector);
+            
+            if ($field.length) {
+                $field.addClass('las-field-loading');
+                
+                // Also add loading to the field row
+                $field.closest('.field-row').addClass('las-loading');
+            }
+        },
+        
+        hideLoadingState: function(setting) {
+            // Find the field element and remove loading class
+            var fieldSelector = '[name*="[' + setting + ']"]';
+            var $field = $(fieldSelector);
+            
+            if ($field.length) {
+                $field.removeClass('las-field-loading');
+                
+                // Also remove loading from the field row
+                $field.closest('.field-row').removeClass('las-loading');
+            }
+        },
+        
+        showSuccessState: function(setting) {
+            var fieldSelector = '[name*="[' + setting + ']"]';
+            var $field = $(fieldSelector);
+            var $fieldRow = $field.closest('.field-row');
+            
+            if ($fieldRow.length) {
+                // Remove any existing state classes
+                $fieldRow.removeClass('las-field-error las-field-loading');
+                
+                // Add success class temporarily
+                $fieldRow.addClass('las-field-success');
+                
+                // Remove success class after animation
+                setTimeout(function() {
+                    $fieldRow.removeClass('las-field-success');
+                }, 2000);
+                
+                // Remove any existing inline error messages
+                $fieldRow.find('.las-inline-error').remove();
+            }
+        },
+        
+        showErrorState: function(setting, errorMessage) {
+            var fieldSelector = '[name*="[' + setting + ']"]';
+            var $field = $(fieldSelector);
+            var $fieldRow = $field.closest('.field-row');
+            
+            if ($fieldRow.length) {
+                // Remove any existing state classes
+                $fieldRow.removeClass('las-field-success las-field-loading');
+                
+                // Add error class
+                $fieldRow.addClass('las-field-error');
+                
+                // Add inline error message if provided
+                if (errorMessage) {
+                    // Remove existing error messages
+                    $fieldRow.find('.las-inline-error').remove();
+                    
+                    var $errorMsg = $('<div class="las-inline-error"><span class="dashicons dashicons-warning"></span>' + errorMessage + '</div>');
+                    $fieldRow.append($errorMsg);
+                    
+                    // Auto-remove error message after 10 seconds
+                    setTimeout(function() {
+                        $errorMsg.fadeOut(function() {
+                            $errorMsg.remove();
+                            $fieldRow.removeClass('las-field-error');
+                        });
+                    }, 10000);
+                }
+            }
+        },
+        
+        retryLastOperation: function() {
+            if (this.lastOperation && this.retryCount < this.maxRetries) {
+                this.retryCount++;
+                console.log('LAS LivePreviewManager: Retrying operation (attempt ' + this.retryCount + '/' + this.maxRetries + ')');
+                
+                // Show retry notification
+                if (window.ErrorManager) {
+                    window.ErrorManager.showInfo('Ponawiam operację... (próba ' + this.retryCount + '/' + this.maxRetries + ')', {
+                        duration: 2000
+                    });
+                }
+                
+                this.requestFullUpdate(this.lastOperation.setting, this.lastOperation.value);
+            } else {
+                if (window.ErrorManager) {
+                    window.ErrorManager.showError('Przekroczono maksymalną liczbę prób. Odśwież stronę i spróbuj ponownie.', {
+                        persistent: true,
+                        actions: [{
+                            label: 'Odśwież stronę',
+                            callback: function() {
+                                window.location.reload();
+                            },
+                            primary: true
+                        }]
+                    });
+                }
+            }
+        },
+        
+        pauseOperations: function() {
+            // Clear any pending timers
+            clearTimeout(this.debounceTimer);
+            
+            // Mark as paused
+            this.isPaused = true;
+            
+            console.log('LAS LivePreviewManager: Operations paused');
+        },
+        
+        resumeOperations: function() {
+            this.isPaused = false;
+            
+            // Resume processing if there are queued items
+            if (this.ajaxQueue.length > 0 && !this.isProcessingQueue) {
+                this.processAjaxQueue();
+            }
+            
+            console.log('LAS LivePreviewManager: Operations resumed');
+        },
+        
+        cleanup: function() {
+            console.log('LAS LivePreviewManager: Starting cleanup...');
+            
+            // Clear all timers
+            clearTimeout(this.debounceTimer);
+            
+            // Clear cache
+            this.cssCache.clear();
+            
+            // Clear queue
+            this.ajaxQueue = [];
+            
+            // Remove temporary style elements
+            if (this.tempStyleElement && this.tempStyleElement.parentNode) {
+                this.tempStyleElement.parentNode.removeChild(this.tempStyleElement);
+            }
+            
+            // Clear value cache
+            if (window.valueCache) {
+                window.valueCache = {};
+            }
+            
+            // Clear menu state cache
+            if (window.menuStateCache) {
+                window.menuStateCache = {
+                    isCollapsed: false,
+                    currentWidth: 220,
+                    submenuPositions: {},
+                    lastCollapseState: null
+                };
+            }
+            
+            // Remove all namespaced event listeners
+            $(document).off('.las-live-preview');
+            $(window).off('.las-cleanup');
+            
+            console.log('LAS LivePreviewManager: Cleanup completed');
+        },
+        
+        getStats: function() {
+            return {
+                cacheSize: Object.keys(valueCache).length,
+                cssCacheSize: this.cssCache.size,
+                cacheHits: this.cacheHits,
+                cacheMisses: this.cacheMisses,
+                cacheHitRatio: this.cacheHits + this.cacheMisses > 0 ? (this.cacheHits / (this.cacheHits + this.cacheMisses) * 100).toFixed(2) + '%' : '0%',
+                queueLength: this.ajaxQueue.length,
+                errorCount: this.errorCount,
+                debounceDelay: this.debounceDelay,
+                isProcessing: this.isProcessingQueue,
+                isPaused: this.isPaused || false,
+                retryCount: this.retryCount,
+                lastOperation: this.lastOperation
+            };
+        }
+    };
+    
+    // Make LivePreviewManager globally available
+    window.LivePreviewManager = LivePreviewManager;
+    
+    // console.log('LAS Preview JS: Script loaded and valueCache initialized.');
+
+    function getSettingKeyFromName(nameAttr) {
+        if (!nameAttr) {
+            return null;
+        }
+        var match = nameAttr.match(/las_fresh_options\[([^\]]+)\]/);
+        if (match && match[1]) {
+            return match[1];
+        }
+        console.warn('LAS Preview JS: Could not extract setting key from name attribute:', nameAttr);
+        return nameAttr;
+    }
+
+    function handleLiveUpdate(setting, value) {
+        // Special handling for menu state changes to maintain compatibility
+        if (setting === 'admin_menu_width' || setting === 'menu_collapse_state') {
+            try {
+                // Update menu state cache for backward compatibility
+                if (typeof updateMenuStateCache === 'function') {
+                    updateMenuStateCache(setting, value);
+                }
+                console.log('LAS Debug: Menu state change detected. Setting:', setting, 'Value:', value);
+            } catch (cacheError) {
+                console.error('LAS Preview JS: Error updating menu state cache:', cacheError);
+            }
+        }
+        
+        // Delegate to the enhanced LivePreviewManager
+        if (window.LivePreviewManager && typeof window.LivePreviewManager.handleFieldChange === 'function') {
+            window.LivePreviewManager.handleFieldChange(setting, value);
+        } else {
+            console.error('LAS Preview JS: LivePreviewManager not available, falling back to basic handling');
+            // Basic fallback - just update cache
+            try {
+                valueCache[setting] = (typeof value === 'object' && value !== null) ? JSON.parse(JSON.stringify(value)) : value;
+            } catch (error) {
+                valueCache[setting] = value;
+            }
+        }
+    }
+
+    $(document).ready(function() {
+    function initScrollbarManagement() {
+        try {
+            console.log('LAS Debug: Initializing scrollbar management');
+            
+            // Initial check for scrollbar visibility with error handling
+            try {
+                checkScrollbarVisibility();
+            } catch (initialCheckError) {
+                console.error('LAS Scrollbar Management: Error in initial scrollbar visibility check:', initialCheckError);
+            }
+            
+            // Monitor for changes that might affect menu height
+            try {
+                // Check if MutationObserver is available
+                if (typeof MutationObserver === 'undefined') {
+                    console.warn('LAS Scrollbar Management: MutationObserver not available, dynamic scrollbar management may not work');
+                    return;
+                }
+                
+                var observer = new MutationObserver(function(mutations) {
+                    try {
+                        var shouldCheck = false;
+                        
+                        mutations.forEach(function(mutation) {
+                            try {
+                                if (mutation.type === 'childList' || 
+                                    (mutation.type === 'attributes' && 
+                                     (mutation.attributeName === 'class' || mutation.attributeName === 'style'))) {
+                                    shouldCheck = true;
+                                }
+                            } catch (mutationProcessError) {
+                                console.error('LAS Scrollbar Management: Error processing mutation:', mutationProcessError);
+                            }
+                        });
+                        
+                        if (shouldCheck) {
+                            setTimeout(function() {
+                                try {
+                                    checkScrollbarVisibility();
+                                } catch (delayedCheckError) {
+                                    console.error('LAS Scrollbar Management: Error in delayed scrollbar check:', delayedCheckError);
+                                }
+                            }, 100);
+                        }
+                        
+                    } catch (observerError) {
+                        console.error('LAS Scrollbar Management: Error in MutationObserver callback:', observerError);
+                    }
+                });
+            } catch (observerSetupError) {
+                console.error('LAS Scrollbar Management: Error setting up MutationObserver:', observerSetupError);
+                return;
+            }
+        } catch (initError) {
+            console.error('LAS Scrollbar Management: Error initializing scrollbar management:', initError);
+            return;
+        }
+        
+        // Observe changes to the admin menu with error handling
+        try {
+            var adminMenu = document.getElementById('adminmenu');
+            var adminMenuWrap = document.getElementById('adminmenuwrap');
+            
+            if (adminMenu) {
+                try {
+                    observer.observe(adminMenu, {
+                        childList: true,
+                        subtree: true,
+                        attributes: true,
+                        attributeFilter: ['class', 'style']
+                    });
+                    console.log('LAS Debug: Observing adminmenu for scrollbar management');
+                } catch (adminMenuObserveError) {
+                    console.error('LAS Scrollbar Management: Error observing adminmenu:', adminMenuObserveError);
+                }
+            } else {
+                console.warn('LAS Scrollbar Management: adminmenu element not found');
+            }
+            
+            if (adminMenuWrap) {
+                try {
+                    observer.observe(adminMenuWrap, {
+                        attributes: true,
+                        attributeFilter: ['class', 'style']
+                    });
+                    console.log('LAS Debug: Observing adminmenuwrap for scrollbar management');
+                } catch (adminMenuWrapObserveError) {
+                    console.error('LAS Scrollbar Management: Error observing adminmenuwrap:', adminMenuWrapObserveError);
+                }
+            } else {
+                console.warn('LAS Scrollbar Management: adminmenuwrap element not found');
+            }
+        } catch (elementObservationError) {
+            console.error('LAS Scrollbar Management: Error setting up element observation:', elementObservationError);
+        }
+        
+        // Check on window resize with error handling
+        try {
+            if (typeof $ !== 'undefined') {
+                $(window).on('resize.scrollbarManagement', function() {
+                    try {
+                        setTimeout(function() {
+                            try {
+                                checkScrollbarVisibility();
+                            } catch (resizeCheckError) {
+                                console.error('LAS Scrollbar Management: Error in resize scrollbar check:', resizeCheckError);
+                            }
+                        }, 100);
+                    } catch (resizeHandlerError) {
+                        console.error('LAS Scrollbar Management: Error in resize handler:', resizeHandlerError);
+                    }
+                });
+            } else {
+                console.warn('LAS Scrollbar Management: jQuery not available for resize handling');
+            }
+        } catch (resizeSetupError) {
+            console.error('LAS Scrollbar Management: Error setting up resize handler:', resizeSetupError);
+        }
+        
+        // Check when menu collapse state changes with error handling
+        try {
+            if (typeof $ !== 'undefined') {
+                $(document).on('click', '#collapse-menu', function() {
+                    try {
+                        setTimeout(function() {
+                            try {
+                                checkScrollbarVisibility();
+                            } catch (collapseCheckError) {
+                                console.error('LAS Scrollbar Management: Error in collapse scrollbar check:', collapseCheckError);
+                            }
+                        }, 200);
+                    } catch (collapseHandlerError) {
+                        console.error('LAS Scrollbar Management: Error in collapse handler:', collapseHandlerError);
+                    }
+                });
+            } else {
+                console.warn('LAS Scrollbar Management: jQuery not available for collapse handling');
+            }
+        } catch (collapseSetupError) {
+            console.error('LAS Scrollbar Management: Error setting up collapse handler:', collapseSetupError);
+        }
+    }
+        // Initialize LivePreviewManager first
+        LivePreviewManager.init();
+        
+        // Set up event handlers with proper namespacing
+        setupOptimizedEventHandlers();
+        // Initialize scrollbar management
+        initScrollbarManagement();
+        // Initialize menu collapse handler
+        initMenuCollapseHandler();
+        // Initialize submenu positioning
+        initSubmenuPositioning();
+        // Initialize menu state live preview integration
+        initMenuStateLivePreviewIntegration();
+        // Initialize enhanced submenu visibility system
+        initEnhancedSubmenuVisibility();
+    });
+
+    function setupOptimizedEventHandlers() {
+        try {
+            // Use namespaced events for proper cleanup
+            // Prevent multiple event binding
+            if (window.lasEventHandlersSetup) {
+                console.log('LAS Debug: Event handlers already set up, skipping duplicate setup');
+                return;
+            }
+            
+            // Validate jQuery availability
+            if (typeof $ === 'undefined' || typeof jQuery === 'undefined') {
+                console.error('LAS Preview JS: jQuery is not available, cannot set up event handlers');
+                return;
+            }
+            
+            window.lasEventHandlersSetup = true;
+            console.log('LAS Debug: Setting up event handlers');
+        } catch (error) {
+            console.error('LAS Preview JS: Error in setupEventHandlers initialization:', error);
+            return;
+        }
+        
+        // Handle color picker changes - multiple events to catch all scenarios with namespacing
+        try {
+            $(document).on('wpcolorpickerchange.las-live-preview', '.las-fresh-color-picker', function(event, ui) {
+                try {
+                    var $inputField = $(this);
+                    
+                    // Validate input field exists
+                    if (!$inputField || $inputField.length === 0) {
+                        console.warn('LAS Preview JS: Color picker input field not found');
+                        return;
+                    }
+                    
+                    var rawName = $inputField.attr('name');
+                    if (!rawName) {
+                        console.warn('LAS Preview JS: Color picker input field missing name attribute');
+                        return;
+                    }
+                    
+                    var setting = getSettingKeyFromName(rawName);
+                    if (!setting) {
+                        console.warn('LAS Preview JS: Could not extract setting key from color picker name:', rawName);
+                        return;
+                    }
+                    
+                    var value = '';
+                    if (ui && ui.color && typeof ui.color.toString === 'function') {
+                        value = ui.color.toString();
+                    } else {
+                        value = $inputField.val() || '';
+                    }
+                    
+                    console.log('LAS Debug: Color picker change detected. Setting:', setting, 'Value:', value);
+                    handleLiveUpdate(setting, value);
+                    
+                } catch (colorPickerError) {
+                    console.error('LAS Preview JS: Error handling color picker change:', colorPickerError);
+                }
+            });
+        } catch (colorPickerSetupError) {
+            console.error('LAS Preview JS: Error setting up color picker event handler:', colorPickerSetupError);
+        }
+        
+        try {
+            $(document).on('wpcolorpickerclear.las-live-preview', '.las-fresh-color-picker', function(event) {
+                try {
+                    var $inputField = $(this);
+                    
+                    // Validate input field exists
+                    if (!$inputField || $inputField.length === 0) {
+                        console.warn('LAS Preview JS: Color picker clear - input field not found');
+                        return;
+                    }
+                    
+                    var rawName = $inputField.attr('name');
+                    if (!rawName) {
+                        console.warn('LAS Preview JS: Color picker clear - input field missing name attribute');
+                        return;
+                    }
+                    
+                    var setting = getSettingKeyFromName(rawName);
+                    if (!setting) {
+                        console.warn('LAS Preview JS: Could not extract setting key from color picker clear name:', rawName);
+                        return;
+                    }
+                    
+                    var value = $inputField.data('default-color') || '';
+                    
+                    console.log('LAS Debug: Color picker clear detected. Setting:', setting, 'Default value:', value);
+                    handleLiveUpdate(setting, value);
+                    
+                } catch (colorPickerClearError) {
+                    console.error('LAS Preview JS: Error handling color picker clear:', colorPickerClearError);
+                }
+            });
+        } catch (colorPickerClearSetupError) {
+            console.error('LAS Preview JS: Error setting up color picker clear event handler:', colorPickerClearSetupError);
+        }
+        
+        // Fallback for regular change events on color picker inputs
+        try {
+            $(document).on('change.las-live-preview', '.las-fresh-color-picker', function(event) {
+                try {
+                    var $inputField = $(this);
+                    
+                    // Validate input field exists
+                    if (!$inputField || $inputField.length === 0) {
+                        console.warn('LAS Preview JS: Color picker fallback change - input field not found');
+                        return;
+                    }
+                    
+                    var rawName = $inputField.attr('name');
+                    if (!rawName) {
+                        console.warn('LAS Preview JS: Color picker fallback change - input field missing name attribute');
+                        return;
+                    }
+                    
+                    var setting = getSettingKeyFromName(rawName);
+                    if (!setting) {
+                        console.warn('LAS Preview JS: Could not extract setting key from color picker fallback name:', rawName);
+                        return;
+                    }
+                    
+                    var value = $inputField.val() || '';
+                    
+                    console.log('LAS Debug: Color picker fallback change detected. Setting:', setting, 'Value:', value);
+                    handleLiveUpdate(setting, value);
+                    
+                } catch (colorPickerFallbackError) {
+                    console.error('LAS Preview JS: Error handling color picker fallback change:', colorPickerFallbackError);
+                }
+            });
+        } catch (colorPickerFallbackSetupError) {
+            console.error('LAS Preview JS: Error setting up color picker fallback event handler:', colorPickerFallbackSetupError);
+        }
+        
+        // Handle all other field changes (selects, inputs, etc.)
+        try {
+            $(document).on('change.las-live-preview', '.las-field:not(.las-fresh-color-picker)', function(event) {
+                try {
+                    var $inputField = $(this);
+                    
+                    // Validate input field exists
+                    if (!$inputField || $inputField.length === 0) {
+                        console.warn('LAS Preview JS: Field change - input field not found');
+                        return;
+                    }
+                    
+                    var rawName = $inputField.attr('name');
+                    if (!rawName) {
+                        console.warn('LAS Preview JS: Field change - input field missing name attribute');
+                        return;
+                    }
+                    
+                    var setting = getSettingKeyFromName(rawName);
+                    if (!setting) {
+                        console.warn('LAS Preview JS: Could not extract setting key from field name:', rawName);
+                        return;
+                    }
+                    
+                    var value;
+                    
+                    try {
+                        if ($inputField.is('input[type="checkbox"]')) {
+                            value = $inputField.prop('checked') ? '1' : '0';
+                        } else if ($inputField.is('input[type="radio"]')) {
+                            if (!$inputField.is(':checked')) {
+                                return; // Skip unchecked radio buttons
+                            }
+                            value = $inputField.val() || '';
+                        } else {
+                            value = $inputField.val() || '';
+                        }
+                    } catch (valueExtractionError) {
+                        console.error('LAS Preview JS: Error extracting value from field:', valueExtractionError);
+                        value = '';
+                    }
+                    
+                    console.log('LAS Debug: Field change detected. Setting:', setting, 'Value:', value, 'Field type:', $inputField.prop('type') || $inputField.prop('tagName'));
+                    handleLiveUpdate(setting, value);
+                    
+                } catch (fieldChangeError) {
+                    console.error('LAS Preview JS: Error handling field change:', fieldChangeError);
+                }
+            });
+        } catch (fieldChangeSetupError) {
+            console.error('LAS Preview JS: Error setting up field change event handler:', fieldChangeSetupError);
+        }
+
+        // Slider events moved to setupEventHandlers()
+        
+        // Initialize sliders
+        $('.las-slider').trigger('init.lasSlider');
+    }
+    
+    // Slider initialization (kept outside setupEventHandlers to avoid duplication)
+    $(document).on('init.lasSlider', '.las-slider', function() {
+            var $sliderDiv = $(this);
+            if ($sliderDiv.data('ui-slider')) {
+                return;
+            }
+
+            var settingKey = $sliderDiv.data('setting');
+            var minVal = parseFloat($sliderDiv.data('min'));
+            var maxVal = parseFloat($sliderDiv.data('max'));
+            var stepVal = parseFloat($sliderDiv.data('step'));
+            var unitVal = $sliderDiv.data('unit') || '';
+
+            var $container = $sliderDiv.closest('.las-slider-container');
+            var $inputField = $container.find('.las-slider-input');
+            var $valueDisplay = $container.find('.las-slider-value');
+
+            if (!settingKey || !$inputField.length) {
+                console.error('LAS Preview JS: Slider missing setting key or input field for element:', $sliderDiv[0]);
+                return;
+            }
+            if (isNaN(minVal) || isNaN(maxVal) || isNaN(stepVal)) {
+                 minVal = parseFloat($inputField.attr('min')) || 0;
+                 maxVal = parseFloat($inputField.attr('max')) || 100;
+                 stepVal = parseFloat($inputField.attr('step')) || 1;
+                 if (isNaN(minVal) || isNaN(maxVal) || isNaN(stepVal)) {
+                    console.error('LAS Preview JS: Fallback slider parameters are also invalid. Cannot initialize slider:', settingKey);
+                    return;
+                 }
+            }
+
+            var initialVal = parseFloat($inputField.val());
+            initialVal = isNaN(initialVal) ? minVal : Math.max(minVal, Math.min(maxVal, initialVal));
+            
+            $inputField.val(initialVal);
+            if ($valueDisplay.length) {
+                $valueDisplay.text(initialVal + (unitVal === 'none' ? '' : unitVal));
+            }
+
+            $sliderDiv.slider({
+                range: "min",
+                value: initialVal,
+                min: minVal,
+                max: maxVal,
+                step: stepVal,
+                slide: function(event, ui) {
+                    $inputField.val(ui.value);
+                    if ($valueDisplay.length) {
+                        $valueDisplay.text(ui.value + (unitVal === 'none' ? '' : unitVal));
+                    }
+                },
+                stop: function(event, ui) {
+                    handleLiveUpdate(settingKey, ui.value); 
+                    $inputField.trigger('change'); 
+                }
+            });
+        });
+
+        $(document).on('change.las-live-preview', '.las-slider-input', function(event) {
+            if (event.originalEvent === undefined && !(event.isTrigger && event.type === 'change')) {
+                var $inputFieldProgrammatic = $(this);
+                var manualValProgrammatic = parseFloat($inputFieldProgrammatic.val());
+                var $sliderDivProgrammatic = $inputFieldProgrammatic.closest('.las-slider-container').find('.las-slider');
+                
+                if (!isNaN(manualValProgrammatic) && $sliderDivProgrammatic.data('ui-slider')) {
+                    var minValProg = parseFloat($sliderDivProgrammatic.slider('option', 'min'));
+                    var maxValProg = parseFloat($sliderDivProgrammatic.slider('option', 'max'));
+                    var clampedValProg = Math.max(minValProg, Math.min(maxValProg, manualValProgrammatic));
+
+                    if ($sliderDivProgrammatic.slider('value') !== clampedValProg) {
+                        $sliderDivProgrammatic.slider('value', clampedValProg);
+                    }
+                    if (manualValProgrammatic !== clampedValProg) {
+                        $inputFieldProgrammatic.val(clampedValProg);
+                    }
+                    var $valueDisplayProg = $inputFieldProgrammatic.closest('.las-slider-container').find('.las-slider-value');
+                    var unitValProg = $inputFieldProgrammatic.data('unit') || '';
+                    if ($valueDisplayProg.length) {
+                        $valueDisplayProg.text(clampedValProg + (unitValProg === 'none' ? '' : unitValProg));
+                    }
+                }
+                return; 
+            }
+
+            var $inputFieldDirect = $(this);
+            var manualValDirect = parseFloat($inputFieldDirect.val());
+            var $sliderDivDirect = $inputFieldDirect.closest('.las-slider-container').find('.las-slider');
+            var settingKeyDirect = $sliderDivDirect.data('setting'); 
+            
+            if (!isNaN(manualValDirect) && $sliderDivDirect.data('ui-slider')) {
+                var minValDirect = parseFloat($sliderDivDirect.slider('option', 'min'));
+                var maxValDirect = parseFloat($sliderDivDirect.slider('option', 'max'));
+                var clampedValDirect = Math.max(minValDirect, Math.min(maxValDirect, manualValDirect));
+
+                if ($sliderDivDirect.slider('value') !== clampedValDirect) {
+                    $sliderDivDirect.slider('value', clampedValDirect); 
+                }
+                if (manualValDirect !== clampedValDirect) {
+                    $inputFieldDirect.val(clampedValDirect); 
+                }
+                var $valueDisplayDirect = $inputFieldDirect.closest('.las-slider-container').find('.las-slider-value');
+                var unitValDirect = $inputFieldDirect.data('unit') || '';
+                if ($valueDisplayDirect.length) {
+                    $valueDisplayDirect.text(clampedValDirect + (unitValDirect === 'none' ? '' : unitValDirect));
+                }
+                
+                if (settingKeyDirect) {
+                    handleLiveUpdate(settingKeyDirect, clampedValDirect); 
+                }
+            }
+        });
+        
+        $(document).on('input.las-live-preview keyup.las-live-preview', '.las-slider-input', function(event) {
+            var $inputField = $(this);
+            var currentValue = $inputField.val();
+            var $valueDisplay = $inputField.closest('.las-slider-container').find('.las-slider-value');
+            var unitVal = $inputField.data('unit') || '';
+            if ($valueDisplay.length) {
+                $valueDisplay.text(currentValue + (unitVal === 'none' ? '' : unitVal));
+            }
+        });
+    }
+
+    // Scrollbar management functionality
+    
+    function checkScrollbarVisibility() {
+        try {
+            var $adminMenuWrap = $('#adminmenuwrap');
+            var $adminMenu = $('#adminmenu');
+            
+            if ($adminMenuWrap.length === 0 || $adminMenu.length === 0) {
+                return;
+            }
+            
+            var wrapElement = $adminMenuWrap[0];
+            var menuElement = $adminMenu[0];
+            
+            // Get the actual heights
+            var wrapHeight = wrapElement.clientHeight;
+            var menuHeight = menuElement.scrollHeight;
+            
+            // Check if content fits within container
+            var contentFits = menuHeight <= wrapHeight;
+            
+            if (contentFits) {
+                // Content fits, hide scrollbars by adding no-scroll class
+                $adminMenuWrap.addClass('no-scroll');
+            } else {
+                // Content overflows, show scrollbars by removing no-scroll class
+                $adminMenuWrap.removeClass('no-scroll');
+            }
+            
+            // console.log('LAS Scrollbar Management: Wrap height:', wrapHeight, 'Menu height:', menuHeight, 'Content fits:', contentFits);
+            
+        } catch (error) {
+            console.error('LAS Scrollbar Management: Error checking scrollbar visibility:', error);
+        }
+    }
+    
+    // Menu collapse functionality
+    function initMenuCollapseHandler() {
+        try {
+            console.log('LAS Debug: Initializing menu collapse handler');
+            
+            // Validate jQuery availability
+            if (typeof $ === 'undefined') {
+                console.error('LAS Menu Collapse: jQuery is not available');
+                return;
+            }
+            
+            // Check if collapse menu button exists
+            var $collapseButton = $('#collapse-menu');
+            if ($collapseButton.length === 0) {
+                console.warn('LAS Menu Collapse: Collapse menu button not found, handler will still be set up for dynamic content');
+            }
+            
+            // Add event listener for WordPress native collapse menu button
+            $(document).on('click', '#collapse-menu', function(e) {
+                try {
+                    console.log('LAS Debug: Menu collapse button clicked');
+                    
+                    // Use timeout to ensure DOM state changes are complete before CSS updates
+                    setTimeout(function() {
+                        try {
+                            handleMenuCollapseStateChange();
+                        } catch (stateChangeError) {
+                            console.error('LAS Menu Collapse: Error in delayed state change handler:', stateChangeError);
+                        }
+                    }, 100);
+                    
+                } catch (clickHandlerError) {
+                    console.error('LAS Menu Collapse: Error in collapse button click handler:', clickHandlerError);
+                }
+            });
+        } catch (initError) {
+            console.error('LAS Menu Collapse: Error initializing menu collapse handler:', initError);
+        }
+        
+        // Also handle programmatic collapse state changes
+        try {
+            // Check if MutationObserver is available
+            if (typeof MutationObserver === 'undefined') {
+                console.warn('LAS Menu Collapse: MutationObserver not available, programmatic state changes may not be detected');
+            } else {
+                var observer = new MutationObserver(function(mutations) {
+                    try {
+                        var shouldHandle = false;
+                        
+                        mutations.forEach(function(mutation) {
+                            try {
+                                if (mutation.type === 'attributes' && 
+                                    mutation.attributeName === 'class' && 
+                                    mutation.target === document.body) {
+                                    shouldHandle = true;
+                                }
+                            } catch (mutationError) {
+                                console.error('LAS Menu Collapse: Error processing mutation:', mutationError);
+                            }
+                        });
+                        
+                        if (shouldHandle) {
+                            setTimeout(function() {
+                                try {
+                                    handleMenuCollapseStateChange();
+                                } catch (delayedStateChangeError) {
+                                    console.error('LAS Menu Collapse: Error in delayed programmatic state change handler:', delayedStateChangeError);
+                                }
+                            }, 50);
+                        }
+                        
+                    } catch (observerCallbackError) {
+                        console.error('LAS Menu Collapse: Error in MutationObserver callback:', observerCallbackError);
+                    }
+                });
+                
+                // Observe body class changes for folded state with error handling
+                try {
+                    if (document.body) {
+                        observer.observe(document.body, {
+                            attributes: true,
+                            attributeFilter: ['class']
+                        });
+                        console.log('LAS Debug: MutationObserver set up for body class changes');
+                    } else {
+                        console.error('LAS Menu Collapse: document.body not available for observation');
+                    }
+                } catch (observeError) {
+                    console.error('LAS Menu Collapse: Error setting up MutationObserver:', observeError);
+                }
+            }
+        } catch (mutationObserverSetupError) {
+            console.error('LAS Menu Collapse: Error setting up programmatic state change detection:', mutationObserverSetupError);
+        }
+        
+        // Enhanced live preview integration - monitor for external menu width changes
+        var menuWidthObserver = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'attributes' && 
+                    (mutation.attributeName === 'style' || mutation.attributeName === 'class')) {
+                    
+                    var target = mutation.target;
+                    if (target.id === 'adminmenuwrap' || target.id === 'adminmenu' || target.id === 'adminmenuback') {
+                        setTimeout(function() {
+                            var currentWidth = calculateCurrentMenuWidth();
+                            if (Math.abs(currentWidth - menuStateCache.currentWidth) > 1) {
+                                // Significant width change detected, update cache and trigger live preview
+                                handleLiveUpdate('admin_menu_width', currentWidth);
+                            }
+                        }, 50);
+                    }
+                }
+            });
+        });
+        
+        // Observe menu wrapper elements for width changes
+        var menuElements = ['#adminmenuwrap', '#adminmenu', '#adminmenuback'];
+        menuElements.forEach(function(selector) {
+            var element = document.querySelector(selector);
+            if (element) {
+                menuWidthObserver.observe(element, {
+                    attributes: true,
+                    attributeFilter: ['style', 'class']
+                });
+            }
+        });
+    }
+    
+    function handleMenuCollapseStateChange() {
+        try {
+            var isCollapsed = isMenuCollapsed();
+            var currentWidth = calculateMenuWidth();
+            
+            // Check if collapse state actually changed to avoid unnecessary updates
+            if (menuStateCache.lastCollapseState !== isCollapsed) {
+                menuStateCache.lastCollapseState = isCollapsed;
+                
+                // Trigger CSS regeneration for the new menu state with enhanced live preview integration
+                handleLiveUpdate('admin_menu_width', currentWidth);
+                handleLiveUpdate('menu_collapse_state', isCollapsed ? 'collapsed' : 'expanded');
+                
+                // Trigger related visual updates that depend on menu state
+                triggerMenuStateRelatedUpdates();
+            }
+            
+            // console.log('LAS Menu Collapse: State changed. Collapsed:', isCollapsed, 'Width:', currentWidth);
+            
+        } catch (error) {
+            console.error('LAS Menu Collapse: Error handling menu collapse state change:', error);
+        }
+    }
+    
+    function isMenuCollapsed() {
+        // Detect current menu collapse state using body.folded class
+        return document.body.classList.contains('folded');
+    }
+    
+    function calculateMenuWidth() {
+        // Calculate appropriate menu width based on collapse state
+        var isCollapsed = isMenuCollapsed();
+        
+        if (isCollapsed) {
+            // Collapsed state - WordPress default is 36px for icon-only menu
+            return 36;
+        } else {
+            // Expanded state - get stored width or use WordPress default
+            var storedWidth = getStoredMenuWidth();
+            return storedWidth || 160; // WordPress default expanded width
+        }
+    }
+    
+    function getStoredMenuWidth() {
+        // Try to get the stored menu width from WordPress user meta or local storage
+        try {
+            // Check if there's a stored width in the admin menu wrap element
+            var $adminMenuWrap = $('#adminmenuwrap');
+            if ($adminMenuWrap.length > 0) {
+                var currentWidth = $adminMenuWrap.outerWidth();
+                if (currentWidth && currentWidth > 36) {
+                    return currentWidth;
+                }
+            }
+            
+            // Fallback to checking computed styles or WordPress defaults
+            var $adminMenu = $('#adminmenu');
+            if ($adminMenu.length > 0) {
+                var menuWidth = $adminMenu.outerWidth();
+                if (menuWidth && menuWidth > 36) {
+                    return menuWidth;
+                }
+            }
+            
+            // Final fallback to WordPress default
+            return 160;
+            
+        } catch (error) {
+            console.error('LAS Menu Collapse: Error getting stored menu width:', error);
+            return 160; // Safe fallback
+        }
+    }
+    
+    // Menu state cache management functions
+    function updateMenuStateCache(setting, value) {
+        try {
+            if (setting === 'admin_menu_width') {
+                menuStateCache.currentWidth = parseInt(value) || 220;
+            } else if (setting === 'menu_collapse_state') {
+                menuStateCache.isCollapsed = (value === 'collapsed');
+            }
+            
+            // Update submenu positions cache when menu width changes
+            if (setting === 'admin_menu_width' || setting === 'menu_collapse_state') {
+                updateSubmenuPositionsCache();
+            }
+            
+            // console.log('LAS Menu State Cache: Updated cache for setting:', setting, 'New cache state:', menuStateCache);
+            
+        } catch (error) {
+            console.error('LAS Menu State Cache: Error updating menu state cache:', error);
+        }
+    }
+    
+    function updateSubmenuPositionsCache() {
+        try {
+            var $submenus = $('#adminmenu .wp-submenu');
+            menuStateCache.submenuPositions = {};
+            
+            $submenus.each(function(index) {
+                var $submenu = $(this);
+                var $parent = $submenu.closest('.wp-has-submenu');
+                var parentId = $parent.attr('id') || 'submenu-' + index;
+                
+                menuStateCache.submenuPositions[parentId] = {
+                    left: menuStateCache.currentWidth,
+                    collapsed: menuStateCache.isCollapsed
+                };
+            });
+            
+        } catch (error) {
+            console.error('LAS Menu State Cache: Error updating submenu positions cache:', error);
+        }
+    }
+    
+    function triggerMenuStateRelatedUpdates() {
+        try {
+            // Trigger scrollbar check since menu dimensions changed
+            if (window.lasScrollbarManagement && window.lasScrollbarManagement.check) {
+                setTimeout(window.lasScrollbarManagement.check, 50);
+            }
+            
+            // Trigger submenu repositioning since menu width changed
+            if (window.lasSubmenuPositioning && window.lasSubmenuPositioning.adjust) {
+                setTimeout(window.lasSubmenuPositioning.adjust, 100);
+            }
+            
+            // Trigger any additional visual updates that depend on menu state
+            setTimeout(function() {
+                // Check if any visual effects need to be recalculated
+                var hasVisualEffects = checkForVisualEffects();
+                if (hasVisualEffects) {
+                    // Trigger a general visual update to ensure all effects work with new menu state
+                    handleLiveUpdate('menu_visual_effects_update', Date.now());
+                }
+            }, 150);
+            
+        } catch (error) {
+            console.error('LAS Menu State: Error triggering menu state related updates:', error);
+        }
+    }
+    
+    function checkForVisualEffects() {
+        try {
+            var $adminMenuWrap = $('#adminmenuwrap');
+            if ($adminMenuWrap.length === 0) {
+                return false;
+            }
+            
+            var computedStyle = window.getComputedStyle($adminMenuWrap[0]);
+            var hasBorderRadius = computedStyle.borderRadius && computedStyle.borderRadius !== '0px';
+            var hasBoxShadow = computedStyle.boxShadow && computedStyle.boxShadow !== 'none';
+            
+            return hasBorderRadius || hasBoxShadow;
+            
+        } catch (error) {
+            console.error('LAS Menu State: Error checking for visual effects:', error);
+            return false;
+        }
+    }
+    
+    // Enhanced menu state integration with live preview system
+    function initMenuStateLivePreviewIntegration() {
+        try {
+            // Initialize menu state cache with current values
+            var isCollapsed = isMenuCollapsed();
+            var currentWidth = calculateMenuWidth();
+            
+            menuStateCache.isCollapsed = isCollapsed;
+            menuStateCache.currentWidth = currentWidth;
+            menuStateCache.lastCollapseState = isCollapsed;
+            
+            updateSubmenuPositionsCache();
+            
+            // Set up periodic state synchronization to catch external changes
+            setInterval(function() {
+                var currentCollapsedState = isMenuCollapsed();
+                if (menuStateCache.lastCollapseState !== currentCollapsedState) {
+                    handleMenuCollapseStateChange();
+                }
+            }, 500);
+            
+            // console.log('LAS Menu State: Live preview integration initialized. Initial state:', menuStateCache);
+            
+        } catch (error) {
+            console.error('LAS Menu State: Error initializing live preview integration:', error);
+        }
+    }
+    
+    function handleMenuStateTransitionComplete() {
+        try {
+            // Ensure all menu state-dependent components are properly updated after live preview CSS update
+            
+            // Update submenu positioning to match new CSS
+            if (window.lasSubmenuPositioning && window.lasSubmenuPositioning.adjust) {
+                window.lasSubmenuPositioning.adjust();
+            }
+            
+            // Update scrollbar management to match new menu dimensions
+            if (window.lasScrollbarManagement && window.lasScrollbarManagement.check) {
+                window.lasScrollbarManagement.check();
+            }
+            
+            // Refresh menu state cache to ensure it's in sync with DOM
+            var currentCollapsed = isMenuCollapsed();
+            var currentWidth = calculateCurrentMenuWidth();
+            
+            if (menuStateCache.isCollapsed !== currentCollapsed || 
+                Math.abs(menuStateCache.currentWidth - currentWidth) > 1) {
+                
+                menuStateCache.isCollapsed = currentCollapsed;
+                menuStateCache.currentWidth = currentWidth;
+                updateSubmenuPositionsCache();
+            }
+            
+            // Trigger any additional visual updates that might be needed
+            setTimeout(function() {
+                // Final check to ensure everything is properly positioned
+                var $adminMenuWrap = $('#adminmenuwrap');
+                if ($adminMenuWrap.length > 0) {
+                    // Trigger a reflow to ensure all CSS changes are applied
+                    $adminMenuWrap[0].offsetHeight;
+                }
+            }, 10);
+            
+            // console.log('LAS Menu State: Transition complete. Final state:', menuStateCache);
+            
+        } catch (error) {
+            console.error('LAS Menu State: Error handling menu state transition complete:', error);
+        }
+    }
+    
+    // Expose menu collapse functions globally for potential external use
+    window.lasMenuCollapse = {
+        isCollapsed: isMenuCollapsed,
+        calculateWidth: calculateMenuWidth,
+        handleStateChange: handleMenuCollapseStateChange,
+        updateCache: updateMenuStateCache,
+        getCache: function() { return menuStateCache; }
+    };
+    
+    // Submenu positioning functionality
+    function initSubmenuPositioning() {
+        try {
+            console.log('LAS Debug: Initializing submenu positioning');
+            
+            // Initial positioning setup with error handling
+            try {
+                adjustSubmenuPositioning();
+            } catch (initialPositioningError) {
+                console.error('LAS Submenu Positioning: Error in initial positioning setup:', initialPositioningError);
+            }
+            
+            // Monitor for menu state changes that affect positioning
+            try {
+                // Check if MutationObserver is available
+                if (typeof MutationObserver === 'undefined') {
+                    console.warn('LAS Submenu Positioning: MutationObserver not available, dynamic positioning may not work');
+                    return;
+                }
+                
+                var observer = new MutationObserver(function(mutations) {
+                    try {
+                        var shouldReposition = false;
+                        
+                        mutations.forEach(function(mutation) {
+                            try {
+                                if (mutation.type === 'attributes' && 
+                                    (mutation.attributeName === 'class' || mutation.attributeName === 'style')) {
+                                    shouldReposition = true;
+                                } else if (mutation.type === 'childList') {
+                                    shouldReposition = true;
+                                }
+                            } catch (mutationProcessError) {
+                                console.error('LAS Submenu Positioning: Error processing mutation:', mutationProcessError);
+                            }
+                        });
+                        
+                        if (shouldReposition) {
+                            setTimeout(function() {
+                                try {
+                                    adjustSubmenuPositioning();
+                                } catch (delayedPositioningError) {
+                                    console.error('LAS Submenu Positioning: Error in delayed positioning adjustment:', delayedPositioningError);
+                                }
+                            }, 50);
+                        }
+                        
+                    } catch (observerCallbackError) {
+                        console.error('LAS Submenu Positioning: Error in MutationObserver callback:', observerCallbackError);
+                    }
+                });
+            } catch (observerSetupError) {
+                console.error('LAS Submenu Positioning: Error setting up MutationObserver:', observerSetupError);
+                return;
+            }
+        } catch (initError) {
+            console.error('LAS Submenu Positioning: Error initializing submenu positioning:', initError);
+            return;
+        }
+        
+        // Observe changes to body (for folded class changes)
+        observer.observe(document.body, {
+            attributes: true,
+            attributeFilter: ['class']
+        });
+        
+        // Observe changes to admin menu wrap (for width changes)
+        var adminMenuWrap = document.getElementById('adminmenuwrap');
+        if (adminMenuWrap) {
+            observer.observe(adminMenuWrap, {
+                attributes: true,
+                attributeFilter: ['style', 'class']
+            });
+        }
+        
+        // Handle window resize events
+        $(window).on('resize.submenuPositioning', function() {
+            setTimeout(adjustSubmenuPositioning, 100);
+        });
+        
+        // Handle menu collapse button clicks
+        $(document).on('click', '#collapse-menu', function() {
+            setTimeout(adjustSubmenuPositioning, 150);
+        });
+        
+        // Handle submenu hover events to ensure proper positioning
+        $(document).on('mouseenter', '#adminmenu .wp-has-submenu', function() {
+            var $menuItem = $(this);
+            setTimeout(function() {
+                adjustSubmenuPositioningForItem($menuItem);
+            }, 10);
+        });
+    }
+    
+    function adjustSubmenuPositioning() {
+        try {
+            var $adminMenu = $('#adminmenu');
+            var $adminMenuWrap = $('#adminmenuwrap');
+            
+            if ($adminMenu.length === 0 || $adminMenuWrap.length === 0) {
+                return;
+            }
+            
+            var isCollapsed = isMenuCollapsed();
+            var menuWidth = calculateCurrentMenuWidth();
+            
+            // Position all submenus based on current menu state
+            $adminMenu.find('.wp-submenu').each(function() {
+                var $submenu = $(this);
+                var $parentItem = $submenu.closest('.wp-has-submenu');
+                
+                positionSubmenu($submenu, $parentItem, menuWidth, isCollapsed);
+            });
+            
+            // console.log('LAS Submenu Positioning: Adjusted all submenus. Menu width:', menuWidth, 'Collapsed:', isCollapsed);
+            
+        } catch (error) {
+            console.error('LAS Submenu Positioning: Error adjusting submenu positioning:', error);
+        }
+    }
+    
+    function adjustSubmenuPositioningForItem($menuItem) {
+        try {
+            var $submenu = $menuItem.find('.wp-submenu');
+            if ($submenu.length === 0) {
+                return;
+            }
+            
+            var isCollapsed = isMenuCollapsed();
+            var menuWidth = calculateCurrentMenuWidth();
+            
+            positionSubmenu($submenu, $menuItem, menuWidth, isCollapsed);
+            
+        } catch (error) {
+            console.error('LAS Submenu Positioning: Error adjusting positioning for individual item:', error);
+        }
+    }
+    
+    function positionSubmenu($submenu, $parentItem, menuWidth, isCollapsed) {
+        try {
+            var leftPosition;
+            var topPosition = 0; // Align with parent item top
+            
+            if (isCollapsed) {
+                // In collapsed state, position submenu to the right of the icon
+                leftPosition = 36; // WordPress collapsed menu width
+                
+                // Ensure submenu has proper styling for collapsed state
+                $submenu.css({
+                    'position': 'absolute',
+                    'left': leftPosition + 'px',
+                    'top': topPosition + 'px',
+                    'min-width': '200px',
+                    'z-index': '9999',
+                    'margin-left': '0'
+                });
+            } else {
+                // In expanded state, position submenu to the right of the full menu
+                leftPosition = menuWidth;
+                
+                // Ensure submenu has proper styling for expanded state
+                $submenu.css({
+                    'position': 'absolute',
+                    'left': leftPosition + 'px',
+                    'top': topPosition + 'px',
+                    'min-width': '200px',
+                    'z-index': '9999',
+                    'margin-left': '0'
+                });
+            }
+            
+            // Ensure submenu is visible and properly positioned relative to viewport
+            ensureSubmenuVisibility($submenu, leftPosition);
+            
+        } catch (error) {
+            console.error('LAS Submenu Positioning: Error positioning individual submenu:', error);
+        }
+    }
+    
+    function ensureSubmenuVisibility($submenu, leftPosition) {
+        try {
+            // Get viewport dimensions
+            var viewportWidth = $(window).width();
+            var submenuWidth = $submenu.outerWidth();
+            
+            // Check if submenu would extend beyond viewport
+            var submenuRight = leftPosition + submenuWidth;
+            
+            if (submenuRight > viewportWidth) {
+                // Submenu extends beyond viewport, adjust position
+                var adjustedLeft = viewportWidth - submenuWidth - 10; // 10px margin from edge
+                
+                // Ensure we don't position it too far left
+                if (adjustedLeft < leftPosition) {
+                    adjustedLeft = Math.max(10, adjustedLeft); // Minimum 10px from left edge
+                }
+                
+                $submenu.css('left', adjustedLeft + 'px');
+            }
+            
+            // Handle vertical positioning if submenu extends beyond viewport height
+            var $window = $(window);
+            var windowHeight = $window.height();
+            var scrollTop = $window.scrollTop();
+            var submenuHeight = $submenu.outerHeight();
+            var submenuTop = $submenu.offset().top;
+            
+            if (submenuTop + submenuHeight > scrollTop + windowHeight) {
+                // Submenu extends beyond bottom of viewport
+                var adjustedTop = windowHeight - submenuHeight - 10;
+                if (adjustedTop > 0) {
+                    $submenu.css('top', adjustedTop + 'px');
+                }
+            }
+            
+        } catch (error) {
+            console.error('LAS Submenu Positioning: Error ensuring submenu visibility:', error);
+        }
+    }
+    
+    function calculateCurrentMenuWidth() {
+        try {
+            var $adminMenuWrap = $('#adminmenuwrap');
+            var $adminMenu = $('#adminmenu');
+            
+            if ($adminMenuWrap.length > 0) {
+                var wrapWidth = $adminMenuWrap.outerWidth();
+                if (wrapWidth && wrapWidth > 0) {
+                    return wrapWidth;
+                }
+            }
+            
+            if ($adminMenu.length > 0) {
+                var menuWidth = $adminMenu.outerWidth();
+                if (menuWidth && menuWidth > 0) {
+                    return menuWidth;
+                }
+            }
+            
+            // Fallback to calculated width based on collapse state
+            return calculateMenuWidth();
+            
+        } catch (error) {
+            console.error('LAS Submenu Positioning: Error calculating current menu width:', error);
+            return isMenuCollapsed() ? 36 : 160; // Safe fallbacks
+        }
+    }
+    
+    // Expose submenu positioning functions globally for potential external use
+    window.lasSubmenuPositioning = {
+        adjust: adjustSubmenuPositioning,
+        adjustForItem: adjustSubmenuPositioningForItem,
+        init: initSubmenuPositioning
+    };
+    
+    // Expose scrollbar management functions globally for potential external use
+    window.lasScrollbarManagement = {
+        check: checkScrollbarVisibility,
+        init: initScrollbarManagement
+    };
+})(jQuery);
+    /**
+     * Initialize Enhanced Submenu Visibility System for Live Preview
+     * Provides smooth transitions and improved hover effects for admin menu submenus
+     */
+    function initEnhancedSubmenuVisibility() {
+        try {
+            console.log('LAS Debug: Initializing enhanced submenu visibility system for live preview');
+            
+            var hoverTimeout = null;
+            var activeSubmenu = null;
+            
+            // Enhanced submenu manager for live preview
+            var LivePreviewSubmenuManager = {
+                init: function() {
+                    this.attachEventListeners();
+                    this.enhanceVisibility();
+                    console.log('LAS Debug: Enhanced submenu visibility system initialized for live preview');
+                },
+                
+                attachEventListeners: function() {
+                    var self = this;
+                    
+                    // Use namespaced events to avoid conflicts
+                    $(document).off('.las-submenu-preview');
+                    
+                    // Handle mouse enter on menu items with submenus
+                    $(document).on('mouseenter.las-submenu-preview', '#adminmenu .wp-has-submenu', function() {
+                        var $menuItem = $(this);
+                        var $submenu = $menuItem.find('.wp-submenu');
+                        
+                        if ($submenu.length) {
+                            clearTimeout(hoverTimeout);
+                            self.showSubmenu($menuItem, $submenu);
+                        }
+                    });
+                    
+                    // Handle mouse leave on menu items with submenus
+                    $(document).on('mouseleave.las-submenu-preview', '#adminmenu .wp-has-submenu', function() {
+                        var $menuItem = $(this);
+                        var $submenu = $menuItem.find('.wp-submenu');
+                        
+                        if ($submenu.length) {
+                            self.scheduleHideSubmenu($menuItem, $submenu);
+                        }
+                    });
+                    
+                    // Handle mouse enter on submenu to cancel hide
+                    $(document).on('mouseenter.las-submenu-preview', '#adminmenu .wp-submenu', function() {
+                        clearTimeout(hoverTimeout);
+                        var $submenu = $(this);
+                        var $menuItem = $submenu.closest('.wp-has-submenu');
+                        self.showSubmenu($menuItem, $submenu);
+                    });
+                    
+                    // Handle mouse leave on submenu
+                    $(document).on('mouseleave.las-submenu-preview', '#adminmenu .wp-submenu', function() {
+                        var $submenu = $(this);
+                        var $menuItem = $submenu.closest('.wp-has-submenu');
+                        self.scheduleHideSubmenu($menuItem, $submenu);
+                    });
+                },
+                
+                showSubmenu: function($menuItem, $submenu) {
+                    try {
+                        // Hide any currently active submenu
+                        if (activeSubmenu && activeSubmenu.length && activeSubmenu[0] !== $submenu[0]) {
+                            this.hideSubmenu(activeSubmenu.closest('.wp-has-submenu'), activeSubmenu);
+                        }
+                        
+                        // Show the new submenu
+                        $submenu.removeClass('las-submenu-hidden').addClass('las-submenu-visible');
+                        $menuItem.addClass('opensub');
+                        activeSubmenu = $submenu;
+                        
+                        // Ensure proper positioning
+                        this.positionSubmenu($menuItem, $submenu);
+                    } catch (error) {
+                        console.error('LAS Debug: Error showing submenu:', error);
+                    }
+                },
+                
+                hideSubmenu: function($menuItem, $submenu) {
+                    try {
+                        $submenu.removeClass('las-submenu-visible').addClass('las-submenu-hidden');
+                        $menuItem.removeClass('opensub');
+                        
+                        if (activeSubmenu && activeSubmenu.length && activeSubmenu[0] === $submenu[0]) {
+                            activeSubmenu = null;
+                        }
+                    } catch (error) {
+                        console.error('LAS Debug: Error hiding submenu:', error);
+                    }
+                },
+                
+                scheduleHideSubmenu: function($menuItem, $submenu) {
+                    var self = this;
+                    hoverTimeout = setTimeout(function() {
+                        self.hideSubmenu($menuItem, $submenu);
+                    }, 300); // 300ms delay before hiding
+                },
+                
+                positionSubmenu: function($menuItem, $submenu) {
+                    try {
+                        // Get menu item position and dimensions
+                        var menuItemOffset = $menuItem.offset();
+                        var menuItemHeight = $menuItem.outerHeight();
+                        var submenuHeight = $submenu.outerHeight();
+                        var windowHeight = $(window).height();
+                        
+                        // Calculate if submenu would go below viewport
+                        var submenuBottom = menuItemOffset.top + submenuHeight;
+                        var viewportBottom = windowHeight + $(window).scrollTop();
+                        
+                        // Adjust submenu position if it would overflow
+                        if (submenuBottom > viewportBottom) {
+                            var adjustedTop = Math.max(0, menuItemHeight - submenuHeight);
+                            $submenu.css('top', adjustedTop + 'px');
+                        } else {
+                            $submenu.css('top', '0px');
+                        }
+                        
+                        // Handle folded menu positioning
+                        if ($('body').hasClass('folded')) {
+                            $submenu.css({
+                                'left': '36px',
+                                'margin-left': '0'
+                            });
+                        } else {
+                            $submenu.css({
+                                'left': '100%',
+                                'margin-left': '0'
+                            });
+                        }
+                    } catch (error) {
+                        console.error('LAS Debug: Error positioning submenu:', error);
+                    }
+                },
+                
+                enhanceVisibility: function() {
+                    try {
+                        // Apply initial classes to all submenus
+                        $('#adminmenu .wp-submenu').each(function() {
+                            var $submenu = $(this);
+                            var $menuItem = $submenu.closest('.wp-has-submenu');
+                            
+                            // Initially hide all submenus except current
+                            if (!$menuItem.hasClass('wp-has-current-submenu') && !$menuItem.hasClass('current')) {
+                                $submenu.addClass('las-submenu-hidden');
+                            } else {
+                                $submenu.addClass('las-submenu-visible');
+                                activeSubmenu = $submenu;
+                            }
+                        });
+                        
+                        // Handle window resize for repositioning
+                        $(window).off('resize.las-submenu-preview').on('resize.las-submenu-preview', function() {
+                            if (activeSubmenu && activeSubmenu.length) {
+                                var $menuItem = activeSubmenu.closest('.wp-has-submenu');
+                                LivePreviewSubmenuManager.positionSubmenu($menuItem, activeSubmenu);
+                            }
+                        });
+                        
+                        // Handle admin menu collapse/expand
+                        $(document).off('click.las-submenu-preview', '#collapse-menu').on('click.las-submenu-preview', '#collapse-menu', function() {
+                            setTimeout(function() {
+                                if (activeSubmenu && activeSubmenu.length) {
+                                    var $menuItem = activeSubmenu.closest('.wp-has-submenu');
+                                    LivePreviewSubmenuManager.positionSubmenu($menuItem, activeSubmenu);
+                                }
+                            }, 300); // Wait for collapse animation
+                        });
+                    } catch (error) {
+                        console.error('LAS Debug: Error enhancing submenu visibility:', error);
+                    }
+                }
+            };
+            
+            // Initialize the submenu manager
+            LivePreviewSubmenuManager.init();
+            
+        } catch (error) {
+            console.error('LAS Debug: Error initializing enhanced submenu visibility system:', error);
+        }
+    }

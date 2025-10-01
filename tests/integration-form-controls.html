@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Controls Integration Test - Live Admin Styler</title>
+    
+    <!-- WordPress Admin Styles -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/wp-admin/5.8.0/css/wp-admin.min.css">
+    
+    <!-- jQuery and jQuery UI -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.1/themes/ui-lightness/jquery-ui.css">
+    
+    <!-- WordPress Color Picker -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/wp-color-picker/2.1.2/wp-color-picker.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/wp-color-picker/2.1.2/wp-color-picker.min.css">
+    
+    <!-- UI Repair Styles -->
+    <link rel="stylesheet" href="../assets/css/ui-repair.css">
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f0f0f1;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .test-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .test-section h3 {
+            margin-top: 0;
+            color: #23282d;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .form-row {
+            margin-bottom: 20px;
+        }
+        
+        .form-row label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .test-results {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .test-results h4 {
+            margin-top: 0;
+            color: #23282d;
+        }
+        
+        .test-log {
+            font-family: monospace;
+            font-size: 12px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 3px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .test-log .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+        
+        .test-log .log-success { color: #28a745; }
+        .test-log .log-error { color: #dc3545; }
+        .test-log .log-info { color: #17a2b8; }
+        .test-log .log-debug { color: #6c757d; }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-success { background-color: #28a745; }
+        .status-error { background-color: #dc3545; }
+        .status-warning { background-color: #ffc107; }
+        .status-info { background-color: #17a2b8; }
+    </style>
+</head>
+<body class="wp-admin">
+    <div class="test-container las-fresh-settings-wrap">
+        <h1>Form Controls Integration Test</h1>
+        <p>This page tests the Live Admin Styler form control handlers with real WordPress components.</p>
+        
+        <form id="test-form">
+            <!-- Color Picker Section -->
+            <div class="test-section">
+                <h3>Color Picker Controls</h3>
+                
+                <div class="form-row">
+                    <label for="wp-color-picker">WordPress Color Picker:</label>
+                    <input type="color" id="wp-color-picker" name="wp_color" value="#0073aa" class="wp-color-picker">
+                </div>
+                
+                <div class="form-row">
+                    <label for="native-color-picker">Native Color Picker:</label>
+                    <input type="color" id="native-color-picker" name="native_color" value="#ff0000">
+                </div>
+                
+                <div class="form-row">
+                    <label for="class-color-picker">Class-based Color Picker:</label>
+                    <input type="text" id="class-color-picker" name="class_color" value="#00ff00" class="las-color-picker">
+                </div>
+            </div>
+            
+            <!-- Slider Section -->
+            <div class="test-section">
+                <h3>Slider Controls</h3>
+                
+                <div class="form-row">
+                    <label for="jquery-slider">jQuery UI Slider:</label>
+                    <input type="range" id="jquery-slider" name="jquery_slider" min="0" max="100" step="1" value="50">
+                </div>
+                
+                <div class="form-row">
+                    <label for="native-slider">Native Range Slider:</label>
+                    <input type="range" id="native-slider" name="native_slider" min="0" max="200" step="5" value="100">
+                </div>
+                
+                <div class="form-row">
+                    <label for="class-slider">Class-based Slider:</label>
+                    <input type="text" id="class-slider" name="class_slider" value="75" class="las-slider" data-min="0" data-max="150" data-step="1">
+                </div>
+            </div>
+            
+            <!-- Text Input Section -->
+            <div class="test-section">
+                <h3>Text Input Controls</h3>
+                
+                <div class="form-row">
+                    <label for="text-input">Text Input:</label>
+                    <input type="text" id="text-input" name="text_input" placeholder="Enter some text">
+                </div>
+                
+                <div class="form-row">
+                    <label for="email-input">Email Input:</label>
+                    <input type="email" id="email-input" name="email_input" placeholder="Enter email">
+                </div>
+                
+                <div class="form-row">
+                    <label for="url-input">URL Input:</label>
+                    <input type="url" id="url-input" name="url_input" placeholder="Enter URL">
+                </div>
+                
+                <div class="form-row">
+                    <label for="number-input">Number Input:</label>
+                    <input type="number" id="number-input" name="number_input" min="0" max="100" step="1" value="25">
+                </div>
+                
+                <div class="form-row">
+                    <label for="password-input">Password Input:</label>
+                    <input type="password" id="password-input" name="password_input" placeholder="Enter password">
+                </div>
+                
+                <div class="form-row">
+                    <label for="textarea-input">Textarea:</label>
+                    <textarea id="textarea-input" name="textarea_input" rows="4" placeholder="Enter long text"></textarea>
+                </div>
+            </div>
+            
+            <!-- Toggle Section -->
+            <div class="test-section">
+                <h3>Toggle Controls</h3>
+                
+                <div class="form-row">
+                    <label>
+                        <input type="checkbox" id="checkbox-1" name="checkbox_1" value="1">
+                        Checkbox Option 1
+                    </label>
+                </div>
+                
+                <div class="form-row">
+                    <label>
+                        <input type="checkbox" id="checkbox-2" name="checkbox_2" value="1" checked>
+                        Checkbox Option 2 (Checked)
+                    </label>
+                </div>
+                
+                <div class="form-row">
+                    <label>
+                        <input type="radio" id="radio-1" name="radio_group" value="option1">
+                        Radio Option 1
+                    </label>
+                </div>
+                
+                <div class="form-row">
+                    <label>
+                        <input type="radio" id="radio-2" name="radio_group" value="option2" checked>
+                        Radio Option 2 (Selected)
+                    </label>
+                </div>
+                
+                <div class="form-row">
+                    <label for="toggle-switch">Toggle Switch:</label>
+                    <input type="checkbox" id="toggle-switch" name="toggle_switch" class="las-toggle">
+                </div>
+            </div>
+            
+            <!-- Dropdown Section -->
+            <div class="test-section">
+                <h3>Dropdown Controls</h3>
+                
+                <div class="form-row">
+                    <label for="single-select">Single Select:</label>
+                    <select id="single-select" name="single_select">
+                        <option value="">Choose an option</option>
+                        <option value="option1">Option 1</option>
+                        <option value="option2" selected>Option 2</option>
+                        <option value="option3">Option 3</option>
+                    </select>
+                </div>
+                
+                <div class="form-row">
+                    <label for="multi-select">Multiple Select:</label>
+                    <select id="multi-select" name="multi_select" multiple size="4">
+                        <option value="item1" selected>Item 1</option>
+                        <option value="item2">Item 2</option>
+                        <option value="item3" selected>Item 3</option>
+                        <option value="item4">Item 4</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Form Actions -->
+            <div class="test-section">
+                <h3>Form Actions</h3>
+                
+                <button type="submit" class="button button-primary">Save Settings</button>
+                <button type="button" id="reset-form" class="button">Reset Form</button>
+                <button type="button" id="validate-all" class="button">Validate All</button>
+                <button type="button" id="get-values" class="button">Get All Values</button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Test Results Panel -->
+    <div class="test-results">
+        <h4>Test Results</h4>
+        <div id="test-status">
+            <div class="status-item">
+                <span class="status-indicator status-info"></span>
+                <span>Initializing...</span>
+            </div>
+        </div>
+        
+        <h5>Event Log</h5>
+        <div class="test-log" id="test-log"></div>
+        
+        <h5>Form Values</h5>
+        <div class="test-log" id="form-values"></div>
+    </div>
+    
+    <!-- UI Repair System -->
+    <script src="../assets/js/ui-repair.js"></script>
+    
+    <script>
+        // Test utilities
+        const testLog = document.getElementById('test-log');
+        const testStatus = document.getElementById('test-status');
+        const formValues = document.getElementById('form-values');
+        
+        function log(message, level = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${level}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            testLog.appendChild(entry);
+            testLog.scrollTop = testLog.scrollHeight;
+            
+            console.log(`[${level.toUpperCase()}] ${message}`);
+        }
+        
+        function updateStatus(message, status = 'info') {
+            testStatus.innerHTML = `
+                <div class="status-item">
+                    <span class="status-indicator status-${status}"></span>
+                    <span>${message}</span>
+                </div>
+            `;
+        }
+        
+        function updateFormValues() {
+            if (window.lasUICore && window.lasUICore.get('forms')) {
+                const formManager = window.lasUICore.get('forms');
+                const values = formManager.getAllValues();
+                formValues.innerHTML = '<pre>' + JSON.stringify(values, null, 2) + '</pre>';
+            }
+        }
+        
+        // Wait for UI system to initialize
+        document.addEventListener('ui:ready', function() {
+            log('UI system initialized successfully', 'success');
+            updateStatus('UI System Ready', 'success');
+            
+            const formManager = window.lasUICore.get('forms');
+            if (formManager) {
+                log(`Discovered ${formManager.controls.size} form controls`, 'info');
+                
+                // Test form manager events
+                formManager.on('form:control-changed', function(event) {
+                    const { controlId, value, options } = event.detail;
+                    log(`Control changed: ${controlId} = ${JSON.stringify(value)} (${options.source})`, 'debug');
+                    updateFormValues();
+                });
+                
+                formManager.on('form:control-focused', function(event) {
+                    const { controlId } = event.detail;
+                    log(`Control focused: ${controlId}`, 'debug');
+                });
+                
+                formManager.on('form:submit', function(event) {
+                    log('Form submitted', 'info');
+                    updateFormValues();
+                });
+                
+                // Initial values display
+                updateFormValues();
+                
+                // Test buttons
+                document.getElementById('reset-form').addEventListener('click', function() {
+                    formManager.reset();
+                    log('Form reset', 'info');
+                    updateFormValues();
+                });
+                
+                document.getElementById('validate-all').addEventListener('click', async function() {
+                    const results = await formManager.validateAll();
+                    const validCount = Object.values(results).filter(Boolean).length;
+                    const totalCount = Object.keys(results).length;
+                    log(`Validation complete: ${validCount}/${totalCount} controls valid`, 'info');
+                    
+                    if (formManager.isValid()) {
+                        log('All form controls are valid', 'success');
+                    } else {
+                        log('Some form controls have validation errors', 'error');
+                    }
+                });
+                
+                document.getElementById('get-values').addEventListener('click', function() {
+                    const values = formManager.getAllValues();
+                    log('Current form values: ' + JSON.stringify(values), 'info');
+                    updateFormValues();
+                });
+                
+                // Test specific functionality
+                setTimeout(() => {
+                    runFormTests(formManager);
+                }, 1000);
+                
+            } else {
+                log('Form manager not available', 'error');
+                updateStatus('Form Manager Error', 'error');
+            }
+        });
+        
+        // Run automated tests
+        function runFormTests(formManager) {
+            log('Running automated form tests...', 'info');
+            
+            // Test 1: Color picker functionality
+            const colorPicker = document.getElementById('wp-color-picker');
+            if (colorPicker) {
+                colorPicker.value = '#ff6600';
+                colorPicker.dispatchEvent(new Event('change', { bubbles: true }));
+                log('Test 1: Color picker change event triggered', 'success');
+            }
+            
+            // Test 2: Slider functionality
+            const slider = document.getElementById('jquery-slider');
+            if (slider) {
+                slider.value = '75';
+                slider.dispatchEvent(new Event('input', { bubbles: true }));
+                log('Test 2: Slider input event triggered', 'success');
+            }
+            
+            // Test 3: Text input validation
+            const emailInput = document.getElementById('email-input');
+            if (emailInput) {
+                emailInput.value = 'invalid-email';
+                emailInput.dispatchEvent(new Event('blur', { bubbles: true }));
+                setTimeout(() => {
+                    const control = formManager.getControl('email-input');
+                    if (control && !control.validation.valid) {
+                        log('Test 3: Email validation working correctly', 'success');
+                    } else {
+                        log('Test 3: Email validation failed', 'error');
+                    }
+                }, 200);
+            }
+            
+            // Test 4: Checkbox functionality
+            const checkbox = document.getElementById('checkbox-1');
+            if (checkbox) {
+                checkbox.checked = true;
+                checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+                log('Test 4: Checkbox change event triggered', 'success');
+            }
+            
+            // Test 5: Select functionality
+            const select = document.getElementById('single-select');
+            if (select) {
+                select.value = 'option3';
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                log('Test 5: Select change event triggered', 'success');
+            }
+            
+            log('Automated tests completed', 'success');
+        }
+        
+        // Handle initialization errors
+        document.addEventListener('error:occurred', function(event) {
+            const { error } = event.detail;
+            log(`Error occurred: ${error.message}`, 'error');
+            updateStatus('Error Occurred', 'error');
+        });
+        
+        // Initial status
+        updateStatus('Loading UI System...', 'info');
+        log('Form controls integration test started', 'info');
+        
+        // Mock WordPress admin data
+        window.lasAdminData = {
+            debug: true,
+            uiRepair: {
+                timeout: 10000,
+                retryAttempts: 3
+            }
+        };
+    </script>
+</body>
+</html>

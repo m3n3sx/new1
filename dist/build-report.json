@@ -1,0 +1,288 @@
+{
+  "version": "1.1.0",
+  "buildDate": "2025-09-30T23:12:42.426Z",
+  "duration": 198,
+  "statistics": {
+    "totalFiles": 69,
+    "totalSize": 1497,
+    "compressionRatio": 85
+  },
+  "files": [
+    {
+      "path": "CHANGELOG.md",
+      "size": 13378
+    },
+    {
+      "path": "README.md",
+      "size": 5721
+    },
+    {
+      "path": "assets/css/admin-style.css",
+      "size": 74072
+    },
+    {
+      "path": "assets/css/animations.css",
+      "size": 9082
+    },
+    {
+      "path": "assets/css/base-reset.css",
+      "size": 8379
+    },
+    {
+      "path": "assets/css/card-layout.css",
+      "size": 11059
+    },
+    {
+      "path": "assets/css/color-picker.css",
+      "size": 13597
+    },
+    {
+      "path": "assets/css/design-system.css",
+      "size": 96
+    },
+    {
+      "path": "assets/css/form-controls.css",
+      "size": 13658
+    },
+    {
+      "path": "assets/css/gradient-builder.css",
+      "size": 12558
+    },
+    {
+      "path": "assets/css/las-live-edit.css",
+      "size": 12730
+    },
+    {
+      "path": "assets/css/las-main.css",
+      "size": 19242
+    },
+    {
+      "path": "assets/css/las-utilities.css",
+      "size": 15812
+    },
+    {
+      "path": "assets/css/modern-navigation.css",
+      "size": 9104
+    },
+    {
+      "path": "assets/js/color-picker-integration.js",
+      "size": 5211
+    },
+    {
+      "path": "assets/js/color-picker.js",
+      "size": 13004
+    },
+    {
+      "path": "assets/js/communication-manager.js",
+      "size": 7895
+    },
+    {
+      "path": "assets/js/error-handler.js",
+      "size": 10841
+    },
+    {
+      "path": "assets/js/las-core.js",
+      "size": 5725
+    },
+    {
+      "path": "assets/js/live-preview-complex.js",
+      "size": 30642
+    },
+    {
+      "path": "assets/js/live-preview.js",
+      "size": 30642
+    },
+    {
+      "path": "assets/js/live-preview.js.backup",
+      "size": 96904
+    },
+    {
+      "path": "assets/js/modules/ajax-manager.js",
+      "size": 10682
+    },
+    {
+      "path": "assets/js/modules/animation-manager.js",
+      "size": 13112
+    },
+    {
+      "path": "assets/js/modules/auto-save.js",
+      "size": 11697
+    },
+    {
+      "path": "assets/js/modules/browser-compatibility.js",
+      "size": 13212
+    },
+    {
+      "path": "assets/js/modules/card-layout.js",
+      "size": 8975
+    },
+    {
+      "path": "assets/js/modules/color-picker.js",
+      "size": 19167
+    },
+    {
+      "path": "assets/js/modules/css-variables-engine.js",
+      "size": 13656
+    },
+    {
+      "path": "assets/js/modules/form-controls.js",
+      "size": 13363
+    },
+    {
+      "path": "assets/js/modules/gradient-builder.js",
+      "size": 21372
+    },
+    {
+      "path": "assets/js/modules/live-edit-engine.js",
+      "size": 9152
+    },
+    {
+      "path": "assets/js/modules/live-preview.js",
+      "size": 11469
+    },
+    {
+      "path": "assets/js/modules/memory-manager.js",
+      "size": 12735
+    },
+    {
+      "path": "assets/js/modules/micro-panel.js",
+      "size": 20326
+    },
+    {
+      "path": "assets/js/modules/navigation-manager.js",
+      "size": 9219
+    },
+    {
+      "path": "assets/js/modules/performance-monitor.js",
+      "size": 9466
+    },
+    {
+      "path": "assets/js/modules/settings-manager.js",
+      "size": 8949
+    },
+    {
+      "path": "assets/js/modules/tab-sync.js",
+      "size": 13687
+    },
+    {
+      "path": "assets/js/modules/template-manager.js",
+      "size": 11560
+    },
+    {
+      "path": "assets/js/modules/theme-manager.js",
+      "size": 7619
+    },
+    {
+      "path": "assets/js/navigation-manager.js",
+      "size": 11066
+    },
+    {
+      "path": "assets/js/responsive-manager.js",
+      "size": 5677
+    },
+    {
+      "path": "assets/js/theme-manager.js",
+      "size": 3986
+    },
+    {
+      "path": "includes/AccessControlManager.php",
+      "size": 20546
+    },
+    {
+      "path": "includes/AssetLoader.php",
+      "size": 13382
+    },
+    {
+      "path": "includes/CacheManager.php",
+      "size": 17477
+    },
+    {
+      "path": "includes/CommunicationManager.php",
+      "size": 31288
+    },
+    {
+      "path": "includes/CoreEngine.php",
+      "size": 6426
+    },
+    {
+      "path": "includes/DatabaseOptimizer.php",
+      "size": 26161
+    },
+    {
+      "path": "includes/ErrorLogger.php",
+      "size": 32404
+    },
+    {
+      "path": "includes/MemoryManager.php",
+      "size": 17177
+    },
+    {
+      "path": "includes/PerformanceMonitor.php",
+      "size": 11949
+    },
+    {
+      "path": "includes/PluginConflictDetector.php",
+      "size": 22211
+    },
+    {
+      "path": "includes/SecurityManager.php",
+      "size": 26190
+    },
+    {
+      "path": "includes/SecurityValidator.php",
+      "size": 16780
+    },
+    {
+      "path": "includes/ServiceBootstrap.php",
+      "size": 5636
+    },
+    {
+      "path": "includes/SettingsManager.php",
+      "size": 33738
+    },
+    {
+      "path": "includes/SettingsStorage.php",
+      "size": 18474
+    },
+    {
+      "path": "includes/StyleGenerator.php",
+      "size": 20477
+    },
+    {
+      "path": "includes/TemplateManager.php",
+      "size": 16214
+    },
+    {
+      "path": "includes/UpdateManager.php",
+      "size": 13350
+    },
+    {
+      "path": "includes/admin-settings-page.php",
+      "size": 108254
+    },
+    {
+      "path": "includes/ajax-handlers.php",
+      "size": 12779
+    },
+    {
+      "path": "includes/output-css.php",
+      "size": 106133
+    },
+    {
+      "path": "includes/templates.php",
+      "size": 7782
+    },
+    {
+      "path": "js/admin-settings.js",
+      "size": 136499
+    },
+    {
+      "path": "live-admin-styler.php",
+      "size": 132057
+    },
+    {
+      "path": "version.json",
+      "size": 298
+    }
+  ]
+}

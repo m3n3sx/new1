@@ -603,6 +603,244 @@ function las_fresh_get_property_fallback($property, $original_value = null) {
 }
 
 /**
+ * Map new settings structure to legacy format for CSS generation compatibility
+ * This ensures the CSS output system works with both old and new settings structures
+ */
+function las_fresh_map_new_settings_to_legacy($new_settings) {
+    try {
+        if (!is_array($new_settings)) {
+            error_log('LAS CSS Mapping: Invalid new_settings provided, expected array, got: ' . gettype($new_settings));
+            return array();
+        }
+        
+        // Define mapping between new settings keys and legacy option keys
+        $mapping = array(
+            // Menu settings
+            'menu_background_color' => 'admin_menu_bg_color',
+            'menu_text_color' => 'admin_menu_text_color',
+            'menu_hover_color' => 'accent_color',
+            'menu_active_color' => 'accent_color',
+            'menu_font_size' => 'admin_menu_font_size',
+            'menu_font_family' => 'admin_menu_font_family',
+            
+            // Admin bar settings
+            'adminbar_background' => 'admin_bar_bg_color',
+            'adminbar_text_color' => 'admin_bar_text_color',
+            'adminbar_hover_color' => 'accent_color',
+            'adminbar_height' => 'admin_bar_height',
+            
+            // Content area settings
+            'content_background' => 'body_bg_color',
+            'content_text_color' => 'body_text_color',
+            'content_link_color' => 'accent_color',
+            
+            // Advanced settings
+            'custom_css' => 'custom_css_rules',
+            'admin_menu_detached' => 'admin_menu_detached',
+            'admin_bar_detached' => 'admin_bar_detached'
+        );
+        
+        $legacy_options = array();
+        
+        // Map new settings to legacy format
+        foreach ($mapping as $new_key => $legacy_key) {
+            if (isset($new_settings[$new_key])) {
+                $legacy_options[$legacy_key] = $new_settings[$new_key];
+            }
+        }
+        
+        // Add any additional legacy settings that might be needed
+        $legacy_defaults = array(
+            'active_template' => 'default',
+            'border_radius' => 0,
+            'admin_menu_width' => 220,
+            'admin_menu_padding_top_bottom' => 5,
+            'admin_menu_padding_left_right' => 10,
+            'admin_menu_shadow_type' => 'none',
+            'admin_bar_width_type' => 'percentage',
+            'admin_bar_width_percentage' => 100,
+            'admin_bar_padding_top_bottom' => 0,
+            'admin_bar_padding_left_right' => 8,
+            'admin_bar_shadow_type' => 'none',
+            'body_bg_type' => 'solid',
+            'body_font_size' => 13,
+            'admin_menu_bg_type' => 'solid',
+            'admin_bar_bg_type' => 'solid'
+        );
+        
+        // Merge with defaults for any missing values
+        $legacy_options = array_merge($legacy_defaults, $legacy_options);
+        
+        // Log successful mapping in debug mode
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('LAS CSS Mapping: Successfully mapped ' . count($new_settings) . ' new settings to ' . count($legacy_options) . ' legacy options');
+        }
+        
+        return $legacy_options;
+        
+    } catch (Exception $e) {
+        error_log('LAS CSS Mapping: Error mapping settings: ' . $e->getMessage());
+        return array();
+    }
+}
+
+/**
+ * Enhanced CSS caching system for live preview critical repair
+ */
+function las_fresh_get_cached_css() {
+    try {
+        // Check if caching is enabled
+        if (!las_fresh_is_css_caching_enabled()) {
+            return false;
+        }
+        
+        $cache_key = 'las_generated_css_' . LAS_FRESH_VERSION;
+        
+        // Try WordPress object cache first
+        $cached_css = wp_cache_get($cache_key, 'las_css');
+        if ($cached_css !== false) {
+            return $cached_css;
+        }
+        
+        // Try transient cache as fallback
+        $cached_css = get_transient($cache_key);
+        if ($cached_css !== false) {
+            // Store in object cache for faster access
+            wp_cache_set($cache_key, $cached_css, 'las_css', 3600);
+            return $cached_css;
+        }
+        
+        return false;
+        
+    } catch (Exception $e) {
+        error_log('LAS CSS Cache: Error retrieving cached CSS: ' . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Cache generated CSS for performance
+ */
+function las_fresh_cache_css($css_content) {
+    try {
+        if (!las_fresh_is_css_caching_enabled() || empty($css_content)) {
+            return false;
+        }
+        
+        $cache_key = 'las_generated_css_' . LAS_FRESH_VERSION;
+        $cache_duration = 3600; // 1 hour
+        
+        // Store in WordPress object cache
+        wp_cache_set($cache_key, $css_content, 'las_css', $cache_duration);
+        
+        // Store in transient as backup
+        set_transient($cache_key, $css_content, $cache_duration);
+        
+        // Log successful caching in debug mode
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('LAS CSS Cache: Successfully cached ' . strlen($css_content) . ' bytes of CSS');
+        }
+        
+        return true;
+        
+    } catch (Exception $e) {
+        error_log('LAS CSS Cache: Error caching CSS: ' . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Clear CSS cache when settings are updated
+ */
+function las_fresh_clear_css_cache() {
+    try {
+        $cache_key = 'las_generated_css_' . LAS_FRESH_VERSION;
+        
+        // Clear from object cache
+        wp_cache_delete($cache_key, 'las_css');
+        
+        // Clear from transients
+        delete_transient($cache_key);
+        
+        // Clear any version-specific caches
+        $cache_keys_to_clear = array(
+            'las_generated_css_' . LAS_FRESH_VERSION,
+            'las_css_output',
+            'las_admin_css'
+        );
+        
+        foreach ($cache_keys_to_clear as $key) {
+            wp_cache_delete($key, 'las_css');
+            delete_transient($key);
+        }
+        
+        // Log cache clearing in debug mode
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('LAS CSS Cache: Successfully cleared CSS cache');
+        }
+        
+        return true;
+        
+    } catch (Exception $e) {
+        error_log('LAS CSS Cache: Error clearing cache: ' . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Check if CSS caching is enabled
+ */
+function las_fresh_is_css_caching_enabled() {
+    // Check if caching is explicitly disabled
+    if (defined('LAS_DISABLE_CSS_CACHE') && LAS_DISABLE_CSS_CACHE) {
+        return false;
+    }
+    
+    // Check user preference if settings storage is available
+    if (class_exists('LAS_Settings_Storage')) {
+        try {
+            $settings_storage = new LAS_Settings_Storage();
+            $settings = $settings_storage->load_settings();
+            return isset($settings['cache_css']) ? (bool) $settings['cache_css'] : true;
+        } catch (Exception $e) {
+            error_log('LAS CSS Cache: Error checking cache setting: ' . $e->getMessage());
+        }
+    }
+    
+    // Default to enabled
+    return true;
+}
+
+/**
+ * Log CSS performance metrics for optimization
+ */
+function las_fresh_log_css_performance_metrics($start_time, $start_memory, $start_peak_memory, $css_content, $cache_status = 'generated') {
+    try {
+        if (!defined('WP_DEBUG') || !WP_DEBUG) {
+            return;
+        }
+        
+        $end_time = microtime(true);
+        $end_memory = memory_get_usage(true);
+        $end_peak_memory = memory_get_peak_usage(true);
+        
+        $metrics = array(
+            'execution_time' => round(($end_time - $start_time) * 1000, 2), // milliseconds
+            'memory_used' => round(($end_memory - $start_memory) / 1024, 2), // KB
+            'peak_memory_increase' => round(($end_peak_memory - $start_peak_memory) / 1024, 2), // KB
+            'css_size' => strlen($css_content),
+            'cache_status' => $cache_status,
+            'timestamp' => current_time('Y-m-d H:i:s')
+        );
+        
+        error_log('LAS CSS Performance: ' . json_encode($metrics));
+        
+    } catch (Exception $e) {
+        error_log('LAS CSS Performance: Error logging metrics: ' . $e->getMessage());
+    }
+}
+
+/**
  * Validate final CSS value syntax
  */
 function las_fresh_is_valid_css_value($value, $property) {
@@ -662,7 +900,115 @@ function las_fresh_is_valid_css_value($value, $property) {
 
 /**
  * Generates the CSS output for styling the admin panel based on plugin options.
+ * Updated for Live Preview Critical Repair with new settings structure integration.
  */
+/**
+ * Get fallback default options when main plugin functions aren't available
+ * 
+ * @return array Default options
+ */
+/**
+ * Fallback for is_admin_bar_showing() when not in WordPress context
+ * 
+ * @return bool
+ */
+function las_fresh_is_admin_bar_showing_fallback() {
+    if (function_exists('is_admin_bar_showing')) {
+        return is_admin_bar_showing();
+    }
+    
+    // Fallback - assume admin bar is showing in admin context
+    return defined('WP_ADMIN') && WP_ADMIN;
+}
+
+function las_fresh_get_fallback_default_options() {
+    return array(
+        'active_template' => 'default',
+        'border_radius' => 0,
+        'admin_menu_detached' => false,
+        'admin_menu_margin_top' => 10,
+        'admin_menu_margin_left' => 10,
+        'admin_menu_margin_bottom' => 10,
+        'admin_bar_detached' => false,
+        'admin_bar_margin_top' => 10,
+        'admin_bar_margin_left' => 10,
+        'admin_bar_margin_right' => 10,
+        'admin_menu_bg_type' => 'solid',
+        'admin_menu_bg_color' => '#23282d',
+        'admin_menu_bg_gradient_color1' => '#23282d',
+        'admin_menu_bg_gradient_color2' => '#191e23',
+        'admin_menu_bg_gradient_direction' => 'to bottom',
+        'admin_submenu_bg_color' => '#2c3338',
+        'admin_menu_text_color' => '#f0f0f1',
+        'admin_menu_font_family' => 'default',
+        'admin_menu_google_font' => '',
+        'admin_menu_font_size' => 14,
+        'admin_submenu_text_color' => '#f0f0f1',
+        'admin_submenu_font_family' => 'default',
+        'admin_submenu_google_font' => '',
+        'admin_submenu_font_size' => 13,
+        'accent_color' => '#007cba',
+        'admin_menu_width' => 220,
+        'admin_menu_padding_top_bottom' => 5,
+        'admin_menu_padding_left_right' => 10,
+        'admin_menu_shadow_type' => 'none',
+        'admin_menu_shadow_simple' => '2px 0 10px rgba(0,0,0,0.15)',
+        'admin_menu_shadow_advanced_color' => 'rgba(0,0,0,0.15)',
+        'admin_menu_shadow_advanced_offset_x' => 2,
+        'admin_menu_shadow_advanced_offset_y' => 0,
+        'admin_menu_shadow_advanced_blur' => 10,
+        'admin_menu_shadow_advanced_spread' => 0,
+        'admin_bar_bg_type' => 'solid',
+        'admin_bar_bg_color' => '#1d2327',
+        'admin_bar_bg_gradient_color1' => '#1d2327',
+        'admin_bar_bg_gradient_color2' => '#23282d',
+        'admin_bar_bg_gradient_direction' => 'to bottom',
+        'admin_bar_text_color' => '#f0f0f1',
+        'admin_bar_font_family' => 'default',
+        'admin_bar_google_font' => '',
+        'admin_bar_font_size' => 13,
+        'admin_bar_height' => 32,
+        'admin_bar_width_type' => 'percentage',
+        'admin_bar_width_percentage' => 100,
+        'admin_bar_width_px' => 1200,
+        'admin_bar_padding_top_bottom' => 0,
+        'admin_bar_padding_left_right' => 8,
+        'admin_bar_shadow_type' => 'none',
+        'admin_bar_shadow_simple' => '0 2px 5px rgba(0,0,0,0.1)',
+        'admin_bar_shadow_advanced_color' => 'rgba(0,0,0,0.1)',
+        'admin_bar_shadow_advanced_offset_x' => 0,
+        'admin_bar_shadow_advanced_offset_y' => 2,
+        'admin_bar_shadow_advanced_blur' => 5,
+        'admin_bar_shadow_advanced_spread' => 0,
+        'body_bg_type' => 'solid',
+        'body_bg_color' => '#f0f1f2',
+        'body_bg_gradient_color1' => '#f0f1f2',
+        'body_bg_gradient_color2' => '#e9eaeb',
+        'body_bg_gradient_direction' => 'to bottom',
+        'body_text_color' => '#3c434a',
+        'body_font_family' => 'default',
+        'body_google_font' => '',
+        'body_font_size' => 13,
+        'admin_menu_logo' => '',
+        'admin_menu_logo_height' => 50,
+        'login_logo' => '',
+        'footer_text' => '',
+        'custom_css_rules' => '',
+        'admin_bar_border_radius_type' => 'all', 
+        'admin_bar_border_radius_all' => 0,
+        'admin_bar_border_radius_tl' => 0,
+        'admin_bar_border_radius_tr' => 0,
+        'admin_bar_border_radius_br' => 0,
+        'admin_bar_border_radius_bl' => 0,
+        'admin_menu_border_radius_type' => 'all', 
+        'admin_menu_border_radius_all' => 0,
+        'admin_menu_border_radius_tl' => 0,
+        'admin_menu_border_radius_tr' => 0,
+        'admin_menu_border_radius_br' => 0,
+        'admin_menu_border_radius_bl' => 0,
+    );
+}
+
 function las_fresh_generate_admin_css_output($preview_options = null) {
     // Start performance monitoring
     $performance_start = microtime(true);
@@ -686,9 +1032,31 @@ function las_fresh_generate_admin_css_output($preview_options = null) {
             }
         }
         
-        // Get options with error handling
+        // Get options with error handling - integrate with new settings storage
         try {
-            $options = ($preview_options !== null && is_array($preview_options)) ? $preview_options : las_fresh_get_options();
+            if ($preview_options !== null && is_array($preview_options)) {
+                $options = $preview_options;
+            } else {
+                // Try to use new settings storage system if available
+                if (class_exists('LAS_Settings_Storage')) {
+                    $settings_storage = new LAS_Settings_Storage();
+                    $new_settings = $settings_storage->load_settings();
+                    
+                    // Map new settings structure to legacy format for compatibility
+                    $options = las_fresh_map_new_settings_to_legacy($new_settings);
+                } else {
+                    // Fallback to legacy options system
+                    if (function_exists('las_fresh_get_options')) {
+                        $options = las_fresh_get_options();
+                    } else {
+                        // Ultimate fallback - use WordPress get_option directly
+                        $option_name = defined('LAS_FRESH_OPTION_NAME') ? LAS_FRESH_OPTION_NAME : 'las_fresh_options';
+                        $saved_options = get_option($option_name, array());
+                        $defaults = las_fresh_get_fallback_default_options();
+                        $options = array_merge($defaults, (array) $saved_options);
+                    }
+                }
+            }
         } catch (Exception $e) {
             error_log('LAS CSS Generation: Error getting options: ' . $e->getMessage());
             $options = array(); // Fallback to empty array
@@ -700,20 +1068,27 @@ function las_fresh_generate_admin_css_output($preview_options = null) {
             $options = array();
         }
         
-        $css_output = "/* Live Admin Styler CSS v" . LAS_FRESH_VERSION . " (Specificity Enhanced v3) */\n";
+        $version = defined('LAS_FRESH_VERSION') ? LAS_FRESH_VERSION : '1.2.0';
+        $css_output = "/* Live Admin Styler CSS v" . $version . " (Live Preview Critical Repair) */\n";
+        $css_output .= "/* Generated: " . (function_exists('current_time') ? current_time('Y-m-d H:i:s') : date('Y-m-d H:i:s')) . " */\n\n";
         
-        // Get defaults with error handling
+        // Get defaults with error handling and fallback
         try {
-            $defaults = las_fresh_get_default_options();
+            if (function_exists('las_fresh_get_default_options')) {
+                $defaults = las_fresh_get_default_options();
+            } else {
+                // Fallback default options for when main plugin functions aren't available
+                $defaults = las_fresh_get_fallback_default_options();
+            }
         } catch (Exception $e) {
             error_log('LAS CSS Generation: Error getting default options: ' . $e->getMessage());
-            $defaults = array(); // Fallback to empty array
+            $defaults = las_fresh_get_fallback_default_options(); // Fallback to internal defaults
         }
         
         // Validate defaults is an array
         if (!is_array($defaults)) {
-            error_log('LAS CSS Generation: Defaults is not an array, using empty array as fallback');
-            $defaults = array();
+            error_log('LAS CSS Generation: Defaults is not an array, using fallback defaults');
+            $defaults = las_fresh_get_fallback_default_options();
         }
         
         $add_css = function ($selector, $property, $value_or_option_key, $important = true, $unit = '') use (&$css_output, $defaults, $options, $preview_options) {
@@ -1574,8 +1949,8 @@ function las_fresh_generate_admin_css_output($preview_options = null) {
     }");
 
     if ($options['admin_menu_detached']) {
-        $admin_bar_current_height = is_admin_bar_showing() ? (int)$options['admin_bar_height'] : 0;
-        $admin_bar_current_margin_top = ($options['admin_bar_detached'] && is_admin_bar_showing()) ? (int)$options['admin_bar_margin_top'] : 0;
+        $admin_bar_current_height = las_fresh_is_admin_bar_showing_fallback() ? (int)$options['admin_bar_height'] : 0;
+        $admin_bar_current_margin_top = ($options['admin_bar_detached'] && las_fresh_is_admin_bar_showing_fallback()) ? (int)$options['admin_bar_margin_top'] : 0;
         $effective_top_offset_for_menu = $admin_bar_current_height + $admin_bar_current_margin_top;
         $menu_final_top = $effective_top_offset_for_menu + (int)$options['admin_menu_margin_top'];
 
@@ -1595,7 +1970,7 @@ function las_fresh_generate_admin_css_output($preview_options = null) {
         $add_raw("html body.wp-admin #wpcontent, html body.wp-admin #wpfooter { margin-left: {$content_margin_left_val}px !important; }");
         $add_raw("html body.wp-admin.folded #wpcontent, html body.wp-admin.folded #wpfooter { margin-left: " . (36 + (int)$options['admin_menu_margin_left']) . "px !important; }");
     } else {
-        $admin_bar_current_height_for_menu_top = is_admin_bar_showing() ? ((int)$options['admin_bar_height'] . 'px') : '0px';
+        $admin_bar_current_height_for_menu_top = las_fresh_is_admin_bar_showing_fallback() ? ((int)$options['admin_bar_height'] . 'px') : '0px';
         $add_raw("html body.wp-admin #adminmenuwrap { position: fixed !important; top: {$admin_bar_current_height_for_menu_top} !important; left: 0 !important; bottom: 0 !important; height: auto !important; max-height: calc(100vh - {$admin_bar_current_height_for_menu_top}) !important; width: {$menu_width_px} !important; margin:0 !important; padding: initial !important; z-index: 9990 !important;}");
         $add_raw("html body.wp-admin #adminmenu { height: 100% !important; }");
         $add_raw("html body.wp-admin #wpcontent, html body.wp-admin #wpfooter { margin-left: {$menu_width_px} !important; }");
@@ -1806,120 +2181,14 @@ function las_fresh_generate_admin_css_output($preview_options = null) {
     }
 }
 
-/**
- * Get cached CSS if available and valid
- */
-function las_fresh_get_cached_css() {
-    try {
-        $cache_data = get_option('las_fresh_css_cache', false);
-        
-        if (!$cache_data || !is_array($cache_data)) {
-            return false;
-        }
-        
-        // Check if cache is still valid
-        $cache_expiry = $cache_data['expiry'] ?? 0;
-        $current_time = current_time('timestamp');
-        
-        if ($current_time > $cache_expiry) {
-            // Cache expired, clean it up
-            delete_option('las_fresh_css_cache');
-            return false;
-        }
-        
-        // Check if options have changed since cache was created
-        $cached_options_hash = $cache_data['options_hash'] ?? '';
-        $current_options_hash = las_fresh_get_options_hash();
-        
-        if ($cached_options_hash !== $current_options_hash) {
-            // Options changed, invalidate cache
-            delete_option('las_fresh_css_cache');
-            return false;
-        }
-        
-        // Cache is valid, return CSS
-        return $cache_data['css'] ?? false;
-        
-    } catch (Exception $e) {
-        error_log('LAS CSS Cache: Error retrieving cached CSS: ' . $e->getMessage());
-        return false;
-    }
-}
+
 
 /**
  * Cache CSS output for future requests
  */
-function las_fresh_cache_css($css_output) {
-    try {
-        if (empty($css_output)) {
-            return false;
-        }
-        
-        $cache_duration = apply_filters('las_fresh_css_cache_duration', 3600); // 1 hour default
-        $cache_data = array(
-            'css' => $css_output,
-            'options_hash' => las_fresh_get_options_hash(),
-            'created' => current_time('timestamp'),
-            'expiry' => current_time('timestamp') + $cache_duration,
-            'size' => strlen($css_output)
-        );
-        
-        $result = update_option('las_fresh_css_cache', $cache_data, false);
-        
-        if ($result) {
-            // Log cache creation
-            error_log(sprintf(
-                'LAS CSS Cache: CSS cached successfully - Size: %s, Expires: %s',
-                size_format($cache_data['size']),
-                date('Y-m-d H:i:s', $cache_data['expiry'])
-            ));
-        }
-        
-        return $result;
-        
-    } catch (Exception $e) {
-        error_log('LAS CSS Cache: Error caching CSS: ' . $e->getMessage());
-        return false;
-    }
-}
 
-/**
- * Generate hash of current options for cache validation
- */
-function las_fresh_get_options_hash() {
-    try {
-        $options = las_fresh_get_options();
-        
-        // Remove non-CSS affecting options from hash calculation
-        $css_affecting_options = $options;
-        unset($css_affecting_options['active_template']); // This might not affect CSS directly
-        
-        return md5(serialize($css_affecting_options));
-        
-    } catch (Exception $e) {
-        error_log('LAS CSS Cache: Error generating options hash: ' . $e->getMessage());
-        return '';
-    }
-}
 
-/**
- * Clear CSS cache
- */
-function las_fresh_clear_css_cache() {
-    try {
-        $result = delete_option('las_fresh_css_cache');
-        
-        if ($result) {
-            error_log('LAS CSS Cache: Cache cleared successfully');
-        }
-        
-        return $result;
-        
-    } catch (Exception $e) {
-        error_log('LAS CSS Cache: Error clearing cache: ' . $e->getMessage());
-        return false;
-    }
-}
+
 
 /**
  * Get cache statistics
@@ -1977,60 +2246,7 @@ function las_fresh_format_time_remaining($seconds) {
     }
 }
 
-/**
- * Log CSS generation performance metrics
- */
-function las_fresh_log_css_performance_metrics($start_time, $start_memory, $start_peak_memory, $css_output, $mode = 'normal') {
-    try {
-        $execution_time = round((microtime(true) - $start_time) * 1000, 2); // milliseconds
-        $memory_used = memory_get_usage(true) - $start_memory;
-        $peak_memory = memory_get_peak_usage(true);
-        $css_size = strlen($css_output);
-        
-        $metrics = array(
-            'execution_time_ms' => $execution_time,
-            'memory_used_bytes' => $memory_used,
-            'memory_used_formatted' => size_format($memory_used),
-            'peak_memory_bytes' => $peak_memory,
-            'peak_memory_formatted' => size_format($peak_memory),
-            'css_size_bytes' => $css_size,
-            'css_size_formatted' => size_format($css_size),
-            'mode' => $mode,
-            'timestamp' => current_time('timestamp'),
-            'user_id' => get_current_user_id()
-        );
-        
-        // Store metrics for reporting
-        las_fresh_store_performance_metrics('css_generation', $metrics);
-        
-        // Log performance warnings
-        if ($execution_time > 500) {
-            error_log(sprintf(
-                'LAS Performance Warning: Slow CSS generation - %dms, Memory: %s, Peak: %s, CSS Size: %s, Mode: %s',
-                $execution_time,
-                $metrics['memory_used_formatted'],
-                $metrics['peak_memory_formatted'],
-                $metrics['css_size_formatted'],
-                $mode
-            ));
-        }
-        
-        if ($memory_used > 10 * 1024 * 1024) { // 10MB
-            error_log(sprintf(
-                'LAS Performance Warning: High memory usage in CSS generation - %s, Peak: %s, Mode: %s',
-                $metrics['memory_used_formatted'],
-                $metrics['peak_memory_formatted'],
-                $mode
-            ));
-        }
-        
-        return $metrics;
-        
-    } catch (Exception $e) {
-        error_log('LAS Performance Monitoring: Error logging CSS metrics: ' . $e->getMessage());
-        return array();
-    }
-}
+
 
 /**
  * Store performance metrics for analysis and reporting

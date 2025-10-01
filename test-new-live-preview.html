@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test New Live Preview System</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .success { color: green; }
+        .error { color: red; }
+        .warning { color: orange; }
+        .test-form { margin: 10px 0; }
+        .test-form input, .test-form select { margin: 5px; padding: 5px; }
+        #preview-area { 
+            background: #f1f1f1; 
+            padding: 20px; 
+            margin: 20px 0; 
+            border: 1px solid #ccc;
+            min-height: 100px;
+        }
+        .admin-menu-preview {
+            background: #23282d;
+            color: #f0f0f1;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+        }
+        .admin-bar-preview {
+            background: #1d2327;
+            color: #f0f0f1;
+            padding: 8px;
+            margin: 10px 0;
+            height: 32px;
+            line-height: 16px;
+        }
+        #test-results { 
+            margin-top: 20px; 
+            max-height: 300px; 
+            overflow-y: auto; 
+            border: 1px solid #ddd; 
+            padding: 10px; 
+        }
+    </style>
+</head>
+<body>
+    <h1>Test New Live Preview System (LAS Core Manager)</h1>
+    
+    <div class="test-section">
+        <h2>1. System Status</h2>
+        <div id="system-status">Checking system status...</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Live Preview Test</h2>
+        <div class="test-form">
+            <label>Menu Background Color:</label>
+            <input type="color" id="menu-bg-color" value="#23282d" data-setting="menu_background_color">
+            <button onclick="testDirectUpdate('menu_background_color', document.getElementById('menu-bg-color').value)">Test Direct Update</button>
+        </div>
+        
+        <div class="test-form">
+            <label>Menu Text Color:</label>
+            <input type="color" id="menu-text-color" value="#f0f0f1" data-setting="menu_text_color">
+            <button onclick="testDirectUpdate('menu_text_color', document.getElementById('menu-text-color').value)">Test Direct Update</button>
+        </div>
+        
+        <div class="test-form">
+            <label>Admin Bar Background:</label>
+            <input type="color" id="adminbar-bg-color" value="#1d2327" data-setting="adminbar_background">
+            <button onclick="testDirectUpdate('adminbar_background', document.getElementById('adminbar-bg-color').value)">Test Direct Update</button>
+        </div>
+        
+        <div class="test-form">
+            <button onclick="testCoreManagerInit()">Test Core Manager Initialization</button>
+            <button onclick="testLivePreviewEngine()">Test Live Preview Engine</button>
+            <button onclick="clearResults()">Clear Results</button>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Preview Area</h2>
+        <div id="preview-area">
+            <div class="admin-bar-preview" id="adminbar-preview">WordPress Admin Bar Preview</div>
+            <div class="admin-menu-preview" id="menu-preview">
+                <div>Dashboard</div>
+                <div>Posts</div>
+                <div>Media</div>
+                <div>Pages</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. Test Results</h2>
+        <div id="test-results"></div>
+    </div>
+
+    <script>
+        // Mock WordPress configuration
+        window.lasAdminData = {
+            ajax_url: '/wp-admin/admin-ajax.php',
+            nonce: 'test_nonce_12345',
+            ajax_actions: {
+                get_preview_css: 'las_get_preview_css',
+                save_settings: 'las_save_settings',
+                load_settings: 'las_load_settings'
+            },
+            debug: true
+        };
+        
+        // Test system status
+        function checkSystemStatus() {
+            const results = [];
+            
+            // Check for LAS namespace
+            if (typeof window.LAS !== 'undefined') {
+                results.push('<span class="success">✓ LAS namespace available</span>');
+                
+                // Check for Core Manager
+                if (window.LAS.coreManager) {
+                    results.push('<span class="success">✓ LAS Core Manager available</span>');
+                    
+                    if (window.LAS.coreManager.isInitialized && window.LAS.coreManager.isInitialized()) {
+                        results.push('<span class="success">✓ Core Manager initialized</span>');
+                        
+                        // Check for Live Preview Engine
+                        const previewEngine = window.LAS.coreManager.get('preview');
+                        if (previewEngine) {
+                            results.push('<span class="success">✓ Live Preview Engine available</span>');
+                        } else {
+                            results.push('<span class="error">✗ Live Preview Engine not available</span>');
+                        }
+                        
+                        // Check for Settings Manager
+                        const settingsManager = window.LAS.coreManager.get('settings');
+                        if (settingsManager) {
+                            results.push('<span class="success">✓ Settings Manager available</span>');
+                        } else {
+                            results.push('<span class="error">✗ Settings Manager not available</span>');
+                        }
+                        
+                    } else {
+                        results.push('<span class="warning">⚠ Core Manager not initialized</span>');
+                    }
+                } else {
+                    results.push('<span class="error">✗ LAS Core Manager not available</span>');
+                }
+            } else {
+                results.push('<span class="error">✗ LAS namespace not available</span>');
+            }
+            
+            // Check for old system
+            if (typeof updatePreview !== 'undefined') {
+                results.push('<span class="warning">⚠ Old live preview system detected (may cause conflicts)</span>');
+            } else {
+                results.push('<span class="success">✓ No old system conflicts detected</span>');
+            }
+            
+            document.getElementById('system-status').innerHTML = results.join('<br>');
+        }
+        
+        // Test Core Manager initialization
+        function testCoreManagerInit() {
+            addResult('Testing Core Manager initialization...');
+            
+            if (typeof window.LAS === 'undefined') {
+                addResult('<span class="error">✗ LAS namespace not available</span>');
+                return;
+            }
+            
+            if (!window.LAS.coreManager) {
+                addResult('Creating new Core Manager...');
+                try {
+                    // This would normally be done by the main script
+                    addResult('<span class="warning">⚠ Core Manager should be initialized by main script</span>');
+                } catch (error) {
+                    addResult('<span class="error">✗ Failed to create Core Manager: ' + error.message + '</span>');
+                }
+                return;
+            }
+            
+            if (window.LAS.coreManager.isInitialized()) {
+                addResult('<span class="success">✓ Core Manager already initialized</span>');
+            } else {
+                addResult('Initializing Core Manager...');
+                window.LAS.coreManager.init().then(() => {
+                    addResult('<span class="success">✓ Core Manager initialized successfully</span>');
+                }).catch(error => {
+                    addResult('<span class="error">✗ Core Manager initialization failed: ' + error.message + '</span>');
+                });
+            }
+        }
+        
+        // Test Live Preview Engine
+        function testLivePreviewEngine() {
+            addResult('Testing Live Preview Engine...');
+            
+            if (!window.LAS || !window.LAS.coreManager) {
+                addResult('<span class="error">✗ Core Manager not available</span>');
+                return;
+            }
+            
+            const previewEngine = window.LAS.coreManager.get('preview');
+            if (!previewEngine) {
+                addResult('<span class="error">✗ Live Preview Engine not available</span>');
+                return;
+            }
+            
+            // Test CSS generation
+            try {
+                previewEngine.updateSetting('menu_background_color', '#ff0000');
+                addResult('<span class="success">✓ Live Preview Engine updateSetting works</span>');
+                
+                // Check if CSS was applied
+                const styleElement = document.getElementById('las-live-preview-styles');
+                if (styleElement) {
+                    addResult('<span class="success">✓ CSS style element created</span>');
+                    if (styleElement.textContent.includes('#ff0000')) {
+                        addResult('<span class="success">✓ CSS contains test color</span>');
+                    } else {
+                        addResult('<span class="warning">⚠ CSS does not contain test color</span>');
+                    }
+                } else {
+                    addResult('<span class="error">✗ CSS style element not found</span>');
+                }
+                
+            } catch (error) {
+                addResult('<span class="error">✗ Live Preview Engine test failed: ' + error.message + '</span>');
+            }
+        }
+        
+        // Test direct update
+        function testDirectUpdate(setting, value) {
+            addResult(`Testing direct update: ${setting} = ${value}`);
+            
+            if (!window.LAS || !window.LAS.coreManager) {
+                addResult('<span class="error">✗ Core Manager not available</span>');
+                return;
+            }
+            
+            const settingsManager = window.LAS.coreManager.get('settings');
+            if (settingsManager && typeof settingsManager.set === 'function') {
+                try {
+                    settingsManager.set(setting, value);
+                    addResult('<span class="success">✓ Settings Manager update successful</span>');
+                } catch (error) {
+                    addResult('<span class="error">✗ Settings Manager update failed: ' + error.message + '</span>');
+                }
+            } else {
+                addResult('<span class="error">✗ Settings Manager not available</span>');
+            }
+            
+            // Also update local preview
+            updateLocalPreview(setting, value);
+        }
+        
+        // Update local preview (fallback)
+        function updateLocalPreview(setting, value) {
+            const menuPreview = document.getElementById('menu-preview');
+            const adminbarPreview = document.getElementById('adminbar-preview');
+            
+            switch(setting) {
+                case 'menu_background_color':
+                    menuPreview.style.backgroundColor = value;
+                    addResult(`<span class="success">✓ Local preview updated: menu background = ${value}</span>`);
+                    break;
+                case 'menu_text_color':
+                    menuPreview.style.color = value;
+                    addResult(`<span class="success">✓ Local preview updated: menu text = ${value}</span>`);
+                    break;
+                case 'adminbar_background':
+                    adminbarPreview.style.backgroundColor = value;
+                    addResult(`<span class="success">✓ Local preview updated: adminbar background = ${value}</span>`);
+                    break;
+            }
+        }
+        
+        // Add result to test results
+        function addResult(message) {
+            const results = document.getElementById('test-results');
+            const timestamp = new Date().toLocaleTimeString();
+            results.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        // Clear results
+        function clearResults() {
+            document.getElementById('test-results').innerHTML = '';
+        }
+        
+        // Initialize tests
+        $(document).ready(function() {
+            checkSystemStatus();
+            addResult('Test page initialized - waiting for LAS Core Manager...');
+            
+            // Check periodically if LAS becomes available
+            let checkCount = 0;
+            const checkInterval = setInterval(() => {
+                checkCount++;
+                if (window.LAS && window.LAS.coreManager) {
+                    clearInterval(checkInterval);
+                    addResult('<span class="success">✓ LAS Core Manager detected</span>');
+                    checkSystemStatus();
+                } else if (checkCount > 10) {
+                    clearInterval(checkInterval);
+                    addResult('<span class="error">✗ LAS Core Manager not detected after 5 seconds</span>');
+                }
+            }, 500);
+        });
+    </script>
+</body>
+</html>

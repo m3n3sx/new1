@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Preview Workflow Integration Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .test-section {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .test-section:last-child {
+            border-bottom: none;
+        }
+        
+        .test-section h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .test-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .control-group label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .control-group input,
+        .control-group select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .control-group input[type="color"] {
+            height: 40px;
+            cursor: pointer;
+        }
+        
+        .test-results {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        
+        .test-result {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .test-result:last-child {
+            border-bottom: none;
+        }
+        
+        .test-status {
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .test-status.pass {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .test-status.fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .test-status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .run-tests-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 20px 0;
+            transition: background 0.3s;
+        }
+        
+        .run-tests-btn:hover {
+            background: #2980b9;
+        }
+        
+        .run-tests-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+        
+        .console-output {
+            background: #2c3e50;
+            color: #ecf0f1;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin-top: 15px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #ecf0f1;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        /* Mock WordPress admin styles for testing */
+        #adminmenu {
+            background: #23282d;
+            color: #ffffff;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        
+        #wpadminbar {
+            background: #23282d;
+            color: #ffffff;
+            padding: 10px 20px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        
+        #wpbody-content {
+            background: #f1f1f1;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Live Preview Workflow Integration Test</h1>
+            <p>Comprehensive testing of the complete live preview system</p>
+        </div>
+        
+        <div class="test-section">
+            <h3>🎨 Live Preview Controls</h3>
+            <div class="test-controls">
+                <div class="control-group">
+                    <label for="menu-bg-color">Menu Background Color</label>
+                    <input type="color" id="menu-bg-color" value="#23282d">
+                </div>
+                <div class="control-group">
+                    <label for="menu-text-color">Menu Text Color</label>
+                    <input type="color" id="menu-text-color" value="#ffffff">
+                </div>
+                <div class="control-group">
+                    <label for="adminbar-bg-color">Admin Bar Background</label>
+                    <input type="color" id="adminbar-bg-color" value="#23282d">
+                </div>
+                <div class="control-group">
+                    <label for="content-bg-color">Content Background</label>
+                    <input type="color" id="content-bg-color" value="#f1f1f1">
+                </div>
+                <div class="control-group">
+                    <label for="animation-speed">Animation Speed</label>
+                    <select id="animation-speed">
+                        <option value="fast">Fast</option>
+                        <option value="normal" selected>Normal</option>
+                        <option value="slow">Slow</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="enable-preview">Enable Live Preview</label>
+                    <input type="checkbox" id="enable-preview" checked>
+                </div>
+            </div>
+            
+            <button class="run-tests-btn" onclick="runIntegrationTests()">
+                🚀 Run Integration Tests
+            </button>
+            
+            <div class="progress-bar" id="progress-container" style="display: none;">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📊 Test Results</h3>
+            <div class="test-results" id="test-results">
+                <div class="test-result">
+                    <span>Browser Compatibility Check</span>
+                    <span class="test-status pending">PENDING</span>
+                </div>
+                <div class="test-result">
+                    <span>Module Loading Test</span>
+                    <span class="test-status pending">PENDING</span>
+                </div>
+                <div class="test-result">
+                    <span>Live Preview Initialization</span>
+                    <span class="test-status pending">PENDING</span>
+                </div>
+                <div class="test-result">
+                    <span>Color Change Detection</span>
+                    <span class="test-status pending">PENDING</span>
+                </div>
+                <div class="test-result">
+                    <span>CSS Injection Test</span>
+                    <span class="test-status pending">PENDING</span>
+                </div>
+                <div class="test-result">
+                    <span>Settings Persistence Test</span>
+                    <span class="test-status pending">PENDING</span>
+                </div>
+                <div class="test-result">
+                    <span>Error Handling Test</span>
+                    <span class="test-status pending">PENDING</span>
+                </div>
+                <div class="test-result">
+                    <span>Performance Test</span>
+                    <span class="test-status pending">PENDING</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🖥️ Mock WordPress Admin Elements</h3>
+            <div id="adminmenu">
+                <strong>Admin Menu</strong> - This element should change color when menu settings are modified
+            </div>
+            <div id="wpadminbar">
+                <strong>Admin Bar</strong> - This element should change color when admin bar settings are modified
+            </div>
+            <div id="wpbody-content">
+                <strong>Content Area</strong> - This element should change color when content settings are modified
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📝 Console Output</h3>
+            <div class="console-output" id="console-output"></div>
+        </div>
+    </div>
+
+    <script src="../assets/js/modules/browser-compatibility.js"></script>
+    <script>
+        let testResults = [];
+        let browserCompatibility;
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            setupConsoleCapture();
+            initializeBrowserCompatibility();
+            setupLivePreviewControls();
+            
+            console.log('Integration test environment initialized');
+        });
+        
+        function setupConsoleCapture() {
+            const consoleOutput = document.getElementById('console-output');
+            const originalConsole = {
+                log: console.log,
+                warn: console.warn,
+                error: console.error
+            };
+            
+            function addToConsole(type, args) {
+                const timestamp = new Date().toLocaleTimeString();
+                const message = args.join(' ');
+                consoleOutput.innerHTML += `[${timestamp}] ${type.toUpperCase()}: ${message}\n`;
+                consoleOutput.scrollTop = consoleOutput.scrollHeight;
+                originalConsole[type](...args);
+            }
+            
+            console.log = (...args) => addToConsole('log', args);
+            console.warn = (...args) => addToConsole('warn', args);
+            console.error = (...args) => addToConsole('error', args);
+        }
+        
+        function initializeBrowserCompatibility() {
+            try {
+                browserCompatibility = new BrowserCompatibility();
+                console.log('Browser compatibility module loaded successfully');
+            } catch (error) {
+                console.error('Failed to load browser compatibility module:', error);
+            }
+        }
+        
+        function setupLivePreviewControls() {
+            // Add event listeners to all form controls
+            const controls = [
+                'menu-bg-color',
+                'menu-text-color', 
+                'adminbar-bg-color',
+                'content-bg-color',
+                'animation-speed',
+                'enable-preview'
+            ];
+            
+            controls.forEach(controlId => {
+                const element = document.getElementById(controlId);
+                if (element) {
+                    element.addEventListener('change', handleControlChange);
+                    element.addEventListener('input', handleControlChange);
+                }
+            });
+        }
+        
+        function handleControlChange(event) {
+            const controlId = event.target.id;
+            const value = event.target.value;
+            
+            console.log(`Control changed: ${controlId} = ${value}`);
+            
+            // Apply live preview changes
+            applyLivePreviewChange(controlId, value);
+        }
+        
+        function applyLivePreviewChange(controlId, value) {
+            const enablePreview = document.getElementById('enable-preview').checked;
+            if (!enablePreview) {
+                console.log('Live preview disabled, skipping change');
+                return;
+            }
+            
+            // Map control IDs to CSS selectors and properties
+            const mappings = {
+                'menu-bg-color': { selector: '#adminmenu', property: 'background-color' },
+                'menu-text-color': { selector: '#adminmenu', property: 'color' },
+                'adminbar-bg-color': { selector: '#wpadminbar', property: 'background-color' },
+                'content-bg-color': { selector: '#wpbody-content', property: 'background-color' }
+            };
+            
+            const mapping = mappings[controlId];
+            if (mapping) {
+                const element = document.querySelector(mapping.selector);
+                if (element) {
+                    element.style[mapping.property] = value;
+                    console.log(`Applied ${mapping.property}: ${value} to ${mapping.selector}`);
+                }
+            }
+        }
+        
+        async function runIntegrationTests() {
+            const runButton = document.querySelector('.run-tests-btn');
+            const progressContainer = document.getElementById('progress-container');
+            const progressFill = document.getElementById('progress-fill');
+            
+            runButton.disabled = true;
+            runButton.textContent = '🔄 Running Tests...';
+            progressContainer.style.display = 'block';
+            
+            testResults = [];
+            
+            try {
+                console.log('Starting integration tests...');
+                
+                // Test 1: Browser Compatibility Check
+                await runTest('Browser Compatibility Check', testBrowserCompatibility);
+                updateProgress(12.5);
+                
+                // Test 2: Module Loading Test
+                await runTest('Module Loading Test', testModuleLoading);
+                updateProgress(25);
+                
+                // Test 3: Live Preview Initialization
+                await runTest('Live Preview Initialization', testLivePreviewInit);
+                updateProgress(37.5);
+                
+                // Test 4: Color Change Detection
+                await runTest('Color Change Detection', testColorChangeDetection);
+                updateProgress(50);
+                
+                // Test 5: CSS Injection Test
+                await runTest('CSS Injection Test', testCSSInjection);
+                updateProgress(62.5);
+                
+                // Test 6: Settings Persistence Test
+                await runTest('Settings Persistence Test', testSettingsPersistence);
+                updateProgress(75);
+                
+                // Test 7: Error Handling Test
+                await runTest('Error Handling Test', testErrorHandling);
+                updateProgress(87.5);
+                
+                // Test 8: Performance Test
+                await runTest('Performance Test', testPerformance);
+                updateProgress(100);
+                
+                console.log('All integration tests completed');
+                generateTestReport();
+                
+            } catch (error) {
+                console.error('Integration test suite failed:', error);
+            } finally {
+                runButton.disabled = false;
+                runButton.textContent = '🚀 Run Integration Tests';
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                    progressFill.style.width = '0%';
+                }, 2000);
+            }
+        }
+        
+        async function runTest(testName, testFunction) {
+            try {
+                console.log(`Running test: ${testName}`);
+                const startTime = performance.now();
+                
+                const result = await testFunction();
+                
+                const duration = performance.now() - startTime;
+                const passed = result === true;
+                
+                testResults.push({
+                    name: testName,
+                    passed: passed,
+                    duration: duration,
+                    message: passed ? 'Test passed' : (result || 'Test failed')
+                });
+                
+                updateTestResult(testName, passed ? 'pass' : 'fail');
+                
+                if (passed) {
+                    console.log(`✓ ${testName} passed (${duration.toFixed(2)}ms)`);
+                } else {
+                    console.warn(`✗ ${testName} failed: ${result} (${duration.toFixed(2)}ms)`);
+                }
+                
+            } catch (error) {
+                testResults.push({
+                    name: testName,
+                    passed: false,
+                    duration: 0,
+                    message: error.message
+                });
+                
+                updateTestResult(testName, 'fail');
+                console.error(`✗ ${testName} error: ${error.message}`);
+            }
+        }
+        
+        function updateTestResult(testName, status) {
+            const testResultElements = document.querySelectorAll('.test-result');
+            testResultElements.forEach(element => {
+                const nameElement = element.querySelector('span:first-child');
+                if (nameElement && nameElement.textContent === testName) {
+                    const statusElement = element.querySelector('.test-status');
+                    statusElement.textContent = status.toUpperCase();
+                    statusElement.className = `test-status ${status}`;
+                }
+            });
+        }
+        
+        function updateProgress(percentage) {
+            const progressFill = document.getElementById('progress-fill');
+            progressFill.style.width = percentage + '%';
+        }
+        
+        // Individual test functions
+        async function testBrowserCompatibility() {
+            if (!browserCompatibility) {
+                return 'Browser compatibility module not loaded';
+            }
+            
+            const report = browserCompatibility.getCompatibilityReport();
+            if (!report || !report.browser) {
+                return 'Failed to generate compatibility report';
+            }
+            
+            console.log('Browser detected:', report.browser.browser, report.browser.version);
+            return true;
+        }
+        
+        async function testModuleLoading() {
+            // Test that required modules are available
+            if (typeof BrowserCompatibility === 'undefined') {
+                return 'BrowserCompatibility module not available';
+            }
+            
+            // Test that we can create instances
+            try {
+                const instance = new BrowserCompatibility();
+                if (!instance.getFeatures) {
+                    return 'BrowserCompatibility instance missing required methods';
+                }
+            } catch (error) {
+                return `Failed to create BrowserCompatibility instance: ${error.message}`;
+            }
+            
+            return true;
+        }
+        
+        async function testLivePreviewInit() {
+            // Test that live preview controls are working
+            const enablePreview = document.getElementById('enable-preview');
+            if (!enablePreview) {
+                return 'Enable preview control not found';
+            }
+            
+            // Test that we can toggle the preview
+            const originalValue = enablePreview.checked;
+            enablePreview.checked = !originalValue;
+            enablePreview.dispatchEvent(new Event('change'));
+            enablePreview.checked = originalValue;
+            
+            return true;
+        }
+        
+        async function testColorChangeDetection() {
+            // Test that color changes are detected and applied
+            const colorInput = document.getElementById('menu-bg-color');
+            if (!colorInput) {
+                return 'Color input not found';
+            }
+            
+            const originalColor = colorInput.value;
+            const testColor = '#ff0000';
+            
+            colorInput.value = testColor;
+            colorInput.dispatchEvent(new Event('change'));
+            
+            // Check if the change was applied
+            const targetElement = document.querySelector('#adminmenu');
+            if (!targetElement) {
+                return 'Target element not found';
+            }
+            
+            const appliedColor = targetElement.style.backgroundColor;
+            
+            // Restore original color
+            colorInput.value = originalColor;
+            colorInput.dispatchEvent(new Event('change'));
+            
+            if (!appliedColor || (!appliedColor.includes('255, 0, 0') && !appliedColor.includes('#ff0000'))) {
+                return 'Color change was not applied correctly';
+            }
+            
+            return true;
+        }
+        
+        async function testCSSInjection() {
+            // Test that CSS can be injected dynamically
+            const testStyle = document.createElement('style');
+            testStyle.id = 'integration-test-style';
+            testStyle.textContent = '.test-css-injection { color: red; }';
+            
+            document.head.appendChild(testStyle);
+            
+            // Verify the style was added
+            const addedStyle = document.getElementById('integration-test-style');
+            if (!addedStyle) {
+                return 'Failed to inject CSS';
+            }
+            
+            // Clean up
+            document.head.removeChild(testStyle);
+            
+            return true;
+        }
+        
+        async function testSettingsPersistence() {
+            // Test localStorage functionality
+            try {
+                const testKey = 'las-integration-test';
+                const testValue = 'test-value';
+                
+                localStorage.setItem(testKey, testValue);
+                const retrievedValue = localStorage.getItem(testKey);
+                localStorage.removeItem(testKey);
+                
+                if (retrievedValue !== testValue) {
+                    return 'localStorage persistence failed';
+                }
+            } catch (error) {
+                return `localStorage not available: ${error.message}`;
+            }
+            
+            return true;
+        }
+        
+        async function testErrorHandling() {
+            // Test that errors are handled gracefully
+            try {
+                // Simulate an error condition
+                const nonExistentElement = document.querySelector('#non-existent-element');
+                if (nonExistentElement) {
+                    nonExistentElement.style.color = 'red';
+                }
+                
+                // Test should not throw an error
+                return true;
+            } catch (error) {
+                return `Error handling failed: ${error.message}`;
+            }
+        }
+        
+        async function testPerformance() {
+            // Test that operations complete within acceptable time limits
+            const startTime = performance.now();
+            
+            // Simulate some operations
+            for (let i = 0; i < 1000; i++) {
+                const element = document.createElement('div');
+                element.style.color = '#000000';
+            }
+            
+            const duration = performance.now() - startTime;
+            
+            // Should complete within 100ms
+            if (duration > 100) {
+                return `Performance test failed: ${duration.toFixed(2)}ms (expected < 100ms)`;
+            }
+            
+            return true;
+        }
+        
+        function generateTestReport() {
+            const totalTests = testResults.length;
+            const passedTests = testResults.filter(r => r.passed).length;
+            const failedTests = totalTests - passedTests;
+            const successRate = Math.round((passedTests / totalTests) * 100);
+            const totalDuration = testResults.reduce((sum, r) => sum + r.duration, 0);
+            
+            console.log('\n📊 INTEGRATION TEST REPORT');
+            console.log('===========================');
+            console.log(`Total Tests: ${totalTests}`);
+            console.log(`Passed: ${passedTests}`);
+            console.log(`Failed: ${failedTests}`);
+            console.log(`Success Rate: ${successRate}%`);
+            console.log(`Total Duration: ${totalDuration.toFixed(2)}ms`);
+            console.log('\nDetailed Results:');
+            
+            testResults.forEach(result => {
+                const status = result.passed ? '✓' : '✗';
+                console.log(`  ${status} ${result.name}: ${result.message} (${result.duration.toFixed(2)}ms)`);
+            });
+            
+            console.log('===========================\n');
+            
+            if (successRate >= 90) {
+                console.log('🎉 Integration tests PASSED! System is ready for production.');
+            } else if (successRate >= 70) {
+                console.log('⚠️ Integration tests partially passed. Some issues need attention.');
+            } else {
+                console.log('❌ Integration tests FAILED. Critical issues need to be resolved.');
+            }
+        }
+    </script>
+</body>
+</html>

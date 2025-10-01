@@ -1,0 +1,200 @@
+/**
+ * Slider Fallback CSS
+ * Ensures sliders are visible even if jQuery UI CSS doesn't load
+ */
+
+/* Basic slider container styling */
+.las-slider-container {
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Number input styling */
+.las-slider-input {
+    width: 80px !important;
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 13px;
+}
+
+/* jQuery UI slider fallback */
+.las-slider {
+    flex: 1;
+    height: 20px;
+    position: relative;
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    cursor: pointer;
+    min-width: 200px;
+}
+
+/* If jQuery UI is not loaded, show the slider as a range input */
+.las-slider:not(.ui-slider) {
+    background: transparent;
+    border: none;
+    height: auto;
+}
+
+.las-slider:not(.ui-slider):before {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 6px;
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Value display */
+.las-slider-value {
+    min-width: 60px;
+    text-align: right;
+    font-weight: 500;
+    color: #333;
+    font-size: 13px;
+}
+
+/* jQuery UI slider styling when loaded */
+.ui-slider {
+    background: #f0f0f0 !important;
+    border: 1px solid #ddd !important;
+    border-radius: 3px !important;
+    height: 8px !important;
+}
+
+.ui-slider .ui-slider-handle {
+    background: #0073aa !important;
+    border: 1px solid #005a87 !important;
+    border-radius: 50% !important;
+    width: 18px !important;
+    height: 18px !important;
+    top: -6px !important;
+    cursor: pointer !important;
+}
+
+.ui-slider .ui-slider-handle:hover,
+.ui-slider .ui-slider-handle:focus {
+    background: #005a87 !important;
+    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.3) !important;
+}
+
+.ui-slider .ui-slider-range {
+    background: #0073aa !important;
+    border-radius: 3px !important;
+}
+
+/* Ensure sliders work in WordPress admin */
+.wp-admin .las-slider-container {
+    margin: 8px 0;
+}
+
+.wp-admin .las-slider-input {
+    height: auto !important;
+    line-height: normal !important;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .las-slider {
+        background: #2c3338;
+        border-color: #50575e;
+    }
+    
+    .las-slider:not(.ui-slider):before {
+        background: #2c3338;
+        border-color: #50575e;
+    }
+    
+    .las-slider-value {
+        color: #f0f0f1;
+    }
+    
+    .las-slider-input {
+        background: #2c3338;
+        border-color: #50575e;
+        color: #f0f0f1;
+    }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .las-slider-container {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 5px;
+    }
+    
+    .las-slider {
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .las-slider-value {
+        text-align: left;
+        min-width: auto;
+    }
+}
+
+/* Animation for smooth interactions */
+.las-slider,
+.las-slider-input,
+.las-slider-value {
+    transition: all 0.2s ease;
+}
+
+.las-slider-input:focus {
+    border-color: #0073aa;
+    box-shadow: 0 0 0 1px #0073aa;
+    outline: none;
+}
+
+/* Loading state */
+.las-slider-container.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.las-slider-container.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #0073aa;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Error state */
+.las-slider-container.error .las-slider-input {
+    border-color: #d63638;
+    box-shadow: 0 0 0 1px #d63638;
+}
+
+.las-slider-container.error .las-slider-value {
+    color: #d63638;
+}
+
+/* Success state */
+.las-slider-container.success .las-slider-input {
+    border-color: #00a32a;
+}
+
+.las-slider-container.success .las-slider-value {
+    color: #00a32a;
+}

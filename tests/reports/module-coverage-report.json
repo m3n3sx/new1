@@ -1,0 +1,158 @@
+{
+  "timestamp": "2025-10-01T06:28:18.356Z",
+  "summary": {
+    "totalModules": 19,
+    "testedModules": 19,
+    "coveragePercentage": 100,
+    "missingTestsCount": 0,
+    "insufficientCoverageCount": 0,
+    "missingCriticalTestsCount": 17
+  },
+  "details": {
+    "missingTests": [],
+    "insufficientCoverage": [],
+    "missingCriticalTests": [
+      {
+        "module": "las-core",
+        "missingMethods": [
+          "registerModule",
+          "handleError"
+        ]
+      },
+      {
+        "module": "live-preview",
+        "missingMethods": [
+          "updatePreview",
+          "injectCSS",
+          "applyStyles"
+        ]
+      },
+      {
+        "module": "ajax-manager",
+        "missingMethods": [
+          "handleError"
+        ]
+      },
+      {
+        "module": "live-edit-engine",
+        "missingMethods": [
+          "showPanel"
+        ]
+      },
+      {
+        "module": "micro-panel",
+        "missingMethods": [
+          "generateControls"
+        ]
+      },
+      {
+        "module": "auto-save",
+        "missingMethods": [
+          "enable",
+          "disable",
+          "restore"
+        ]
+      },
+      {
+        "module": "color-picker",
+        "missingMethods": [
+          "show",
+          "hide",
+          "setValue",
+          "getValue"
+        ]
+      },
+      {
+        "module": "gradient-builder",
+        "missingMethods": [
+          "addStop",
+          "removeStop"
+        ]
+      },
+      {
+        "module": "css-variables-engine",
+        "missingMethods": [
+          "generateTheme"
+        ]
+      },
+      {
+        "module": "navigation-manager",
+        "missingMethods": [
+          "switchTab",
+          "updateState"
+        ]
+      },
+      {
+        "module": "card-layout",
+        "missingMethods": [
+          "render"
+        ]
+      },
+      {
+        "module": "form-controls",
+        "missingMethods": [
+          "serialize"
+        ]
+      },
+      {
+        "module": "animation-manager",
+        "missingMethods": [
+          "animate",
+          "stop",
+          "queue"
+        ]
+      },
+      {
+        "module": "theme-manager",
+        "missingMethods": [
+          "setTheme",
+          "getTheme",
+          "detectPreference"
+        ]
+      },
+      {
+        "module": "template-manager",
+        "missingMethods": [
+          "save"
+        ]
+      },
+      {
+        "module": "performance-monitor",
+        "missingMethods": [
+          "measure"
+        ]
+      },
+      {
+        "module": "memory-manager",
+        "missingMethods": [
+          "optimize"
+        ]
+      }
+    ]
+  },
+  "moduleBreakdown": {
+    "core": {
+      "total": 4,
+      "tested": 4,
+      "coverage": 100
+    },
+    "liveEdit": {
+      "total": 4,
+      "tested": 4,
+      "coverage": 100
+    },
+    "ui": {
+      "total": 7,
+      "tested": 7,
+      "coverage": 100
+    },
+    "system": {
+      "total": 4,
+      "tested": 4,
+      "coverage": 100
+    }
+  },
+  "recommendations": [
+    "Add tests for critical methods in 17 modules"
+  ]
+}

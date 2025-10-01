@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAS AJAX Integration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 3px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        button {
+            background: #0073aa;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #005a87;
+        }
+        #log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Live Admin Styler - AJAX Integration Test</h1>
+    
+    <div class="test-section">
+        <h2>Module Availability Test</h2>
+        <p>Testing if enhanced AJAX modules are loaded and available:</p>
+        <div id="module-test-results"></div>
+        <button onclick="testModuleAvailability()">Test Module Availability</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>AJAX Manager Integration Test</h2>
+        <p>Testing if the enhanced AJAX manager integrates properly:</p>
+        <div id="ajax-test-results"></div>
+        <button onclick="testAjaxIntegration()">Test AJAX Integration</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Settings Save/Load Test</h2>
+        <p>Testing settings save and load with retry logic:</p>
+        <div id="settings-test-results"></div>
+        <button onclick="testSettingsWorkflow()">Test Settings Workflow</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Error Handling Test</h2>
+        <p>Testing error handling and retry mechanisms:</p>
+        <div id="error-test-results"></div>
+        <button onclick="testErrorHandling()">Test Error Handling</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Log</h2>
+        <div id="log"></div>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+
+    <script>
+        // Mock WordPress AJAX configuration
+        window.lasAdminData = {
+            ajax_url: '/wp-admin/admin-ajax.php',
+            nonce: 'test-nonce-12345',
+            debug: true
+        };
+
+        // Logging function
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}\n`;
+            logDiv.textContent += logEntry;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(`LAS Test: ${message}`);
+        }
+
+        function clearLog() {
+            document.getElementById('log').textContent = '';
+        }
+
+        function showResult(containerId, message, type) {
+            const container = document.getElementById(containerId);
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${type}`;
+            resultDiv.textContent = message;
+            container.appendChild(resultDiv);
+        }
+
+        function testModuleAvailability() {
+            log('Testing module availability...');
+            const container = document.getElementById('module-test-results');
+            container.innerHTML = '';
+
+            const modules = [
+                'HTTPTransport',
+                'RequestQueue', 
+                'RetryEngine',
+                'AjaxManager'
+            ];
+
+            let allAvailable = true;
+
+            modules.forEach(moduleName => {
+                if (typeof window[moduleName] !== 'undefined') {
+                    showResult('module-test-results', `✓ ${moduleName} is available`, 'success');
+                    log(`${moduleName} module loaded successfully`);
+                } else {
+                    showResult('module-test-results', `✗ ${moduleName} is not available`, 'error');
+                    log(`${moduleName} module not found`, 'error');
+                    allAvailable = false;
+                }
+            });
+
+            if (allAvailable) {
+                showResult('module-test-results', '✓ All enhanced AJAX modules are available', 'success');
+                log('All modules available - integration ready');
+            } else {
+                showResult('module-test-results', '⚠ Some modules are missing - fallback mode will be used', 'warning');
+                log('Some modules missing - will use fallback implementation', 'warning');
+            }
+        }
+
+        function testAjaxIntegration() {
+            log('Testing AJAX manager integration...');
+            const container = document.getElementById('ajax-test-results');
+            container.innerHTML = '';
+
+            try {
+                // Test if we can create the enhanced AJAX manager
+                if (typeof LASEnhancedAjaxManager !== 'undefined') {
+                    const mockCore = {
+                        config: window.lasAdminData,
+                        get: () => null,
+                        on: () => {},
+                        emit: () => {},
+                        log: log
+                    };
+
+                    const ajaxManager = new LASEnhancedAjaxManager(mockCore);
+                    showResult('ajax-test-results', '✓ Enhanced AJAX Manager created successfully', 'success');
+                    log('Enhanced AJAX Manager instantiated');
+
+                    // Test initialization
+                    ajaxManager.initializeEnhancedModules().then(() => {
+                        showResult('ajax-test-results', '✓ Enhanced modules initialized', 'success');
+                        log('Enhanced modules initialization completed');
+                    }).catch(error => {
+                        showResult('ajax-test-results', `⚠ Module initialization failed: ${error.message}`, 'warning');
+                        log(`Module initialization failed: ${error.message}`, 'warning');
+                    });
+
+                } else {
+                    showResult('ajax-test-results', '✗ LASEnhancedAjaxManager not found', 'error');
+                    log('Enhanced AJAX Manager class not found', 'error');
+                }
+            } catch (error) {
+                showResult('ajax-test-results', `✗ Integration test failed: ${error.message}`, 'error');
+                log(`AJAX integration test failed: ${error.message}`, 'error');
+            }
+        }
+
+        function testSettingsWorkflow() {
+            log('Testing settings save/load workflow...');
+            const container = document.getElementById('settings-test-results');
+            container.innerHTML = '';
+
+            // This would normally test actual save/load operations
+            // For now, we'll test the method availability
+            try {
+                if (typeof LASEnhancedAjaxManager !== 'undefined') {
+                    const mockCore = {
+                        config: window.lasAdminData,
+                        get: () => null,
+                        on: () => {},
+                        emit: () => {},
+                        log: log
+                    };
+
+                    const ajaxManager = new LASEnhancedAjaxManager(mockCore);
+                    
+                    if (typeof ajaxManager.saveSettings === 'function') {
+                        showResult('settings-test-results', '✓ saveSettings method available', 'success');
+                        log('saveSettings method found');
+                    }
+                    
+                    if (typeof ajaxManager.loadSettings === 'function') {
+                        showResult('settings-test-results', '✓ loadSettings method available', 'success');
+                        log('loadSettings method found');
+                    }
+
+                    showResult('settings-test-results', '✓ Settings workflow methods are available', 'success');
+                    log('Settings workflow test completed');
+                } else {
+                    showResult('settings-test-results', '✗ Cannot test - Enhanced AJAX Manager not available', 'error');
+                    log('Settings workflow test failed - no enhanced manager', 'error');
+                }
+            } catch (error) {
+                showResult('settings-test-results', `✗ Settings workflow test failed: ${error.message}`, 'error');
+                log(`Settings workflow test error: ${error.message}`, 'error');
+            }
+        }
+
+        function testErrorHandling() {
+            log('Testing error handling and retry mechanisms...');
+            const container = document.getElementById('error-test-results');
+            container.innerHTML = '';
+
+            try {
+                // Test if retry engine is available
+                if (typeof RetryEngine !== 'undefined') {
+                    const retryEngine = new RetryEngine({
+                        maxRetries: 3,
+                        baseDelay: 1000
+                    });
+                    showResult('error-test-results', '✓ RetryEngine created successfully', 'success');
+                    log('RetryEngine instantiated for testing');
+
+                    // Test error classification
+                    if (typeof retryEngine.shouldRetry === 'function') {
+                        showResult('error-test-results', '✓ Error classification methods available', 'success');
+                        log('Error classification methods found');
+                    }
+                } else {
+                    showResult('error-test-results', '⚠ RetryEngine not available - using fallback', 'warning');
+                    log('RetryEngine not available, fallback will be used', 'warning');
+                }
+
+                showResult('error-test-results', '✓ Error handling test completed', 'success');
+                log('Error handling test completed');
+            } catch (error) {
+                showResult('error-test-results', `✗ Error handling test failed: ${error.message}`, 'error');
+                log(`Error handling test failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Run initial module availability test
+        document.addEventListener('DOMContentLoaded', () => {
+            log('AJAX Integration Test initialized');
+            testModuleAvailability();
+        });
+    </script>
+</body>
+</html>

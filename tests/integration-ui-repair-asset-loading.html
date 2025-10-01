@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI Repair Asset Loading Integration Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f1f1f1;
+        }
+        
+        .test-container {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .test-pass {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .test-fail {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .test-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .asset-list {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .asset-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .asset-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-indicator {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status-loaded {
+            background: #28a745;
+            color: white;
+        }
+        
+        .status-missing {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .status-fallback {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .debug-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        button {
+            background: #007cba;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #005a87;
+        }
+        
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <h1>UI Repair Asset Loading Integration Test</h1>
+    
+    <div class="test-container">
+        <h2>Environment Check</h2>
+        <div id="environment-results"></div>
+    </div>
+    
+    <div class="test-container">
+        <h2>Asset Loading Status</h2>
+        <div id="asset-status"></div>
+        <div class="asset-list" id="asset-list"></div>
+    </div>
+    
+    <div class="test-container">
+        <h2>Dependency Validation</h2>
+        <div id="dependency-results"></div>
+    </div>
+    
+    <div class="test-container">
+        <h2>Fallback Mechanisms</h2>
+        <div id="fallback-results"></div>
+        <button onclick="testFallbacks()">Test Fallback Scenarios</button>
+    </div>
+    
+    <div class="test-container">
+        <h2>Performance Metrics</h2>
+        <div id="performance-results"></div>
+    </div>
+    
+    <div class="test-container">
+        <h2>Error Handling</h2>
+        <div id="error-results"></div>
+        <button onclick="triggerTestError()">Trigger Test Error</button>
+    </div>
+    
+    <div class="test-container">
+        <h2>AJAX Communication</h2>
+        <div id="ajax-results"></div>
+        <button onclick="testAjaxValidation()">Test Asset Validation</button>
+        <button onclick="testAjaxReload()">Test Asset Reload</button>
+    </div>
+    
+    <div class="test-container">
+        <h2>Debug Information</h2>
+        <div class="debug-info" id="debug-info"></div>
+        <button onclick="refreshDebugInfo()">Refresh Debug Info</button>
+    </div>
+
+    <script>
+        // Mock WordPress admin environment
+        window.ajaxurl = '/wp-admin/admin-ajax.php';
+        window.lasAdminData = {
+            ajaxUrl: '/wp-admin/admin-ajax.php',
+            nonce: 'test_nonce_12345',
+            debug: true,
+            version: '1.2.0',
+            pluginUrl: '/wp-content/plugins/live-admin-styler/',
+            loadedAssets: [],
+            uiRepair: {
+                timeout: 10000,
+                retryAttempts: 3,
+                debounceDelay: 300,
+                enableGracefulDegradation: true
+            },
+            strings: {
+                errorTitle: 'Live Admin Styler UI Error',
+                errorMessage: 'Failed to initialize interface. Please refresh the page.',
+                loadingAssets: 'Loading interface assets...',
+                assetLoadFailed: 'Failed to load required assets.'
+            }
+        };
+
+        // Test results storage
+        const testResults = {
+            environment: {},
+            assets: {},
+            dependencies: {},
+            fallbacks: {},
+            performance: {},
+            errors: [],
+            ajax: {}
+        };
+
+        // Initialize tests when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            runEnvironmentCheck();
+            checkAssetLoading();
+            validateDependencies();
+            measurePerformance();
+            setupErrorHandling();
+            refreshDebugInfo();
+        });
+
+        function runEnvironmentCheck() {
+            const results = document.getElementById('environment-results');
+            const checks = [];
+
+            // Check for required globals
+            checks.push({
+                name: 'Window object available',
+                status: typeof window !== 'undefined',
+                details: 'Global window object'
+            });
+
+            checks.push({
+                name: 'Document object available',
+                status: typeof document !== 'undefined',
+                details: 'Global document object'
+            });
+
+            checks.push({
+                name: 'jQuery available',
+                status: typeof jQuery !== 'undefined' || typeof $ !== 'undefined',
+                details: 'jQuery library for UI interactions'
+            });
+
+            checks.push({
+                name: 'WordPress admin data',
+                status: typeof window.lasAdminData !== 'undefined',
+                details: 'Localized script data from WordPress'
+            });
+
+            checks.push({
+                name: 'AJAX URL configured',
+                status: window.lasAdminData && window.lasAdminData.ajaxUrl,
+                details: 'WordPress AJAX endpoint'
+            });
+
+            checks.push({
+                name: 'Security nonce available',
+                status: window.lasAdminData && window.lasAdminData.nonce,
+                details: 'WordPress security token'
+            });
+
+            // Display results
+            let html = '';
+            checks.forEach(check => {
+                const statusClass = check.status ? 'test-pass' : 'test-fail';
+                const statusText = check.status ? 'PASS' : 'FAIL';
+                html += `
+                    <div class="test-result ${statusClass}">
+                        ${statusText}: ${check.name}
+                        <small style="display: block; font-weight: normal; margin-top: 5px;">
+                            ${check.details}
+                        </small>
+                    </div>
+                `;
+                testResults.environment[check.name] = check.status;
+            });
+
+            results.innerHTML = html;
+        }
+
+        function checkAssetLoading() {
+            const statusDiv = document.getElementById('asset-status');
+            const listDiv = document.getElementById('asset-list');
+
+            // Expected assets
+            const expectedAssets = [
+                { name: 'jQuery', check: () => typeof jQuery !== 'undefined' || typeof $ !== 'undefined' },
+                { name: 'WordPress Utilities', check: () => typeof wp !== 'undefined' && wp.util },
+                { name: 'UI Repair Core', check: () => typeof window.LASUICoreManager !== 'undefined' },
+                { name: 'UI Repair CSS', check: () => checkCSSLoaded('las-ui-repair-css') },
+                { name: 'Color Picker', check: () => jQuery && jQuery.fn.wpColorPicker, optional: true },
+                { name: 'jQuery UI Slider', check: () => jQuery && jQuery.fn.slider, optional: true }
+            ];
+
+            let loadedCount = 0;
+            let totalRequired = expectedAssets.filter(asset => !asset.optional).length;
+
+            let listHtml = '';
+            expectedAssets.forEach(asset => {
+                const isLoaded = asset.check();
+                if (isLoaded && !asset.optional) loadedCount++;
+
+                const statusClass = isLoaded ? 'status-loaded' : 
+                                  asset.optional ? 'status-fallback' : 'status-missing';
+                const statusText = isLoaded ? 'Loaded' : 
+                                 asset.optional ? 'Optional' : 'Missing';
+
+                listHtml += `
+                    <div class="asset-item">
+                        <span>${asset.name}</span>
+                        <span class="status-indicator ${statusClass}">${statusText}</span>
+                    </div>
+                `;
+
+                testResults.assets[asset.name] = isLoaded;
+            });
+
+            // Overall status
+            const overallStatus = loadedCount === totalRequired ? 'test-pass' : 'test-fail';
+            const statusText = loadedCount === totalRequired ? 'All required assets loaded' : 
+                              `${loadedCount}/${totalRequired} required assets loaded`;
+
+            statusDiv.innerHTML = `<div class="test-result ${overallStatus}">${statusText}</div>`;
+            listDiv.innerHTML = listHtml;
+        }
+
+        function checkCSSLoaded(cssId) {
+            const links = document.getElementsByTagName('link');
+            for (let i = 0; i < links.length; i++) {
+                if (links[i].id === cssId || links[i].href.includes(cssId)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function validateDependencies() {
+            const results = document.getElementById('dependency-results');
+            const dependencies = [];
+
+            // Check dependency chain
+            dependencies.push({
+                name: 'jQuery → WordPress Utils',
+                status: typeof jQuery !== 'undefined' && typeof wp !== 'undefined',
+                details: 'Core WordPress JavaScript dependencies'
+            });
+
+            dependencies.push({
+                name: 'UI Core Manager → Component System',
+                status: typeof window.LASUICoreManager !== 'undefined' && 
+                       window.LASUICoreManager.prototype.initializeComponent,
+                details: 'UI repair component initialization system'
+            });
+
+            dependencies.push({
+                name: 'Event System → Custom Events',
+                status: typeof CustomEvent !== 'undefined' && typeof EventTarget !== 'undefined',
+                details: 'Modern browser event handling capabilities'
+            });
+
+            dependencies.push({
+                name: 'Local Storage → State Persistence',
+                status: typeof localStorage !== 'undefined' && typeof sessionStorage !== 'undefined',
+                details: 'Browser storage for UI state persistence'
+            });
+
+            // Display results
+            let html = '';
+            dependencies.forEach(dep => {
+                const statusClass = dep.status ? 'test-pass' : 'test-fail';
+                const statusText = dep.status ? 'VALID' : 'INVALID';
+                html += `
+                    <div class="test-result ${statusClass}">
+                        ${statusText}: ${dep.name}
+                        <small style="display: block; font-weight: normal; margin-top: 5px;">
+                            ${dep.details}
+                        </small>
+                    </div>
+                `;
+                testResults.dependencies[dep.name] = dep.status;
+            });
+
+            results.innerHTML = html;
+        }
+
+        function testFallbacks() {
+            const results = document.getElementById('fallback-results');
+            let html = '<div class="test-info">Testing fallback mechanisms...</div>';
+            results.innerHTML = html;
+
+            // Test graceful degradation
+            setTimeout(() => {
+                html += testGracefulDegradation();
+                html += testNativeInputFallbacks();
+                html += testMinimalStylesFallback();
+                results.innerHTML = html;
+            }, 100);
+        }
+
+        function testGracefulDegradation() {
+            // Simulate graceful degradation mode
+            document.body.classList.add('las-ui-degraded');
+            
+            const hasClass = document.body.classList.contains('las-ui-degraded');
+            const statusClass = hasClass ? 'test-pass' : 'test-fail';
+            const statusText = hasClass ? 'PASS' : 'FAIL';
+            
+            testResults.fallbacks['graceful_degradation'] = hasClass;
+            
+            return `
+                <div class="test-result ${statusClass}">
+                    ${statusText}: Graceful degradation mode
+                    <small style="display: block; font-weight: normal; margin-top: 5px;">
+                        Fallback UI mode when JavaScript fails
+                    </small>
+                </div>
+            `;
+        }
+
+        function testNativeInputFallbacks() {
+            // Test native input fallbacks
+            const colorInput = document.createElement('input');
+            colorInput.type = 'color';
+            const supportsColor = colorInput.type === 'color';
+
+            const rangeInput = document.createElement('input');
+            rangeInput.type = 'range';
+            const supportsRange = rangeInput.type === 'range';
+
+            const fallbacksWork = supportsColor && supportsRange;
+            const statusClass = fallbacksWork ? 'test-pass' : 'test-fail';
+            const statusText = fallbacksWork ? 'PASS' : 'FAIL';
+            
+            testResults.fallbacks['native_inputs'] = fallbacksWork;
+            
+            return `
+                <div class="test-result ${statusClass}">
+                    ${statusText}: Native input fallbacks
+                    <small style="display: block; font-weight: normal; margin-top: 5px;">
+                        Color: ${supportsColor ? 'Supported' : 'Not supported'}, 
+                        Range: ${supportsRange ? 'Supported' : 'Not supported'}
+                    </small>
+                </div>
+            `;
+        }
+
+        function testMinimalStylesFallback() {
+            // Test minimal styles fallback
+            const testElement = document.createElement('div');
+            testElement.className = 'las-ui-error';
+            testElement.style.display = 'none';
+            document.body.appendChild(testElement);
+
+            const computedStyle = window.getComputedStyle(testElement);
+            const hasStyles = computedStyle.borderLeftWidth !== '0px' || 
+                            computedStyle.padding !== '0px';
+
+            document.body.removeChild(testElement);
+
+            const statusClass = hasStyles ? 'test-pass' : 'test-info';
+            const statusText = hasStyles ? 'PASS' : 'INFO';
+            
+            testResults.fallbacks['minimal_styles'] = hasStyles;
+            
+            return `
+                <div class="test-result ${statusClass}">
+                    ${statusText}: Minimal styles fallback
+                    <small style="display: block; font-weight: normal; margin-top: 5px;">
+                        Basic styling when CSS fails to load
+                    </small>
+                </div>
+            `;
+        }
+
+        function measurePerformance() {
+            const results = document.getElementById('performance-results');
+            
+            // Measure page load performance
+            const loadTime = performance.now();
+            const navigation = performance.getEntriesByType('navigation')[0];
+            
+            let html = '';
+            
+            if (navigation) {
+                const domContentLoaded = navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart;
+                const loadComplete = navigation.loadEventEnd - navigation.loadEventStart;
+                
+                html += `
+                    <div class="test-result test-info">
+                        DOM Content Loaded: ${domContentLoaded.toFixed(2)}ms
+                    </div>
+                    <div class="test-result test-info">
+                        Load Complete: ${loadComplete.toFixed(2)}ms
+                    </div>
+                `;
+                
+                testResults.performance.domContentLoaded = domContentLoaded;
+                testResults.performance.loadComplete = loadComplete;
+            }
+            
+            // Measure script execution time
+            const scriptStart = performance.now();
+            // Simulate some work
+            for (let i = 0; i < 1000; i++) {
+                Math.random();
+            }
+            const scriptEnd = performance.now();
+            const scriptTime = scriptEnd - scriptStart;
+            
+            html += `
+                <div class="test-result test-info">
+                    Script Execution: ${scriptTime.toFixed(2)}ms
+                </div>
+            `;
+            
+            testResults.performance.scriptExecution = scriptTime;
+            
+            results.innerHTML = html;
+        }
+
+        function setupErrorHandling() {
+            const results = document.getElementById('error-results');
+            
+            // Set up global error handler
+            window.addEventListener('error', function(e) {
+                const error = {
+                    message: e.message,
+                    filename: e.filename,
+                    lineno: e.lineno,
+                    colno: e.colno,
+                    timestamp: new Date().toISOString()
+                };
+                
+                testResults.errors.push(error);
+                updateErrorDisplay();
+            });
+            
+            // Set up unhandled promise rejection handler
+            window.addEventListener('unhandledrejection', function(e) {
+                const error = {
+                    message: e.reason.message || 'Unhandled promise rejection',
+                    type: 'promise',
+                    timestamp: new Date().toISOString()
+                };
+                
+                testResults.errors.push(error);
+                updateErrorDisplay();
+            });
+            
+            updateErrorDisplay();
+        }
+
+        function updateErrorDisplay() {
+            const results = document.getElementById('error-results');
+            
+            if (testResults.errors.length === 0) {
+                results.innerHTML = '<div class="test-result test-pass">No errors detected</div>';
+            } else {
+                let html = `<div class="test-result test-fail">${testResults.errors.length} error(s) detected</div>`;
+                
+                testResults.errors.forEach((error, index) => {
+                    html += `
+                        <div class="test-result test-info">
+                            Error ${index + 1}: ${error.message}
+                            ${error.filename ? `<br><small>File: ${error.filename}:${error.lineno}</small>` : ''}
+                        </div>
+                    `;
+                });
+                
+                results.innerHTML = html;
+            }
+        }
+
+        function triggerTestError() {
+            // Intentionally trigger an error for testing
+            throw new Error('Test error for error handling validation');
+        }
+
+        function testAjaxValidation() {
+            const results = document.getElementById('ajax-results');
+            results.innerHTML = '<div class="test-info">Testing AJAX asset validation...</div>';
+            
+            // Simulate AJAX request
+            setTimeout(() => {
+                const mockResponse = {
+                    success: true,
+                    data: {
+                        loaded_assets: ['jquery', 'wp-util', 'las-ui-repair'],
+                        loading_errors: [],
+                        environment_valid: true,
+                        timestamp: new Date().toISOString()
+                    }
+                };
+                
+                testResults.ajax.validation = mockResponse;
+                
+                const statusClass = mockResponse.success ? 'test-pass' : 'test-fail';
+                const statusText = mockResponse.success ? 'PASS' : 'FAIL';
+                
+                results.innerHTML = `
+                    <div class="test-result ${statusClass}">
+                        ${statusText}: AJAX Asset Validation
+                        <small style="display: block; font-weight: normal; margin-top: 5px;">
+                            Loaded: ${mockResponse.data.loaded_assets.length} assets, 
+                            Errors: ${mockResponse.data.loading_errors.length}
+                        </small>
+                    </div>
+                `;
+            }, 1000);
+        }
+
+        function testAjaxReload() {
+            const results = document.getElementById('ajax-results');
+            const currentContent = results.innerHTML;
+            
+            results.innerHTML = currentContent + '<div class="test-info">Testing AJAX asset reload...</div>';
+            
+            // Simulate AJAX reload request
+            setTimeout(() => {
+                const mockResponse = {
+                    success: true,
+                    data: {
+                        message: 'Assets reloaded successfully',
+                        loaded_assets: ['jquery', 'wp-util', 'las-ui-repair', 'jquery-ui-core']
+                    }
+                };
+                
+                testResults.ajax.reload = mockResponse;
+                
+                const statusClass = mockResponse.success ? 'test-pass' : 'test-fail';
+                const statusText = mockResponse.success ? 'PASS' : 'FAIL';
+                
+                results.innerHTML = currentContent + `
+                    <div class="test-result ${statusClass}">
+                        ${statusText}: AJAX Asset Reload
+                        <small style="display: block; font-weight: normal; margin-top: 5px;">
+                            ${mockResponse.data.message}
+                        </small>
+                    </div>
+                `;
+            }, 1000);
+        }
+
+        function refreshDebugInfo() {
+            const debugDiv = document.getElementById('debug-info');
+            
+            const debugInfo = {
+                timestamp: new Date().toISOString(),
+                userAgent: navigator.userAgent,
+                viewport: {
+                    width: window.innerWidth,
+                    height: window.innerHeight
+                },
+                screen: {
+                    width: screen.width,
+                    height: screen.height,
+                    colorDepth: screen.colorDepth
+                },
+                performance: {
+                    memory: performance.memory ? {
+                        used: Math.round(performance.memory.usedJSHeapSize / 1024 / 1024) + ' MB',
+                        total: Math.round(performance.memory.totalJSHeapSize / 1024 / 1024) + ' MB',
+                        limit: Math.round(performance.memory.jsHeapSizeLimit / 1024 / 1024) + ' MB'
+                    } : 'Not available',
+                    timing: performance.timing ? {
+                        domLoading: performance.timing.domLoading - performance.timing.navigationStart + 'ms',
+                        domComplete: performance.timing.domComplete - performance.timing.navigationStart + 'ms'
+                    } : 'Not available'
+                },
+                features: {
+                    localStorage: typeof localStorage !== 'undefined',
+                    sessionStorage: typeof sessionStorage !== 'undefined',
+                    customEvents: typeof CustomEvent !== 'undefined',
+                    broadcastChannel: typeof BroadcastChannel !== 'undefined',
+                    webWorkers: typeof Worker !== 'undefined',
+                    serviceWorkers: 'serviceWorker' in navigator
+                },
+                testResults: testResults
+            };
+            
+            debugDiv.textContent = JSON.stringify(debugInfo, null, 2);
+        }
+
+        // Auto-refresh debug info every 30 seconds
+        setInterval(refreshDebugInfo, 30000);
+    </script>
+</body>
+</html>

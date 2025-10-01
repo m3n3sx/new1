@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaction Feedback Integration Test</title>
+    <link rel="stylesheet" href="../assets/css/ui-repair.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f1f1f1;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        .test-button {
+            background: #0073aa;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .test-input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        .test-menu {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            margin: 10px 0;
+        }
+        
+        .test-menuitem {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .test-menuitem:last-child {
+            border-bottom: none;
+        }
+        
+        .test-tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin: 10px 0;
+        }
+        
+        .test-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            background: #f9f9f9;
+            margin-right: 2px;
+        }
+        
+        .test-tab[aria-selected="true"] {
+            background: white;
+            border-bottom: 1px solid white;
+            margin-bottom: -1px;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            background: #e7f3ff;
+            border-left: 4px solid #0073aa;
+            border-radius: 4px;
+        }
+        
+        .log {
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Interaction Feedback Integration Test</h1>
+        <p>This page tests the interaction feedback and accessibility features of the Event Manager.</p>
+        
+        <div class="test-section">
+            <h3>Visual Feedback Tests</h3>
+            <p>Click, hover, and focus these elements to see visual feedback:</p>
+            <button class="test-button" id="feedback-btn-1">Click Me</button>
+            <button class="test-button" id="feedback-btn-2" aria-label="Custom labeled button">Hover Me</button>
+            <input class="test-input" type="text" id="feedback-input-1" placeholder="Focus me">
+            <input class="test-input" type="text" id="feedback-input-2" value="Tab to me">
+        </div>
+        
+        <div class="test-section">
+            <h3>Keyboard Navigation Tests</h3>
+            <p>Use Tab, Enter, Space, and Arrow keys to navigate:</p>
+            
+            <div class="test-tabs" role="tablist" aria-orientation="horizontal">
+                <div class="test-tab" role="tab" tabindex="0" aria-selected="true" id="tab-1">Tab 1</div>
+                <div class="test-tab" role="tab" tabindex="-1" aria-selected="false" id="tab-2">Tab 2</div>
+                <div class="test-tab" role="tab" tabindex="-1" aria-selected="false" id="tab-3">Tab 3</div>
+            </div>
+            
+            <div class="test-menu" role="menu">
+                <div class="test-menuitem" role="menuitem" tabindex="0">Menu Item 1</div>
+                <div class="test-menuitem" role="menuitem" tabindex="-1">Menu Item 2</div>
+                <div class="test-menuitem" role="menuitem" tabindex="-1">Menu Item 3</div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Touch and Gesture Tests</h3>
+            <p>On touch devices, try swiping and tapping:</p>
+            <button class="test-button" id="touch-btn-1">Touch Me</button>
+            <button class="test-button" id="touch-btn-2">Swipe Me</button>
+            <div id="swipe-area" style="width: 200px; height: 100px; border: 2px dashed #ccc; padding: 20px; text-align: center; margin: 10px 0;">
+                Swipe Area<br>
+                <small>Try swiping left, right, up, or down</small>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Accessibility Features</h3>
+            <p>Screen reader announcements and ARIA support:</p>
+            <button class="test-button" id="announce-btn">Trigger Announcement</button>
+            <button class="test-button" id="error-btn">Show Error Feedback</button>
+            <button class="test-button" id="success-btn">Show Success Feedback</button>
+            <button class="test-button" id="loading-btn">Show Loading State</button>
+        </div>
+        
+        <div class="status">
+            <strong>Status:</strong> <span id="status-text">Initializing...</span>
+        </div>
+        
+        <div class="log" id="event-log">
+            <strong>Event Log:</strong><br>
+        </div>
+    </div>
+
+    <!-- Load the UI repair system -->
+    <script src="../assets/js/ui-repair.js"></script>
+    
+    <script>
+        // Initialize the UI system
+        let uiManager;
+        let eventLog = document.getElementById('event-log');
+        let statusText = document.getElementById('status-text');
+        
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            eventLog.innerHTML += `[${timestamp}] ${message}<br>`;
+            eventLog.scrollTop = eventLog.scrollHeight;
+        }
+        
+        function updateStatus(status) {
+            statusText.textContent = status;
+            log(`Status: ${status}`);
+        }
+        
+        // Initialize UI Manager
+        async function initializeUI() {
+            try {
+                updateStatus('Creating UI Manager...');
+                
+                uiManager = new LASUICoreManager({
+                    debug: true,
+                    timeout: 5000
+                });
+                
+                updateStatus('Initializing UI Manager...');
+                await uiManager.init();
+                
+                updateStatus('UI Manager initialized successfully!');
+                
+                // Setup test event handlers
+                setupTestHandlers();
+                
+            } catch (error) {
+                updateStatus(`Initialization failed: ${error.message}`);
+                log(`ERROR: ${error.message}`);
+            }
+        }
+        
+        function setupTestHandlers() {
+            const eventManager = uiManager.get('events');
+            if (!eventManager) {
+                log('ERROR: Event Manager not available');
+                return;
+            }
+            
+            // Button click handlers
+            eventManager.on('#feedback-btn-1', 'click', () => {
+                log('Feedback Button 1 clicked');
+            });
+            
+            eventManager.on('#feedback-btn-2', 'click', () => {
+                log('Feedback Button 2 clicked');
+            });
+            
+            // Input handlers
+            eventManager.on('#feedback-input-1', 'focus', () => {
+                log('Input 1 focused');
+            });
+            
+            eventManager.on('#feedback-input-2', 'input', () => {
+                log('Input 2 changed');
+            }, { debounce: 300 });
+            
+            // Tab navigation
+            eventManager.on('[role="tab"]', 'click', (event) => {
+                const tabs = document.querySelectorAll('[role="tab"]');
+                tabs.forEach(tab => {
+                    tab.setAttribute('aria-selected', 'false');
+                    tab.setAttribute('tabindex', '-1');
+                });
+                
+                event.target.setAttribute('aria-selected', 'true');
+                event.target.setAttribute('tabindex', '0');
+                
+                log(`Tab selected: ${event.target.textContent}`);
+            });
+            
+            // Menu item selection
+            eventManager.on('[role="menuitem"]', 'click', (event) => {
+                log(`Menu item selected: ${event.target.textContent}`);
+            });
+            
+            // Touch and gesture handlers
+            eventManager.on('#touch-btn-1', 'touchstart', () => {
+                log('Touch button 1 touched');
+            }, { passive: true });
+            
+            eventManager.on('#swipe-area', 'touchstart', () => {
+                log('Swipe area touch started');
+            }, { passive: true });
+            
+            // Listen for gesture events
+            eventManager.on('gesture:swipe', (event) => {
+                log(`Swipe detected: ${event.detail.direction}`);
+            });
+            
+            // Accessibility test handlers
+            document.getElementById('announce-btn').addEventListener('click', () => {
+                if (eventManager.announceToScreenReader) {
+                    eventManager.announceToScreenReader('This is a test announcement for screen readers');
+                    log('Screen reader announcement triggered');
+                }
+            });
+            
+            document.getElementById('error-btn').addEventListener('click', (event) => {
+                event.target.classList.add('las-feedback-error');
+                setTimeout(() => {
+                    event.target.classList.remove('las-feedback-error');
+                }, 2000);
+                log('Error feedback shown');
+            });
+            
+            document.getElementById('success-btn').addEventListener('click', (event) => {
+                event.target.classList.add('las-feedback-success');
+                setTimeout(() => {
+                    event.target.classList.remove('las-feedback-success');
+                }, 2000);
+                log('Success feedback shown');
+            });
+            
+            document.getElementById('loading-btn').addEventListener('click', (event) => {
+                event.target.classList.add('las-feedback-loading');
+                event.target.disabled = true;
+                setTimeout(() => {
+                    event.target.classList.remove('las-feedback-loading');
+                    event.target.disabled = false;
+                }, 3000);
+                log('Loading state shown');
+            });
+            
+            // Global event listeners for logging
+            eventManager.on('*', 'focus', (event) => {
+                if (event.target.id) {
+                    log(`Focus: ${event.target.id}`);
+                }
+            });
+            
+            eventManager.on('*', 'blur', (event) => {
+                if (event.target.id) {
+                    log(`Blur: ${event.target.id}`);
+                }
+            });
+            
+            log('Test handlers setup complete');
+        }
+        
+        // Start initialization when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            log('DOM Content Loaded');
+            initializeUI();
+        });
+        
+        // Log window events
+        window.addEventListener('load', () => {
+            log('Window loaded');
+        });
+        
+        window.addEventListener('resize', () => {
+            log('Window resized');
+        });
+        
+        // Keyboard event logging
+        document.addEventListener('keydown', (event) => {
+            if (['Tab', 'Enter', ' ', 'Escape', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+                log(`Key pressed: ${event.key} on ${event.target.tagName}${event.target.id ? '#' + event.target.id : ''}`);
+            }
+        });
+    </script>
+</body>
+</html>

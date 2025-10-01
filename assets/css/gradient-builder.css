@@ -1,0 +1,719 @@
+/**
+ * Live Admin Styler - Gradient Builder Component Styles
+ * 
+ * Modern, accessible gradient builder with visual interface
+ */
+
+/* Gradient Preview Button */
+.las-gradient-preview {
+    position: relative;
+    width: 120px;
+    height: 44px;
+    border: 2px solid var(--las-neutral-200);
+    border-radius: var(--las-radius-md);
+    background: transparent;
+    cursor: pointer;
+    transition: all var(--las-transition-base);
+    overflow: visible;
+    padding: 0;
+}
+
+.las-gradient-preview:hover {
+    border-color: var(--las-primary-500);
+    box-shadow: var(--las-shadow-md);
+    transform: translateY(-1px);
+}
+
+.las-gradient-preview:focus {
+    outline: none;
+    border-color: var(--las-primary-500);
+    box-shadow: 0 0 0 3px rgba(34, 113, 177, 0.1);
+}
+
+.las-gradient-preview[aria-expanded="true"] {
+    border-color: var(--las-primary-600);
+    box-shadow: var(--las-shadow-lg);
+}
+
+/* Gradient Display */
+.las-gradient-display {
+    width: 100%;
+    height: 100%;
+    border-radius: calc(var(--las-radius-md) - 2px);
+    background: linear-gradient(90deg, #2271b1 0%, #72aee6 100%);
+    position: relative;
+}
+
+.las-gradient-display::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 100%);
+    pointer-events: none;
+}
+
+/* Tooltip */
+.las-gradient-tooltip {
+    position: absolute;
+    bottom: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--las-neutral-800);
+    color: white;
+    padding: var(--las-space-xs) var(--las-space-sm);
+    border-radius: var(--las-radius-sm);
+    font-size: var(--las-font-size-xs);
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--las-transition-base);
+    z-index: 1000;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.las-gradient-tooltip::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-bottom: 4px solid var(--las-neutral-800);
+}
+
+.las-gradient-tooltip.visible {
+    opacity: 1;
+}
+
+/* Gradient Builder Panel */
+.las-gradient-builder-panel {
+    position: fixed;
+    width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--las-neutral-200);
+    border-radius: var(--las-radius-lg);
+    box-shadow: var(--las-shadow-xl);
+    padding: 0;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px) scale(0.95);
+    transition: all var(--las-transition-base);
+    z-index: 10000;
+}
+
+.las-gradient-builder-panel.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+[data-theme="dark"] .las-gradient-builder-panel {
+    background: rgba(38, 38, 38, 0.95);
+    border-color: var(--las-neutral-700);
+}
+
+/* Header */
+.las-gradient-builder-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--las-space-md) var(--las-space-lg);
+    border-bottom: 1px solid var(--las-neutral-200);
+}
+
+[data-theme="dark"] .las-gradient-builder-header {
+    border-bottom-color: var(--las-neutral-700);
+}
+
+.las-gradient-builder-title {
+    margin: 0;
+    font-size: var(--las-font-size-lg);
+    font-weight: 600;
+    color: var(--las-neutral-900);
+}
+
+.las-gradient-builder-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    border-radius: var(--las-radius-sm);
+    font-size: 20px;
+    line-height: 1;
+    color: var(--las-neutral-600);
+    cursor: pointer;
+    transition: all var(--las-transition-base);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.las-gradient-builder-close:hover {
+    background: var(--las-neutral-100);
+    color: var(--las-neutral-800);
+}
+
+/* Content */
+.las-gradient-builder-content {
+    padding: var(--las-space-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--las-space-lg);
+}
+
+/* Preview Section */
+.las-gradient-preview-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--las-space-md);
+}
+
+.las-gradient-preview-large {
+    width: 100%;
+    height: 80px;
+    border-radius: var(--las-radius-md);
+    border: 2px solid var(--las-neutral-200);
+    background: linear-gradient(90deg, #2271b1 0%, #72aee6 100%);
+}
+
+.las-gradient-css-output {
+    display: flex;
+    flex-direction: column;
+    gap: var(--las-space-xs);
+}
+
+.las-css-label {
+    font-size: var(--las-font-size-sm);
+    font-weight: 600;
+    color: var(--las-neutral-700);
+}
+
+.las-css-textarea {
+    width: 100%;
+    height: 60px;
+    padding: var(--las-space-sm);
+    border: 2px solid var(--las-neutral-200);
+    border-radius: var(--las-radius-sm);
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: var(--las-font-size-sm);
+    background: var(--las-neutral-50);
+    resize: vertical;
+    min-height: 40px;
+}
+
+.las-css-textarea:focus {
+    outline: none;
+    border-color: var(--las-primary-500);
+    box-shadow: 0 0 0 3px rgba(34, 113, 177, 0.1);
+}
+
+.las-copy-css-btn {
+    align-self: flex-start;
+    padding: var(--las-space-xs) var(--las-space-sm);
+    border: 1px solid var(--las-primary-500);
+    background: transparent;
+    color: var(--las-primary-500);
+    border-radius: var(--las-radius-sm);
+    font-size: var(--las-font-size-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--las-transition-base);
+}
+
+.las-copy-css-btn:hover {
+    background: var(--las-primary-500);
+    color: white;
+}
+
+.las-copy-css-btn.copied {
+    background: var(--las-success);
+    border-color: var(--las-success);
+    color: white;
+}
+
+/* Section Labels */
+.las-section-label {
+    font-size: var(--las-font-size-sm);
+    font-weight: 600;
+    color: var(--las-neutral-700);
+    margin-bottom: var(--las-space-sm);
+    display: block;
+}
+
+/* Gradient Type */
+.las-gradient-type-controls {
+    display: flex;
+    gap: var(--las-space-md);
+}
+
+.las-radio-label {
+    display: flex;
+    align-items: center;
+    gap: var(--las-space-xs);
+    cursor: pointer;
+    font-size: var(--las-font-size-sm);
+}
+
+.las-radio-label input[type="radio"] {
+    margin: 0;
+}
+
+/* Direction Controls */
+.las-direction-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--las-space-sm);
+    margin-bottom: var(--las-space-md);
+}
+
+.las-direction-slider {
+    flex: 1;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--las-neutral-200);
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.las-direction-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--las-primary-500);
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.las-direction-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--las-primary-500);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.las-direction-input {
+    width: 60px;
+    padding: var(--las-space-xs);
+    border: 2px solid var(--las-neutral-200);
+    border-radius: var(--las-radius-sm);
+    text-align: center;
+    font-size: var(--las-font-size-sm);
+}
+
+.las-direction-unit {
+    font-size: var(--las-font-size-sm);
+    color: var(--las-neutral-600);
+}
+
+/* Direction Presets */
+.las-direction-presets {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--las-space-xs);
+    max-width: 120px;
+}
+
+.las-direction-preset {
+    width: 28px;
+    height: 28px;
+    border: 2px solid var(--las-neutral-200);
+    background: var(--las-neutral-50);
+    border-radius: var(--las-radius-sm);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all var(--las-transition-base);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.las-direction-preset:hover {
+    border-color: var(--las-primary-500);
+    background: var(--las-primary-50);
+}
+
+/* Color Stops */
+.las-color-stops-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--las-space-sm);
+}
+
+.las-add-stop-btn {
+    padding: var(--las-space-xs) var(--las-space-sm);
+    border: 1px solid var(--las-success);
+    background: transparent;
+    color: var(--las-success);
+    border-radius: var(--las-radius-sm);
+    font-size: var(--las-font-size-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--las-transition-base);
+}
+
+.las-add-stop-btn:hover {
+    background: var(--las-success);
+    color: white;
+}
+
+.las-color-stops-container {
+    position: relative;
+    margin-bottom: var(--las-space-md);
+}
+
+.las-gradient-bar {
+    width: 100%;
+    height: 20px;
+    border-radius: var(--las-radius-sm);
+    border: 2px solid var(--las-neutral-200);
+    background: linear-gradient(90deg, #2271b1 0%, #72aee6 100%);
+}
+
+.las-color-stops {
+    position: absolute;
+    top: -6px;
+    left: 0;
+    right: 0;
+    height: 32px;
+    pointer-events: none;
+}
+
+.las-color-stop {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border: 3px solid white;
+    border-radius: 50%;
+    cursor: pointer;
+    pointer-events: all;
+    transform: translateX(-50%);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    transition: all var(--las-transition-base);
+}
+
+.las-color-stop:hover {
+    transform: translateX(-50%) scale(1.2);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+}
+
+.las-color-stop:focus {
+    outline: 2px solid var(--las-primary-500);
+    outline-offset: 2px;
+}
+
+/* Color Stops List */
+.las-color-stops-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--las-space-sm);
+}
+
+.las-color-stop-item {
+    display: flex;
+    align-items: center;
+    gap: var(--las-space-sm);
+    padding: var(--las-space-sm);
+    border: 1px solid var(--las-neutral-200);
+    border-radius: var(--las-radius-sm);
+    background: var(--las-neutral-50);
+}
+
+.las-color-stop-preview {
+    width: 24px;
+    height: 24px;
+    border-radius: var(--las-radius-sm);
+    border: 2px solid var(--las-neutral-200);
+}
+
+.las-color-stop-color {
+    width: 40px;
+    height: 32px;
+    border: 2px solid var(--las-neutral-200);
+    border-radius: var(--las-radius-sm);
+    cursor: pointer;
+}
+
+.las-color-stop-position {
+    width: 60px;
+    padding: var(--las-space-xs);
+    border: 2px solid var(--las-neutral-200);
+    border-radius: var(--las-radius-sm);
+    text-align: center;
+    font-size: var(--las-font-size-sm);
+}
+
+.las-position-unit {
+    font-size: var(--las-font-size-sm);
+    color: var(--las-neutral-600);
+}
+
+.las-remove-stop-btn {
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    color: var(--las-error);
+    border-radius: var(--las-radius-sm);
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    transition: all var(--las-transition-base);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.las-remove-stop-btn:hover:not(:disabled) {
+    background: var(--las-error);
+    color: white;
+}
+
+.las-remove-stop-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Presets */
+.las-presets-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--las-space-sm);
+}
+
+.las-save-preset-btn {
+    padding: var(--las-space-xs) var(--las-space-sm);
+    border: 1px solid var(--las-primary-500);
+    background: transparent;
+    color: var(--las-primary-500);
+    border-radius: var(--las-radius-sm);
+    font-size: var(--las-font-size-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--las-transition-base);
+}
+
+.las-save-preset-btn:hover {
+    background: var(--las-primary-500);
+    color: white;
+}
+
+.las-gradient-presets {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: var(--las-space-sm);
+}
+
+.las-gradient-preset-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--las-space-xs);
+    align-items: center;
+}
+
+.las-gradient-preset {
+    width: 100%;
+    height: 40px;
+    border: 2px solid var(--las-neutral-200);
+    border-radius: var(--las-radius-sm);
+    cursor: pointer;
+    transition: all var(--las-transition-base);
+}
+
+.las-gradient-preset:hover {
+    border-color: var(--las-primary-500);
+    transform: translateY(-2px);
+    box-shadow: var(--las-shadow-md);
+}
+
+.las-preset-name {
+    font-size: var(--las-font-size-xs);
+    color: var(--las-neutral-600);
+    text-align: center;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.las-delete-preset-btn {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: var(--las-error);
+    color: white;
+    border-radius: 50%;
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+    transition: all var(--las-transition-base);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+}
+
+.las-gradient-preset-item:hover .las-delete-preset-btn {
+    opacity: 1;
+}
+
+.las-gradient-preset-item {
+    position: relative;
+}
+
+/* Actions */
+.las-gradient-builder-actions {
+    display: flex;
+    gap: var(--las-space-sm);
+    padding: var(--las-space-lg);
+    border-top: 1px solid var(--las-neutral-200);
+}
+
+[data-theme="dark"] .las-gradient-builder-actions {
+    border-top-color: var(--las-neutral-700);
+}
+
+.las-gradient-builder-actions .las-button {
+    flex: 1;
+}
+
+/* Wrapper */
+.las-gradient-builder-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+/* Dark Theme */
+[data-theme="dark"] .las-gradient-builder-title {
+    color: var(--las-neutral-100);
+}
+
+[data-theme="dark"] .las-css-label,
+[data-theme="dark"] .las-section-label {
+    color: var(--las-neutral-300);
+}
+
+[data-theme="dark"] .las-css-textarea {
+    background: var(--las-neutral-700);
+    border-color: var(--las-neutral-600);
+    color: var(--las-neutral-100);
+}
+
+[data-theme="dark"] .las-gradient-preview-large {
+    border-color: var(--las-neutral-600);
+}
+
+[data-theme="dark"] .las-color-stop-item {
+    background: var(--las-neutral-700);
+    border-color: var(--las-neutral-600);
+}
+
+[data-theme="dark"] .las-direction-preset {
+    background: var(--las-neutral-700);
+    border-color: var(--las-neutral-600);
+    color: var(--las-neutral-300);
+}
+
+[data-theme="dark"] .las-direction-preset:hover {
+    background: var(--las-primary-600);
+    border-color: var(--las-primary-500);
+    color: white;
+}
+
+/* Mobile Responsive */
+@media (max-width: 600px) {
+    .las-gradient-builder-panel {
+        width: calc(100vw - 16px);
+        left: 8px !important;
+        right: 8px;
+        max-height: 85vh;
+    }
+    
+    .las-gradient-presets {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    }
+    
+    .las-direction-presets {
+        max-width: 100px;
+    }
+    
+    .las-direction-preset {
+        width: 24px;
+        height: 24px;
+        font-size: 12px;
+    }
+    
+    .las-color-stop-item {
+        flex-wrap: wrap;
+        gap: var(--las-space-xs);
+    }
+}
+
+/* Animation */
+@keyframes las-gradient-builder-slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(-16px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.las-gradient-builder-panel.open {
+    animation: las-gradient-builder-slide-in 0.2s ease-out;
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+    .las-gradient-preview,
+    .las-gradient-preset {
+        border-width: 3px;
+    }
+    
+    .las-color-stop {
+        border-width: 4px;
+    }
+    
+    .las-gradient-builder-panel {
+        border-width: 2px;
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .las-gradient-preview,
+    .las-gradient-preset,
+    .las-color-stop,
+    .las-gradient-builder-panel {
+        transition: none;
+    }
+    
+    .las-gradient-preset:hover,
+    .las-color-stop:hover {
+        transform: none;
+    }
+    
+    .las-gradient-builder-panel.open {
+        animation: none;
+    }
+}

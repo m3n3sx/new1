@@ -32,6 +32,382 @@ function las_fresh_load_textdomain() {
 }
 add_action('plugins_loaded', 'las_fresh_load_textdomain');
 
+/**
+ * Initialize UI Repair System
+ * Ensures proper WordPress admin integration with capability checks and security validation
+ */
+function las_fresh_init_ui_repair_system() {
+    // Only initialize in admin context
+    if (!is_admin()) {
+        return;
+    }
+    
+    // Check user capabilities
+    if (!current_user_can('manage_options')) {
+        return;
+    }
+    
+    // Load UI Repair Asset Loader
+    if (!class_exists('LAS_UI_Repair_Asset_Loader')) {
+        require_once plugin_dir_path(__FILE__) . 'includes/UIRepairAssetLoader.php';
+    }
+    
+    // Load Compatibility Manager
+    if (!class_exists('LAS_Compatibility_Manager')) {
+        require_once plugin_dir_path(__FILE__) . 'includes/CompatibilityManager.php';
+    }
+    
+    // Initialize asset loader
+    global $las_ui_repair_asset_loader;
+    if (!$las_ui_repair_asset_loader) {
+        $las_ui_repair_asset_loader = new LAS_UI_Repair_Asset_Loader();
+    }
+    
+    // Initialize compatibility manager
+    global $las_compatibility_manager;
+    if (!$las_compatibility_manager) {
+        $las_compatibility_manager = new LAS_Compatibility_Manager();
+    }
+    
+    // Add WordPress admin hooks for UI repair
+    add_action('admin_enqueue_scripts', 'las_fresh_enqueue_ui_repair_assets', 5);
+    add_action('admin_footer', 'las_fresh_add_ui_repair_inline_scripts');
+    add_action('admin_notices', 'las_fresh_show_ui_repair_notices');
+    
+    // AJAX handlers for UI repair functionality
+    add_action('wp_ajax_las_save_tab_state', 'las_fresh_ajax_save_tab_state');
+    add_action('wp_ajax_las_get_ui_state', 'las_fresh_ajax_get_ui_state');
+    add_action('wp_ajax_las_validate_ui_repair', 'las_fresh_ajax_validate_ui_repair');
+    
+    // Add admin body classes for UI repair
+    add_filter('admin_body_class', 'las_fresh_add_admin_body_classes');
+}
+add_action('admin_init', 'las_fresh_init_ui_repair_system');
+
+/**
+ * Enqueue UI repair assets with proper WordPress integration
+ *
+ * @param string $hook_suffix Current admin page hook suffix
+ */
+function las_fresh_enqueue_ui_repair_assets($hook_suffix) {
+    // Only load on Live Admin Styler settings page
+    $settings_pages = array(
+        'toplevel_page_' . LAS_FRESH_SETTINGS_SLUG,
+        'admin_page_' . LAS_FRESH_SETTINGS_SLUG
+    );
+    
+    if (!in_array($hook_suffix, $settings_pages)) {
+        return;
+    }
+    
+    // Verify nonce for security
+    $nonce = wp_create_nonce('las_ui_repair_nonce');
+    
+    // Enqueue UI repair assets via asset loader
+    global $las_ui_repair_asset_loader;
+    if ($las_ui_repair_asset_loader) {
+        $las_ui_repair_asset_loader->enqueue_ui_repair_assets($hook_suffix);
+    }
+    
+    // Add WordPress admin integration data
+    wp_localize_script('las-ui-repair', 'lasWordPressData', array(
+        'adminUrl' => admin_url(),
+        'ajaxUrl' => admin_url('admin-ajax.php'),
+        'nonce' => $nonce,
+        'currentScreen' => get_current_screen()->id ?? '',
+        'userCapabilities' => array(
+            'manage_options' => current_user_can('manage_options'),
+            'edit_theme_options' => current_user_can('edit_theme_options')
+        ),
+        'wpVersion' => get_bloginfo('version'),
+        'isMultisite' => is_multisite(),
+        'isNetworkAdmin' => is_network_admin(),
+        'currentUserId' => get_current_user_id(),
+        'adminColorScheme' => get_user_option('admin_color'),
+        'locale' => get_locale(),
+        'textDirection' => is_rtl() ? 'rtl' : 'ltr'
+    ));
+}
+
+/**
+ * Add inline scripts for UI repair initialization
+ */
+function las_fresh_add_ui_repair_inline_scripts() {
+    $current_screen = get_current_screen();
+    if (!$current_screen || strpos($current_screen->id, 'live-admin-styler') === false) {
+        return;
+    }
+    
+    ?>
+    <script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize UI repair system with WordPress integration
+        if (typeof window.LASUICoreManager !== 'undefined') {
+            window.lasUIManager = new window.LASUICoreManager();
+            window.lasUIManager.init().then(function() {
+                console.log('LAS UI: WordPress integration initialized successfully');
+                
+                // Mark UI as ready
+                document.body.classList.add('las-ui-ready');
+                document.body.classList.remove('las-ui-degraded');
+                
+                // Show ready state in settings container
+                var container = document.querySelector('.las-fresh-settings-wrap');
+                if (container) {
+                    container.classList.add('las-ui-ready');
+                }
+                
+                // Emit WordPress integration ready event
+                var event = new CustomEvent('las:wordpress-integration-ready', {
+                    detail: {
+                        manager: window.lasUIManager,
+                        timestamp: Date.now()
+                    }
+                });
+                document.dispatchEvent(event);
+                
+            }).catch(function(error) {
+                console.error('LAS UI: WordPress integration failed:', error);
+                
+                // Show error notice
+                las_fresh_show_integration_error(error);
+            });
+        } else {
+            console.error('LAS UI: Core manager not available');
+            las_fresh_show_integration_error(new Error('UI Core Manager not loaded'));
+        }
+    });
+    
+    /**
+     * Show integration error to user
+     */
+    function las_fresh_show_integration_error(error) {
+        var container = document.querySelector('.las-fresh-settings-wrap');
+        if (!container) return;
+        
+        var errorDiv = document.createElement('div');
+        errorDiv.className = 'notice notice-error las-ui-integration-error';
+        errorDiv.innerHTML = 
+            '<p><strong><?php echo esc_js(__('Live Admin Styler Integration Error', LAS_FRESH_TEXT_DOMAIN)); ?>:</strong> ' +
+            '<?php echo esc_js(__('Failed to initialize user interface. Some features may not work properly.', LAS_FRESH_TEXT_DOMAIN)); ?></p>' +
+            '<p><button type="button" class="button" onclick="location.reload()"><?php echo esc_js(__('Refresh Page', LAS_FRESH_TEXT_DOMAIN)); ?></button></p>';
+        
+        container.insertBefore(errorDiv, container.firstChild);
+        
+        // Enable graceful degradation
+        document.body.classList.add('las-ui-degraded');
+    }
+    </script>
+    <?php
+}
+
+/**
+ * Show UI repair notices in WordPress admin
+ */
+function las_fresh_show_ui_repair_notices() {
+    $current_screen = get_current_screen();
+    if (!$current_screen || strpos($current_screen->id, 'live-admin-styler') === false) {
+        return;
+    }
+    
+    // Check if UI repair assets are loaded
+    global $las_ui_repair_asset_loader;
+    if ($las_ui_repair_asset_loader) {
+        $loading_errors = $las_ui_repair_asset_loader->get_loading_errors();
+        
+        if (!empty($loading_errors)) {
+            echo '<div class="notice notice-warning is-dismissible">';
+            echo '<p><strong>' . esc_html__('Live Admin Styler', LAS_FRESH_TEXT_DOMAIN) . ':</strong> ';
+            echo esc_html__('Some UI components failed to load. Basic functionality is still available.', LAS_FRESH_TEXT_DOMAIN);
+            echo '</p></div>';
+        }
+    }
+    
+    // Show compatibility notices if needed
+    las_fresh_show_compatibility_notices();
+}
+
+/**
+ * Show compatibility notices for WordPress version, plugins, etc.
+ */
+function las_fresh_show_compatibility_notices() {
+    global $wp_version;
+    
+    // Check WordPress version compatibility
+    if (version_compare($wp_version, '5.0', '<')) {
+        echo '<div class="notice notice-error">';
+        echo '<p><strong>' . esc_html__('Live Admin Styler', LAS_FRESH_TEXT_DOMAIN) . ':</strong> ';
+        echo esc_html__('WordPress 5.0 or higher is required for full functionality.', LAS_FRESH_TEXT_DOMAIN);
+        echo '</p></div>';
+    }
+    
+    // Check for jQuery availability
+    if (!wp_script_is('jquery', 'registered')) {
+        echo '<div class="notice notice-warning">';
+        echo '<p><strong>' . esc_html__('Live Admin Styler', LAS_FRESH_TEXT_DOMAIN) . ':</strong> ';
+        echo esc_html__('jQuery is not available. Some features may not work properly.', LAS_FRESH_TEXT_DOMAIN);
+        echo '</p></div>';
+    }
+}
+
+/**
+ * AJAX handler for saving tab state
+ */
+function las_fresh_ajax_save_tab_state() {
+    try {
+        // Verify nonce
+        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'las_ui_repair_nonce')) {
+            wp_send_json_error('Invalid security token');
+            return;
+        }
+        
+        // Check permissions
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Insufficient permissions');
+            return;
+        }
+        
+        // Sanitize and validate tab ID
+        $tab_id = sanitize_key($_POST['tab_id'] ?? '');
+        $valid_tabs = array('general', 'menu', 'adminbar', 'content', 'logos', 'advanced');
+        
+        if (!in_array($tab_id, $valid_tabs)) {
+            wp_send_json_error('Invalid tab ID');
+            return;
+        }
+        
+        // Save tab state using user state manager
+        $user_state = new LAS_User_State();
+        $success = $user_state->set_active_tab($tab_id);
+        
+        if ($success) {
+            wp_send_json_success(array(
+                'tab_id' => $tab_id,
+                'message' => 'Tab state saved successfully'
+            ));
+        } else {
+            wp_send_json_error('Failed to save tab state');
+        }
+        
+    } catch (Exception $e) {
+        error_log('LAS UI Repair: Tab state save error: ' . $e->getMessage());
+        wp_send_json_error('Server error occurred');
+    }
+}
+
+/**
+ * AJAX handler for getting UI state
+ */
+function las_fresh_ajax_get_ui_state() {
+    try {
+        // Verify nonce and permissions
+        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'las_ui_repair_nonce') || 
+            !current_user_can('manage_options')) {
+            wp_send_json_error('Access denied');
+            return;
+        }
+        
+        // Get user state
+        $user_state = new LAS_User_State();
+        $ui_state = array(
+            'active_tab' => $user_state->get_active_tab(),
+            'ui_preferences' => $user_state->get_ui_preferences(),
+            'session_data' => $user_state->get_session_data()
+        );
+        
+        wp_send_json_success($ui_state);
+        
+    } catch (Exception $e) {
+        error_log('LAS UI Repair: UI state get error: ' . $e->getMessage());
+        wp_send_json_error('Failed to retrieve UI state');
+    }
+}
+
+/**
+ * AJAX handler for validating UI repair system
+ */
+function las_fresh_ajax_validate_ui_repair() {
+    try {
+        // Verify nonce and permissions
+        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'las_ui_repair_nonce') || 
+            !current_user_can('manage_options')) {
+            wp_send_json_error('Access denied');
+            return;
+        }
+        
+        // Validate UI repair system
+        global $las_ui_repair_asset_loader;
+        
+        $validation_results = array(
+            'wordpress_version' => get_bloginfo('version'),
+            'php_version' => PHP_VERSION,
+            'jquery_available' => wp_script_is('jquery', 'registered'),
+            'assets_loaded' => $las_ui_repair_asset_loader ? $las_ui_repair_asset_loader->get_loaded_assets() : array(),
+            'loading_errors' => $las_ui_repair_asset_loader ? $las_ui_repair_asset_loader->get_loading_errors() : array(),
+            'user_capabilities' => array(
+                'manage_options' => current_user_can('manage_options'),
+                'edit_theme_options' => current_user_can('edit_theme_options')
+            ),
+            'environment' => array(
+                'is_multisite' => is_multisite(),
+                'is_network_admin' => is_network_admin(),
+                'admin_color_scheme' => get_user_option('admin_color'),
+                'locale' => get_locale(),
+                'is_rtl' => is_rtl()
+            )
+        );
+        
+        wp_send_json_success($validation_results);
+        
+    } catch (Exception $e) {
+        error_log('LAS UI Repair: Validation error: ' . $e->getMessage());
+        wp_send_json_error('Validation failed');
+    }
+}
+
+/**
+ * Add admin body classes for UI repair
+ *
+ * @param string $classes Existing admin body classes
+ * @return string Modified admin body classes
+ */
+function las_fresh_add_admin_body_classes($classes) {
+    $current_screen = get_current_screen();
+    
+    // Add classes for Live Admin Styler pages
+    if ($current_screen && strpos($current_screen->id, 'live-admin-styler') !== false) {
+        $classes .= ' las-admin-page';
+        
+        // Add WordPress version class
+        global $wp_version;
+        $version_class = 'wp-version-' . str_replace('.', '-', $wp_version);
+        $classes .= ' ' . sanitize_html_class($version_class);
+        
+        // Add multisite class
+        if (is_multisite()) {
+            $classes .= ' las-multisite';
+        }
+        
+        // Add network admin class
+        if (is_network_admin()) {
+            $classes .= ' las-network-admin';
+        }
+        
+        // Add RTL class
+        if (is_rtl()) {
+            $classes .= ' las-rtl';
+        }
+        
+        // Add admin color scheme class
+        $admin_color = get_user_option('admin_color');
+        if ($admin_color) {
+            $classes .= ' las-admin-color-' . sanitize_html_class($admin_color);
+        }
+    }
+    
+    return $classes;
+}
+
 
 /**
  * Get default plugin options.
@@ -2037,6 +2413,9 @@ class LAS_Security_Manager {
         add_action('wp_ajax_las_get_security_status', array($this, 'ajax_get_security_status'));
         add_action('wp_ajax_las_clear_security_log', array($this, 'ajax_clear_security_log'));
         
+        // Include nonce refresh handler
+        require_once plugin_dir_path(__FILE__) . 'includes/ajax-nonce-refresh.php';
+        
         // Hook into all LAS AJAX actions for rate limiting
         add_action('wp_ajax_las_get_preview_css', array($this, 'check_rate_limit'), 1);
         add_action('wp_ajax_las_save_tab_state', array($this, 'check_rate_limit'), 1);
@@ -2839,31 +3218,45 @@ function las_fresh_enqueue_assets($hook_suffix) {
         return;
     }
 
-    // Performance optimization: Generate cache busting version strings with error handling
-    $script_version = las_fresh_get_script_version('js/admin-settings.js');
-    $preview_version = las_fresh_get_script_version('assets/js/live-preview.js');
-    $style_version = las_fresh_get_script_version('assets/css/admin-style.css');
+    try {
+        // Performance optimization: Generate cache busting version strings with error handling
+        $script_version = las_fresh_get_script_version('js/admin-settings.js');
+        $preview_version = las_fresh_get_script_version('assets/js/live-preview.js');
+        $style_version = las_fresh_get_script_version('assets/css/admin-style.css');
 
-    // Step 1: Enqueue WordPress core dependencies in proper order
-    las_fresh_enqueue_core_dependencies();
-    
-    // Step 2: Check and enqueue jQuery UI components with availability validation
-    $jquery_ui_available = las_fresh_enqueue_jquery_ui_dependencies();
-    
-    // Step 3: Build optimized dependency arrays based on availability
-    $dependency_config = las_fresh_build_dependency_config($jquery_ui_available);
-    
-    // Step 4: Enqueue plugin scripts with proper dependency order
-    las_fresh_enqueue_plugin_scripts($dependency_config, $script_version, $preview_version);
-    
-    // Step 5: Create unified localization data with consistent variable names
-    $localization_data = las_fresh_create_localization_data($jquery_ui_available);
-    
-    // Step 6: Localize scripts with unified data to prevent variable conflicts
-    las_fresh_localize_plugin_scripts($localization_data);
-    
-    // Step 7: Enqueue styles with proper dependencies
-    las_fresh_enqueue_plugin_styles($style_version);
+        // Step 1: Enqueue WordPress core dependencies in proper order
+        las_fresh_enqueue_core_dependencies();
+        
+        // Step 2: Check and enqueue jQuery UI components with availability validation
+        $jquery_ui_available = las_fresh_enqueue_jquery_ui_dependencies();
+        
+        // Step 3: Build optimized dependency arrays based on availability
+        $dependency_config = las_fresh_build_dependency_config($jquery_ui_available);
+        
+        // Step 4: Enqueue critical live preview scripts with proper dependencies
+        las_fresh_enqueue_live_preview_scripts($dependency_config, $script_version, $preview_version);
+        
+        // Step 5: Create unified localization data with AJAX configuration
+        $localization_data = las_fresh_create_localization_data($jquery_ui_available);
+        
+        // Step 6: Localize scripts with AJAX URLs and nonce configuration
+        las_fresh_localize_live_preview_scripts($localization_data);
+        
+        // Step 7: Enqueue styles with proper dependencies
+        las_fresh_enqueue_plugin_styles($style_version);
+        
+        // Log successful asset loading in debug mode
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('LAS: Assets enqueued successfully for ' . $hook_suffix);
+        }
+        
+    } catch (Exception $e) {
+        // Log error and provide fallback
+        error_log('LAS: Asset enqueuing failed: ' . $e->getMessage());
+        
+        // Enqueue minimal fallback assets
+        las_fresh_enqueue_fallback_assets($script_version, $style_version);
+    }
 }
 
 /**
@@ -2974,6 +3367,19 @@ function las_fresh_enqueue_jquery_ui_dependencies() {
             array(),
             '1.13.2'
         );
+    }
+    
+    // Force jQuery UI slider CSS for admin pages to ensure sliders are visible
+    if (las_fresh_is_plugin_admin_context()) {
+        wp_enqueue_style(
+            'jquery-ui-slider-css',
+            '//ajax.googleapis.com/ajax/libs/jqueryui/1.13.2/themes/ui-lightness/jquery-ui.css',
+            array(),
+            '1.13.2'
+        );
+        
+        // Also ensure jQuery UI slider script is loaded
+        wp_enqueue_script('jquery-ui-slider');
     }
     
     return $jquery_ui_available;
@@ -3133,6 +3539,57 @@ function las_fresh_enqueue_plugin_scripts($dependency_config, $script_version, $
         $loading_config['load_in_footer']
     );
     
+    // Enqueue new performance monitoring system
+    wp_enqueue_script(
+        'las-fresh-performance-monitor-js',
+        plugin_dir_url(__FILE__) . 'assets/js/modules/performance-monitor.js',
+        array('las-fresh-theme-manager-js'),
+        $script_version,
+        false // Load in head for immediate monitoring
+    );
+    
+    // Enqueue memory management system
+    wp_enqueue_script(
+        'las-fresh-memory-manager-js',
+        plugin_dir_url(__FILE__) . 'assets/js/modules/memory-manager.js',
+        array('las-fresh-performance-monitor-js'),
+        $script_version,
+        false // Load in head for immediate memory management
+    );
+    
+    // Enqueue enhanced AJAX communication modules
+    wp_enqueue_script(
+        'las-fresh-http-transport-js',
+        plugin_dir_url(__FILE__) . 'assets/js/modules/http-transport.js',
+        array('las-fresh-memory-manager-js'),
+        $script_version,
+        false
+    );
+    
+    wp_enqueue_script(
+        'las-fresh-request-queue-js',
+        plugin_dir_url(__FILE__) . 'assets/js/modules/request-queue.js',
+        array('las-fresh-http-transport-js'),
+        $script_version,
+        false
+    );
+    
+    wp_enqueue_script(
+        'las-fresh-retry-engine-js',
+        plugin_dir_url(__FILE__) . 'assets/js/modules/retry-engine.js',
+        array('las-fresh-request-queue-js'),
+        $script_version,
+        false
+    );
+    
+    wp_enqueue_script(
+        'las-fresh-ajax-manager-js',
+        plugin_dir_url(__FILE__) . 'assets/js/modules/ajax-manager.js',
+        array('las-fresh-retry-engine-js'),
+        $script_version,
+        false
+    );
+    
     // Add performance monitoring for design system scripts
     if (defined('WP_DEBUG') && WP_DEBUG) {
         las_fresh_monitor_script_performance('las-fresh-theme-manager-js');
@@ -3150,7 +3607,13 @@ function las_fresh_enqueue_plugin_scripts($dependency_config, $script_version, $
         'las-fresh-navigation-manager-js',
         'las-fresh-accessibility-manager-js',
         'las-fresh-loading-manager-js',
-        'las-fresh-performance-manager-js'
+        'las-fresh-performance-manager-js',
+        'las-fresh-performance-monitor-js',
+        'las-fresh-memory-manager-js',
+        'las-fresh-http-transport-js',
+        'las-fresh-request-queue-js',
+        'las-fresh-retry-engine-js',
+        'las-fresh-ajax-manager-js'
     );
     
     wp_enqueue_script(
@@ -3193,19 +3656,33 @@ function las_fresh_enqueue_plugin_scripts($dependency_config, $script_version, $
 function las_fresh_create_localization_data($jquery_ui_available) {
     // Create unified nonce for consistent security validation
     $unified_nonce = wp_create_nonce('las_fresh_admin_nonce');
+    $ajax_nonce = wp_create_nonce('las_ajax_nonce');
     
     // Get current user state for better UX
     $user_state = new LAS_User_State();
     $current_tab = $user_state->get_active_tab();
     $ui_preferences = $user_state->get_ui_preferences();
     
-    // Create optimized AJAX data with consistent naming
+    // Debug logging
+    error_log('[LAS] Creating localization data with ajax_nonce: ' . substr($ajax_nonce, 0, 10) . '...');
+    
+    // Create optimized AJAX data with consistent naming for live preview critical repair
     return array(
-        // Core AJAX configuration
+        // Core AJAX configuration - Critical for live preview functionality
         'ajax_url'          => admin_url('admin-ajax.php'),
         'ajaxurl'           => admin_url('admin-ajax.php'), // Backward compatibility
-        'nonce'             => $unified_nonce,
-        'nonce_action'      => 'las_fresh_admin_nonce',
+        'nonce'             => $ajax_nonce, // Use specific AJAX nonce
+        'admin_nonce'       => $unified_nonce, // Keep admin nonce separate
+        'nonce_action'      => 'las_ajax_nonce',
+        
+        // AJAX action names for live preview critical repair
+        'ajax_actions' => array(
+            'save_settings' => 'las_save_settings',
+            'load_settings' => 'las_load_settings',
+            'get_preview_css' => 'las_get_preview_css',
+            'log_error' => 'las_log_error',
+            'refresh_nonce' => 'las_refresh_nonce'
+        ),
         
         // Plugin configuration
         'option_name'       => LAS_FRESH_OPTION_NAME,
@@ -3221,10 +3698,11 @@ function las_fresh_create_localization_data($jquery_ui_available) {
         'current_tab'       => $current_tab,
         'ui_preferences'    => $ui_preferences,
         
-        // Performance settings
+        // Performance settings for live preview
         'debounce_delay'    => intval($ui_preferences['live_preview_debounce'] ?? 300),
         'retry_attempts'    => 3,
         'retry_delay'       => 1000,
+        'timeout'           => 10000, // 10 seconds timeout
         
         // Security and nonce management
         'nonce_refresh_url' => admin_url('admin-ajax.php'),
@@ -3241,6 +3719,23 @@ function las_fresh_create_localization_data($jquery_ui_available) {
         'is_multisite'      => is_multisite(),
         'current_screen'    => get_current_screen() ? get_current_screen()->id : '',
         
+        // Live preview specific configuration
+        'live_preview' => array(
+            'enabled' => $ui_preferences['live_preview_enabled'] ?? true,
+            'debounce' => intval($ui_preferences['live_preview_debounce'] ?? 300),
+            'css_injection_method' => 'style_element', // Use style element for CSS injection
+            'update_queue_size' => 10, // Maximum queued updates
+            'performance_monitoring' => defined('WP_DEBUG') && WP_DEBUG
+        ),
+        
+        // Settings management configuration
+        'settings' => array(
+            'auto_save' => $ui_preferences['auto_save_changes'] ?? false,
+            'sync_tabs' => true, // Enable multi-tab synchronization
+            'localStorage_backup' => true,
+            'validation_enabled' => true
+        ),
+        
         // Localization strings for JavaScript
         'strings' => array(
             'loading'           => __('Loading...', LAS_FRESH_TEXT_DOMAIN),
@@ -3251,30 +3746,158 @@ function las_fresh_create_localization_data($jquery_ui_available) {
             'confirm'           => __('Are you sure?', LAS_FRESH_TEXT_DOMAIN),
             'invalid_nonce'     => __('Security check failed. Please refresh the page.', LAS_FRESH_TEXT_DOMAIN),
             'network_error'     => __('Network error. Please check your connection.', LAS_FRESH_TEXT_DOMAIN),
-            'permission_error'  => __('You do not have permission to perform this action.', LAS_FRESH_TEXT_DOMAIN)
+            'permission_error'  => __('You do not have permission to perform this action.', LAS_FRESH_TEXT_DOMAIN),
+            'settings_saved'    => __('Settings saved', LAS_FRESH_TEXT_DOMAIN),
+            'settings_failed'   => __('Failed to save settings', LAS_FRESH_TEXT_DOMAIN),
+            'preview_updated'   => __('Preview updated', LAS_FRESH_TEXT_DOMAIN),
+            'connection_lost'   => __('Connection lost. Retrying...', LAS_FRESH_TEXT_DOMAIN),
+            'connection_restored' => __('Connection restored', LAS_FRESH_TEXT_DOMAIN)
         )
     );
 }
 
 /**
- * Localize plugin scripts with unified data
+ * Enqueue critical live preview scripts with proper WordPress standards
  * 
- * @param array $localization_data Localization data
+ * @param array $dependency_config Dependency configuration
+ * @param string $script_version Script version for cache busting
+ * @param string $preview_version Preview script version
  */
-function las_fresh_localize_plugin_scripts($localization_data) {
-    // Use consistent variable name 'lasAdminData' for both scripts
+function las_fresh_enqueue_live_preview_scripts($dependency_config, $script_version, $preview_version) {
+    // Core dependencies for live preview functionality
+    $core_dependencies = array('jquery', 'wp-util');
+    
+    // Add jQuery UI dependencies if available
+    if (!empty($dependency_config['admin_settings'])) {
+        $core_dependencies = array_merge($core_dependencies, $dependency_config['admin_settings']);
+    }
+    
+    // Enqueue main admin settings script (contains LASCoreManager and all modules)
+    wp_enqueue_script(
+        'las-fresh-admin-settings-js',
+        plugin_dir_url(__FILE__) . 'js/admin-settings.js',
+        $core_dependencies,
+        $script_version,
+        true // Load in footer for better performance
+    );
+    
+    // Re-enable live preview functionality - it's needed for sliders and real-time updates
+    wp_enqueue_script(
+        'las-fresh-live-preview-js',
+        plugin_dir_url(__FILE__) . 'assets/js/live-preview.js',
+        array('las-fresh-admin-settings-js'), // Depends on core manager
+        $preview_version,
+        true
+    );
+    
+    // Add error handling script for graceful degradation
+    wp_enqueue_script(
+        'las-fresh-error-handler-js',
+        plugin_dir_url(__FILE__) . 'assets/js/error-handler.js',
+        array('jquery'),
+        $script_version,
+        true
+    );
+    
+    // Add communication manager for AJAX handling
+    wp_enqueue_script(
+        'las-fresh-communication-js',
+        plugin_dir_url(__FILE__) . 'assets/js/communication-manager.js',
+        array('las-fresh-admin-settings-js', 'wp-util'),
+        $script_version,
+        true
+    );
+}
+
+/**
+ * Localize live preview scripts with AJAX URLs and nonce configuration
+ * 
+ * @param array $localization_data Localization data with AJAX configuration
+ */
+function las_fresh_localize_live_preview_scripts($localization_data) {
+    // Primary localization for main admin settings script
     wp_localize_script('las-fresh-admin-settings-js', 'lasAdminData', $localization_data);
+    
+    // Secondary localization for live preview script (for backward compatibility)
     wp_localize_script('las-fresh-live-preview-js', 'lasAdminData', $localization_data);
     
-    // Add inline script for immediate availability check
+    // Add AJAX-specific configuration for communication manager
+    $ajax_config = array(
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('las_ajax_nonce'),
+        'actions' => array(
+            'save_settings' => 'las_save_settings',
+            'load_settings' => 'las_load_settings',
+            'log_error' => 'las_log_error'
+        ),
+        'timeout' => 10000, // 10 seconds
+        'retry_attempts' => 3,
+        'retry_delay' => 1000 // 1 second base delay
+    );
+    
+    wp_localize_script('las-fresh-communication-js', 'lasAjaxConfig', $ajax_config);
+    
+    // Add inline script for immediate availability and initialization
     $inline_script = "
         window.lasPluginReady = window.lasPluginReady || {};
         window.lasPluginReady.dataLoaded = true;
         window.lasPluginReady.version = '" . esc_js(LAS_FRESH_VERSION) . "';
         window.lasPluginReady.timestamp = " . time() . ";
+        window.lasPluginReady.ajaxConfigured = true;
+        
+        // Initialize core manager when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.LAS && window.LAS.CoreManager) {
+                window.LAS.coreManager = new window.LAS.CoreManager();
+                window.LAS.coreManager.init().catch(function(error) {
+                    console.error('LAS: Failed to initialize core manager:', error);
+                });
+            }
+        });
     ";
     
     wp_add_inline_script('las-fresh-admin-settings-js', $inline_script, 'before');
+}
+
+/**
+ * Enqueue fallback assets when main enqueuing fails
+ * 
+ * @param string $script_version Script version
+ * @param string $style_version Style version
+ */
+function las_fresh_enqueue_fallback_assets($script_version, $style_version) {
+    // Minimal jQuery dependency
+    wp_enqueue_script('jquery');
+    
+    // Basic admin settings script
+    wp_enqueue_script(
+        'las-fresh-admin-settings-js',
+        plugin_dir_url(__FILE__) . 'js/admin-settings.js',
+        array('jquery'),
+        $script_version,
+        true
+    );
+    
+    // Basic styles
+    wp_enqueue_style(
+        'las-fresh-admin-style-css',
+        plugin_dir_url(__FILE__) . 'assets/css/admin-style.css',
+        array(),
+        $style_version
+    );
+    
+    // Minimal localization
+    $fallback_data = array(
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('las_ajax_nonce'),
+        'fallback_mode' => true,
+        'strings' => array(
+            'error' => __('An error occurred', LAS_FRESH_TEXT_DOMAIN),
+            'loading' => __('Loading...', LAS_FRESH_TEXT_DOMAIN)
+        )
+    );
+    
+    wp_localize_script('las-fresh-admin-settings-js', 'lasAdminData', $fallback_data);
 }
 
 /**
@@ -3341,6 +3964,14 @@ function las_fresh_enqueue_plugin_styles($style_version) {
         'las-fresh-performance-optimizations-css',
         plugin_dir_url(__FILE__) . 'assets/css/performance-optimizations.css',
         array('las-fresh-design-system-css'),
+        $style_version
+    );
+    
+    // Enqueue slider fallback CSS to ensure sliders are always visible
+    wp_enqueue_style(
+        'las-fresh-slider-fallback-css',
+        plugin_dir_url(__FILE__) . 'assets/css/slider-fallback.css',
+        array(),
         $style_version
     );
     
@@ -3866,6 +4497,68 @@ function las_fresh_deactivate() {
 register_deactivation_hook(__FILE__, 'las_fresh_deactivate');
 
 /**
+ * Initialize Live Preview Critical Repair Components
+ * Load and initialize the AJAX handlers and other critical components
+ */
+function las_fresh_init_live_preview_components() {
+    // Load required classes for live preview critical repair
+    $includes_path = plugin_dir_path(__FILE__) . 'includes/';
+    
+    // Load in dependency order
+    $required_files = array(
+        'SecurityValidator.php',
+        'SettingsStorage.php',
+        'output-css.php',
+        'ajax-handlers.php'
+    );
+    
+    foreach ($required_files as $file) {
+        $file_path = $includes_path . $file;
+        if (file_exists($file_path)) {
+            require_once $file_path;
+        } else {
+            error_log("LAS: Required file not found: {$file_path}");
+        }
+    }
+    
+    // Initialize enhanced AJAX handlers if class exists
+    if (class_exists('LAS_Ajax_Handlers')) {
+        global $las_ajax_handlers;
+        $las_ajax_handlers = new LAS_Ajax_Handlers();
+        
+        // Log successful initialization
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('LAS: Enhanced AJAX handlers initialized successfully');
+        }
+    } else {
+        error_log('LAS: Warning - LAS_Ajax_Handlers class not found');
+    }
+    
+    // Initialize error logger if not already done
+    if (!isset($GLOBALS['las_error_logger']) && class_exists('LAS_Error_Logger')) {
+        global $las_error_logger;
+        $las_error_logger = new LAS_Error_Logger();
+    }
+}
+
+// Initialize components after WordPress is loaded
+add_action('init', 'las_fresh_init_live_preview_components');
+
+/**
+ * Hook to clear CSS cache when settings are updated via new settings system
+ */
+function las_fresh_clear_css_cache_on_settings_update() {
+    // Clear CSS cache when settings are updated
+    if (function_exists('las_fresh_clear_css_cache')) {
+        las_fresh_clear_css_cache();
+    }
+}
+
+// Hook into settings updates for cache clearing
+add_action('las_settings_saved', 'las_fresh_clear_css_cache_on_settings_update');
+add_action('las_settings_reset', 'las_fresh_clear_css_cache_on_settings_update');
+
+/**
  * Additional helper functions for enhanced script loading and dependency management
  */
 
@@ -4032,9 +4725,12 @@ add_action('admin_footer', function() {
     }
 });
 
+// Load UI Repair Asset Loader
+require_once plugin_dir_path(__FILE__) . 'includes/UIRepairAssetLoader.php';
+
 // Debug logging
 if (defined('WP_DEBUG') && WP_DEBUG) {
-    error_log('LAS Plugin: live-admin-styler.php loaded successfully with enhanced script management');
+    error_log('LAS Plugin: live-admin-styler.php loaded successfully with enhanced script management and UI repair system');
 }
 
 ?>

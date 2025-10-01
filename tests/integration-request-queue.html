@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RequestQueue Integration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-controls {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-primary { background: #007cba; color: white; }
+        .btn-secondary { background: #666; color: white; }
+        .btn-success { background: #46b450; color: white; }
+        .btn-warning { background: #ffb900; color: white; }
+        .btn-danger { background: #dc3232; color: white; }
+        
+        .status-display {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .metric-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid #007cba;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007cba;
+        }
+        .metric-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+        .log-entry {
+            margin: 2px 0;
+            padding: 2px 0;
+        }
+        .log-info { color: #007cba; }
+        .log-success { color: #46b450; }
+        .log-warning { color: #ffb900; }
+        .log-error { color: #dc3232; }
+    </style>
+</head>
+<body>
+    <h1>RequestQueue Integration Test</h1>
+    <p>This test verifies the RequestQueue implementation with various scenarios including priority handling, deduplication, and concurrent request limiting.</p>
+
+    <div class="test-section">
+        <h2>Queue Controls</h2>
+        <div class="test-controls">
+            <button class="btn-primary" onclick="addHighPriorityRequest()">Add High Priority</button>
+            <button class="btn-secondary" onclick="addNormalRequest()">Add Normal Request</button>
+            <button class="btn-warning" onclick="addLowPriorityRequest()">Add Low Priority</button>
+            <button class="btn-success" onclick="addBulkRequests()">Add Bulk Requests</button>
+            <button class="btn-danger" onclick="clearQueue()">Clear Queue</button>
+        </div>
+        
+        <div class="test-controls">
+            <button class="btn-primary" onclick="startProcessing()">Start Processing</button>
+            <button class="btn-secondary" onclick="stopProcessing()">Stop Processing</button>
+            <button class="btn-warning" onclick="simulateNetworkError()">Simulate Error</button>
+            <button class="btn-success" onclick="testDeduplication()">Test Deduplication</button>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Queue Metrics</h2>
+        <div class="metrics-grid" id="metricsGrid">
+            <!-- Metrics will be populated here -->
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Queue Status</h2>
+        <div class="status-display" id="statusDisplay">
+            Initializing RequestQueue...
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Activity Log</h2>
+        <div class="status-display" id="activityLog">
+            Starting RequestQueue integration test...
+        </div>
+    </div>
+
+    <!-- Load RequestQueue -->
+    <script src="../assets/js/modules/request-queue.js"></script>
+    
+    <script>
+        // Global variables
+        let requestQueue;
+        let requestCounter = 0;
+        let activityLog = [];
+        
+        // Initialize RequestQueue
+        function initializeQueue() {
+            requestQueue = new RequestQueue({
+                maxConcurrent: 3,
+                maxQueueSize: 50,
+                enablePersistence: true,
+                persistenceKey: 'las_test_queue'
+            });
+            
+            // Set up execution callback
+            requestQueue.setExecutionCallback(async (request) => {
+                return await simulateRequestExecution(request);
+            });
+            
+            log('RequestQueue initialized with maxConcurrent: 3', 'info');
+            updateDisplay();
+        }
+        
+        // Simulate request execution
+        async function simulateRequestExecution(request) {
+            log(`Executing request: ${request.action} (ID: ${request.id})`, 'info');
+            
+            // Simulate network delay
+            const delay = Math.random() * 2000 + 500; // 500-2500ms
+            await new Promise(resolve => setTimeout(resolve, delay));
+            
+            // Simulate occasional failures
+            if (Math.random() < 0.1) { // 10% failure rate
+                throw new Error('Simulated network error');
+            }
+            
+            log(`Completed request: ${request.action} (${delay.toFixed(0)}ms)`, 'success');
+            updateDisplay();
+        }
+        
+        // Add different types of requests
+        function addHighPriorityRequest() {
+            const request = {
+                action: 'las_save_critical_setting',
+                data: { setting: 'critical_value', timestamp: Date.now() }
+            };
+            
+            const id = requestQueue.enqueue(request, 'high');
+            log(`Added high priority request: ${id}`, 'warning');
+            updateDisplay();
+        }
+        
+        function addNormalRequest() {
+            requestCounter++;
+            const request = {
+                action: 'las_save_settings',
+                data: { 
+                    settings: { 
+                        color: `#${Math.floor(Math.random()*16777215).toString(16)}`,
+                        counter: requestCounter
+                    }
+                }
+            };
+            
+            const id = requestQueue.enqueue(request, 'normal');
+            log(`Added normal request: ${id}`, 'info');
+            updateDisplay();
+        }
+        
+        function addLowPriorityRequest() {
+            const request = {
+                action: 'las_background_task',
+                data: { task: 'cleanup', priority: 'low' }
+            };
+            
+            const id = requestQueue.enqueue(request, 'low');
+            log(`Added low priority request: ${id}`, 'info');
+            updateDisplay();
+        }
+        
+        function addBulkRequests() {
+            const count = 5;
+            for (let i = 0; i < count; i++) {
+                const priority = ['high', 'normal', 'low'][i % 3];
+                const request = {
+                    action: `las_bulk_operation_${i}`,
+                    data: { index: i, batch: true }
+                };
+                
+                requestQueue.enqueue(request, priority);
+            }
+            
+            log(`Added ${count} bulk requests`, 'success');
+            updateDisplay();
+        }
+        
+        function clearQueue() {
+            requestQueue.clearQueue();
+            log('Queue cleared', 'warning');
+            updateDisplay();
+        }
+        
+        function startProcessing() {
+            requestQueue.startProcessing();
+            log('Started queue processing', 'success');
+            updateDisplay();
+        }
+        
+        function stopProcessing() {
+            requestQueue.stopProcessing();
+            log('Stopped queue processing', 'warning');
+            updateDisplay();
+        }
+        
+        function simulateNetworkError() {
+            // Add a request that will fail
+            const request = {
+                action: 'las_failing_request',
+                data: { shouldFail: true }
+            };
+            
+            // Override execution callback temporarily
+            const originalCallback = requestQueue.onRequestExecute;
+            requestQueue.setExecutionCallback(async (req) => {
+                if (req.action === 'las_failing_request') {
+                    throw new Error('Simulated network failure');
+                }
+                return originalCallback(req);
+            });
+            
+            const id = requestQueue.enqueue(request);
+            log(`Added failing request: ${id}`, 'error');
+            updateDisplay();
+            
+            // Restore original callback after a delay
+            setTimeout(() => {
+                requestQueue.setExecutionCallback(originalCallback);
+            }, 1000);
+        }
+        
+        function testDeduplication() {
+            // Add identical requests
+            const request = {
+                action: 'las_save_settings',
+                data: { settings: { testDedup: true, value: 'same' } }
+            };
+            
+            const id1 = requestQueue.enqueue(request);
+            const id2 = requestQueue.enqueue(request); // Should be deduped
+            const id3 = requestQueue.enqueue(request); // Should be deduped
+            
+            log(`Deduplication test: ${id1}, ${id2}, ${id3}`, 'info');
+            log(`Queue size should be 1, actual: ${requestQueue.getTotalQueueSize()}`, 'info');
+            updateDisplay();
+        }
+        
+        // Update display functions
+        function updateDisplay() {
+            updateMetrics();
+            updateStatus();
+        }
+        
+        function updateMetrics() {
+            const metrics = requestQueue.getMetrics();
+            const status = requestQueue.getStatus();
+            
+            const metricsHtml = `
+                <div class="metric-card">
+                    <div class="metric-value">${metrics.currentQueueSize}</div>
+                    <div class="metric-label">Queued Requests</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${status.activeRequests}</div>
+                    <div class="metric-label">Active Requests</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${metrics.totalQueued}</div>
+                    <div class="metric-label">Total Queued</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${metrics.totalProcessed}</div>
+                    <div class="metric-label">Total Processed</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${metrics.totalDeduped}</div>
+                    <div class="metric-label">Deduped Requests</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${metrics.maxQueueLength}</div>
+                    <div class="metric-label">Max Queue Length</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${status.isProcessing ? 'Yes' : 'No'}</div>
+                    <div class="metric-label">Processing Active</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value">${status.canProcessMore ? 'Yes' : 'No'}</div>
+                    <div class="metric-label">Can Process More</div>
+                </div>
+            `;
+            
+            document.getElementById('metricsGrid').innerHTML = metricsHtml;
+        }
+        
+        function updateStatus() {
+            const status = requestQueue.getStatus();
+            const metrics = requestQueue.getMetrics();
+            
+            const statusText = `
+Queue Status:
+  Processing: ${status.isProcessing}
+  Total Queued: ${status.totalQueued}
+  Active Requests: ${status.activeRequests}
+  Can Process More: ${status.canProcessMore}
+
+Queue Sizes by Priority:
+  High: ${metrics.queueSizes.high}
+  Normal: ${metrics.queueSizes.normal}
+  Low: ${metrics.queueSizes.low}
+
+Performance Metrics:
+  Total Queued: ${metrics.totalQueued}
+  Total Processed: ${metrics.totalProcessed}
+  Total Deduped: ${metrics.totalDeduped}
+  Max Queue Length: ${metrics.maxQueueLength}
+  Average Wait Time: ${metrics.averageWaitTime.toFixed(2)}ms
+            `;
+            
+            document.getElementById('statusDisplay').textContent = statusText;
+        }
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = `[${timestamp}] ${message}`;
+            
+            activityLog.push({ message: entry, type });
+            
+            // Keep only last 50 entries
+            if (activityLog.length > 50) {
+                activityLog = activityLog.slice(-50);
+            }
+            
+            // Update log display
+            const logHtml = activityLog
+                .map(entry => `<div class="log-entry log-${entry.type}">${entry.message}</div>`)
+                .join('');
+            
+            document.getElementById('activityLog').innerHTML = logHtml;
+            
+            // Scroll to bottom
+            const logElement = document.getElementById('activityLog');
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        // Auto-update display every second
+        setInterval(updateDisplay, 1000);
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeQueue();
+            log('RequestQueue integration test ready', 'success');
+        });
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (requestQueue) {
+                requestQueue.destroy();
+            }
+        });
+    </script>
+</body>
+</html>

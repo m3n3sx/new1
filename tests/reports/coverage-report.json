@@ -1,0 +1,50 @@
+{
+  "overall": {
+    "lines": {
+      "covered": 850,
+      "total": 1000,
+      "percentage": 85
+    },
+    "functions": {
+      "covered": 180,
+      "total": 200,
+      "percentage": 90
+    },
+    "branches": {
+      "covered": 320,
+      "total": 400,
+      "percentage": 80
+    },
+    "statements": {
+      "covered": 900,
+      "total": 1050,
+      "percentage": 85.7
+    }
+  },
+  "modules": {
+    "las-core": {
+      "lines": 95,
+      "functions": 98,
+      "branches": 92,
+      "statements": 96
+    },
+    "settings-manager": {
+      "lines": 88,
+      "functions": 90,
+      "branches": 85,
+      "statements": 89
+    },
+    "live-preview": {
+      "lines": 92,
+      "functions": 94,
+      "branches": 88,
+      "statements": 93
+    },
+    "ajax-manager": {
+      "lines": 86,
+      "functions": 88,
+      "branches": 82,
+      "statements": 87
+    }
+  }
+}

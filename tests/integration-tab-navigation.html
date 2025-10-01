@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tab Navigation Integration Test</title>
+    <link rel="stylesheet" href="../assets/css/ui-repair.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 20px;
+            background: #f0f0f1;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .test-results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            border-left: 4px solid #007cba;
+        }
+        
+        .test-pass {
+            color: #00a32a;
+            font-weight: bold;
+        }
+        
+        .test-fail {
+            color: #d63638;
+            font-weight: bold;
+        }
+        
+        .test-info {
+            color: #646970;
+            margin-top: 10px;
+        }
+        
+        .keyboard-help {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .keyboard-help h4 {
+            margin-top: 0;
+            color: #856404;
+        }
+        
+        .keyboard-help ul {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Tab Navigation Integration Test</h1>
+        
+        <div class="keyboard-help">
+            <h4>Keyboard Navigation Test Instructions:</h4>
+            <ul>
+                <li><strong>Tab:</strong> Focus on tab buttons</li>
+                <li><strong>Enter/Space:</strong> Activate focused tab</li>
+                <li><strong>Arrow Keys:</strong> Navigate between tabs</li>
+                <li><strong>Home:</strong> Go to first tab</li>
+                <li><strong>End:</strong> Go to last tab</li>
+            </ul>
+        </div>
+        
+        <div class="las-fresh-settings-wrap">
+            <div class="nav-tab-wrapper">
+                <button class="nav-tab las-tab" data-tab="general" id="tab-general">
+                    General Settings
+                </button>
+                <button class="nav-tab las-tab" data-tab="menu" id="tab-menu">
+                    Menu Configuration
+                </button>
+                <button class="nav-tab las-tab" data-tab="advanced" id="tab-advanced">
+                    Advanced Options
+                </button>
+                <button class="nav-tab las-tab" data-tab="styling" id="tab-styling">
+                    Styling & Themes
+                </button>
+            </div>
+            
+            <div class="las-tab-panels">
+                <div class="las-tab-panel" id="las-tab-general" data-tab="general">
+                    <h3>General Settings</h3>
+                    <p>This is the general settings panel. It contains basic configuration options for the plugin.</p>
+                    <div class="form-table">
+                        <table>
+                            <tr>
+                                <th scope="row">Enable Plugin</th>
+                                <td>
+                                    <label>
+                                        <input type="checkbox" checked> 
+                                        Enable Live Admin Styler
+                                    </label>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Debug Mode</th>
+                                <td>
+                                    <label>
+                                        <input type="checkbox"> 
+                                        Enable debug logging
+                                    </label>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="las-tab-panel" id="las-tab-menu" data-tab="menu">
+                    <h3>Menu Configuration</h3>
+                    <p>Configure menu behavior and appearance settings.</p>
+                    <div class="form-table">
+                        <table>
+                            <tr>
+                                <th scope="row">Menu Style</th>
+                                <td>
+                                    <select>
+                                        <option>Default</option>
+                                        <option>Modern</option>
+                                        <option>Minimal</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Hover Delay</th>
+                                <td>
+                                    <input type="range" min="0" max="1000" value="300">
+                                    <span>300ms</span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="las-tab-panel" id="las-tab-advanced" data-tab="advanced">
+                    <h3>Advanced Options</h3>
+                    <p>Advanced configuration options for power users.</p>
+                    <div class="form-table">
+                        <table>
+                            <tr>
+                                <th scope="row">Cache Duration</th>
+                                <td>
+                                    <input type="number" value="3600" min="0">
+                                    <span>seconds</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Performance Mode</th>
+                                <td>
+                                    <label>
+                                        <input type="radio" name="perf" value="standard" checked> Standard
+                                    </label><br>
+                                    <label>
+                                        <input type="radio" name="perf" value="optimized"> Optimized
+                                    </label><br>
+                                    <label>
+                                        <input type="radio" name="perf" value="aggressive"> Aggressive
+                                    </label>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="las-tab-panel" id="las-tab-styling" data-tab="styling">
+                    <h3>Styling & Themes</h3>
+                    <p>Customize the appearance and themes.</p>
+                    <div class="form-table">
+                        <table>
+                            <tr>
+                                <th scope="row">Primary Color</th>
+                                <td>
+                                    <input type="color" value="#0073aa">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Theme</th>
+                                <td>
+                                    <select>
+                                        <option>Light</option>
+                                        <option>Dark</option>
+                                        <option>Auto</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-results" id="test-results">
+            <h3>Test Results</h3>
+            <div id="test-output">Running tests...</div>
+        </div>
+    </div>
+
+    <script src="../assets/js/ui-repair.js"></script>
+    <script>
+        // Integration test script
+        document.addEventListener('DOMContentLoaded', async function() {
+            const testOutput = document.getElementById('test-output');
+            const tests = [];
+            
+            function addTest(name, result, message = '') {
+                tests.push({ name, result, message });
+                updateTestDisplay();
+            }
+            
+            function updateTestDisplay() {
+                const passed = tests.filter(t => t.result).length;
+                const total = tests.length;
+                
+                let html = `<div><strong>Tests: ${passed}/${total} passed</strong></div><br>`;
+                
+                tests.forEach(test => {
+                    const status = test.result ? 
+                        '<span class="test-pass">✓ PASS</span>' : 
+                        '<span class="test-fail">✗ FAIL</span>';
+                    
+                    html += `<div>${status} ${test.name}`;
+                    if (test.message) {
+                        html += ` - ${test.message}`;
+                    }
+                    html += '</div>';
+                });
+                
+                testOutput.innerHTML = html;
+            }
+            
+            try {
+                // Initialize the UI repair system
+                const core = new window.LASUICoreManager({ debug: true });
+                await core.init();
+                
+                const tabManager = core.get('tabs');
+                
+                // Test 1: Tab Manager exists
+                addTest('Tab Manager initialized', !!tabManager);
+                
+                // Test 2: Tabs discovered
+                const tabCount = tabManager.getAllTabs().length;
+                addTest('Tabs discovered', tabCount === 4, `Found ${tabCount} tabs`);
+                
+                // Test 3: Initial tab is active
+                const initialTab = tabManager.getActiveTab();
+                addTest('Initial tab set', !!initialTab, `Active tab: ${initialTab}`);
+                
+                // Test 4: ARIA attributes set
+                const firstButton = document.querySelector('.las-tab');
+                const hasRole = firstButton.getAttribute('role') === 'tab';
+                const hasAriaSelected = firstButton.hasAttribute('aria-selected');
+                addTest('ARIA attributes set', hasRole && hasAriaSelected);
+                
+                // Test 5: Tab switching works
+                const originalTab = tabManager.getActiveTab();
+                tabManager.setActiveTab('menu', false, false);
+                const newTab = tabManager.getActiveTab();
+                addTest('Tab switching works', newTab === 'menu' && newTab !== originalTab);
+                
+                // Test 6: Panel visibility updates
+                const activePanel = document.querySelector('.las-tab-panel.active');
+                const activePanelId = activePanel ? activePanel.id : null;
+                addTest('Panel visibility updates', activePanelId === 'las-tab-menu');
+                
+                // Test 7: CSS classes applied
+                const activeButton = document.querySelector('.las-tab.active');
+                const hasActiveClass = activeButton && activeButton.dataset.tab === 'menu';
+                addTest('CSS classes applied', hasActiveClass);
+                
+                // Test 8: Keyboard navigation setup
+                const keyboardEnabled = tabManager.keyboardNavigation;
+                addTest('Keyboard navigation enabled', keyboardEnabled);
+                
+                // Test 9: Focus management
+                let focusEventFired = false;
+                core.on('tab:focused', () => { focusEventFired = true; });
+                
+                const menuButton = document.querySelector('[data-tab="menu"]');
+                menuButton.dispatchEvent(new FocusEvent('focus', { bubbles: true }));
+                
+                setTimeout(() => {
+                    addTest('Focus events work', focusEventFired);
+                }, 100);
+                
+                // Test 10: Click handling
+                setTimeout(() => {
+                    const advancedButton = document.querySelector('[data-tab="advanced"]');
+                    advancedButton.click();
+                    
+                    setTimeout(() => {
+                        const clickedTab = tabManager.getActiveTab();
+                        addTest('Click handling works', clickedTab === 'advanced');
+                        
+                        // Add info about manual testing
+                        testOutput.innerHTML += `
+                            <div class="test-info">
+                                <strong>Manual Testing:</strong><br>
+                                • Try using Tab key to focus on tab buttons<br>
+                                • Use Enter or Space to activate focused tab<br>
+                                • Use Arrow keys to navigate between tabs<br>
+                                • Use Home/End keys to jump to first/last tab<br>
+                                • Check that screen readers announce tab states correctly
+                            </div>
+                        `;
+                    }, 100);
+                }, 200);
+                
+            } catch (error) {
+                addTest('System initialization', false, error.message);
+                console.error('Test error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

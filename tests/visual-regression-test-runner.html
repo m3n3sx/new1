@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Admin Styler - Visual Regression Test Runner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .test-config {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .config-group {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        
+        .config-group h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 0 10px;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+        
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn.success {
+            background: #27ae60;
+        }
+        
+        .btn.warning {
+            background: #f39c12;
+        }
+        
+        .btn.danger {
+            background: #e74c3c;
+        }
+        
+        .progress-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: none;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 25px;
+            background: #ecf0f1;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 15px 0;
+            position: relative;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            width: 0%;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+        
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 12px;
+        }
+        
+        .current-test {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .results-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .results-panel {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .panel-header {
+            background: #34495e;
+            color: white;
+            padding: 15px 20px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .panel-content {
+            padding: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .stat-card:hover {
+            border-color: #3498db;
+            transform: translateY(-2px);
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .stat-label {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            margin-top: 5px;
+        }
+        
+        .test-category {
+            margin-bottom: 25px;
+        }
+        
+        .category-header {
+            background: #f8f9fa;
+            padding: 12px 15px;
+            border-left: 4px solid #3498db;
+            margin-bottom: 10px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .category-stats {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .test-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            transition: background 0.2s;
+        }
+        
+        .test-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .test-item:last-child {
+            border-bottom: none;
+        }
+        
+        .test-name {
+            flex: 1;
+            font-weight: 500;
+        }
+        
+        .test-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .test-status.pass {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .test-status.fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .test-meta {
+            font-size: 11px;
+            color: #666;
+            margin-left: 10px;
+        }
+        
+        .recommendations {
+            margin-top: 20px;
+        }
+        
+        .recommendation {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+        
+        .recommendation.error {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        
+        .recommendation.warning {
+            background: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+        }
+        
+        .recommendation.info {
+            background: #d1ecf1;
+            border-color: #17a2b8;
+            color: #0c5460;
+        }
+        
+        .recommendation.success {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        
+        .console-output {
+            background: #2c3e50;
+            color: #ecf0f1;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            border-radius: 5px;
+        }
+        
+        .screenshot-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .screenshot-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .screenshot-item:hover {
+            border-color: #3498db;
+            transform: scale(1.02);
+        }
+        
+        .screenshot-header {
+            background: #34495e;
+            color: white;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .screenshot-content {
+            padding: 10px;
+            text-align: center;
+        }
+        
+        .screenshot-placeholder {
+            width: 100%;
+            height: 120px;
+            background: #f0f0f0;
+            border: 2px dashed #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 12px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .export-options {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        @media (max-width: 1024px) {
+            .results-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .config-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .summary-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .controls {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 200px;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📸 Visual Regression Test Runner</h1>
+            <p>Comprehensive UI consistency validation with screenshot comparison across browsers and devices</p>
+        </div>
+        
+        <div class="test-config">
+            <h2>🔧 Test Configuration</h2>
+            <div class="config-grid">
+                <div class="config-group">
+                    <h3>Test Categories</h3>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="ui-components" checked>
+                            <label for="ui-components">UI Components</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="responsive-layouts" checked>
+                            <label for="responsive-layouts">Responsive Layouts</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="theme-variations" checked>
+                            <label for="theme-variations">Theme Variations</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="interactive-states" checked>
+                            <label for="interactive-states">Interactive States</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="cross-browser" checked>
+                            <label for="cross-browser">Cross-Browser</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="breakpoints">
+                            <label for="breakpoints">Responsive Breakpoints</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="config-group">
+                    <h3>Viewports</h3>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="mobile" checked>
+                            <label for="mobile">Mobile (375x667)</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="tablet" checked>
+                            <label for="tablet">Tablet (768x1024)</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="desktop" checked>
+                            <label for="desktop">Desktop (1920x1080)</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="large">
+                            <label for="large">Large (2560x1440)</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="config-group">
+                    <h3>Options</h3>
+                    <div>
+                        <label for="threshold">Difference Threshold: </label>
+                        <input type="range" id="threshold" min="0.1" max="5" step="0.1" value="0.1">
+                        <span id="threshold-value">0.1%</span>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <input type="checkbox" id="create-baselines">
+                        <label for="create-baselines">Create new baselines</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="real-screenshots">
+                        <label for="real-screenshots">Use real screenshots (requires html2canvas)</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button class="btn" id="run-all-tests" onclick="runAllTests()">
+                    🚀 Run All Tests
+                </button>
+                <button class="btn" id="run-selected-tests" onclick="runSelectedTests()">
+                    ⚡ Run Selected Tests
+                </button>
+                <button class="btn warning" id="create-baselines" onclick="createBaselines()">
+                    📷 Create Baselines
+                </button>
+                <button class="btn success" id="export-results" onclick="exportResults()" disabled>
+                    📊 Export Results
+                </button>
+                <button class="btn danger" id="clear-results" onclick="clearResults()">
+                    🗑️ Clear Results
+                </button>
+            </div>
+        </div>
+        
+        <div class="progress-container" id="progress-container">
+            <h3>🔄 Test Progress</h3>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+                <div class="progress-text" id="progress-text">0%</div>
+            </div>
+            <div class="current-test" id="current-test">Initializing tests...</div>
+        </div>
+        
+        <div class="results-container" id="results-container" style="display: none;">
+            <div class="results-panel">
+                <div class="panel-header">
+                    📊 Test Results
+                    <div class="export-options">
+                        <button class="btn" onclick="exportResults('json')" style="padding: 5px 10px; font-size: 12px;">JSON</button>
+                        <button class="btn" onclick="exportResults('html')" style="padding: 5px 10px; font-size: 12px;">HTML</button>
+                    </div>
+                </div>
+                <div class="panel-content" id="test-results">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Running visual regression tests...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="results-panel">
+                <div class="panel-header">💻 Console & Screenshots</div>
+                <div class="panel-content">
+                    <div class="console-output" id="console-output"></div>
+                    <div class="screenshot-gallery" id="screenshot-gallery"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include html2canvas for real screenshot capture -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="visual-regression-framework.js"></script>
+    <script>
+        let testFramework;
+        let testResults = null;
+        let isRunning = false;
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            setupConsoleCapture();
+            updateThresholdDisplay();
+        });
+        
+        function setupEventListeners() {
+            document.getElementById('threshold').addEventListener('input', updateThresholdDisplay);
+        }
+        
+        function updateThresholdDisplay() {
+            const threshold = document.getElementById('threshold').value;
+            document.getElementById('threshold-value').textContent = threshold + '%';
+        }
+        
+        function setupConsoleCapture() {
+            const consoleOutput = document.getElementById('console-output');
+            const originalConsole = {
+                log: console.log,
+                warn: console.warn,
+                error: console.error
+            };
+            
+            function addToConsole(type, args) {
+                const timestamp = new Date().toLocaleTimeString();
+                const message = args.join(' ');
+                const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}\n`;
+                consoleOutput.innerHTML += logEntry;
+                consoleOutput.scrollTop = consoleOutput.scrollHeight;
+                originalConsole[type](...args);
+            }
+            
+            console.log = (...args) => addToConsole('log', args);
+            console.warn = (...args) => addToConsole('warn', args);
+            console.error = (...args) => addToConsole('error', args);
+        }
+        
+        function getTestConfig() {
+            const config = {
+                threshold: parseFloat(document.getElementById('threshold').value),
+                createBaselines: document.getElementById('create-baselines').checked,
+                useRealScreenshots: document.getElementById('real-screenshots').checked,
+                categories: [],
+                viewports: []
+            };
+            
+            // Get selected categories
+            const categories = ['ui-components', 'responsive-layouts', 'theme-variations', 'interactive-states', 'cross-browser', 'breakpoints'];
+            categories.forEach(category => {
+                if (document.getElementById(category).checked) {
+                    config.categories.push(category);
+                }
+            });
+            
+            // Get selected viewports
+            const viewports = [
+                { id: 'mobile', name: 'mobile', width: 375, height: 667 },
+                { id: 'tablet', name: 'tablet', width: 768, height: 1024 },
+                { id: 'desktop', name: 'desktop', width: 1920, height: 1080 },
+                { id: 'large', name: 'large', width: 2560, height: 1440 }
+            ];
+            
+            viewports.forEach(viewport => {
+                if (document.getElementById(viewport.id).checked) {
+                    config.viewports.push(viewport);
+                }
+            });
+            
+            return config;
+        }
+        
+        async function runAllTests() {
+            if (isRunning) return;
+            
+            const config = getTestConfig();
+            await runTests(config);
+        }
+        
+        async function runSelectedTests() {
+            if (isRunning) return;
+            
+            const config = getTestConfig();
+            config.categories = config.categories.filter(cat => 
+                document.getElementById(cat.replace('-', '-')).checked
+            );
+            
+            if (config.categories.length === 0) {
+                alert('Please select at least one test category.');
+                return;
+            }
+            
+            await runTests(config);
+        }
+        
+        async function createBaselines() {
+            if (isRunning) return;
+            
+            const config = getTestConfig();
+            config.createBaselines = true;
+            
+            await runTests(config);
+        }
+        
+        async function runTests(config) {
+            isRunning = true;
+            
+            // Update UI
+            setButtonsDisabled(true);
+            showProgress();
+            showResults();
+            clearConsole();
+            
+            try {
+                // Initialize framework with config
+                testFramework = new VisualRegressionFramework({
+                    threshold: config.threshold,
+                    viewports: config.viewports,
+                    createBaselines: config.createBaselines
+                });
+                
+                console.log('Starting visual regression tests with config:', config);
+                
+                // Run tests with progress updates
+                testResults = await runTestsWithProgress(config);
+                
+                // Display results
+                displayResults(testResults);
+                displayScreenshots(testResults);
+                
+                // Enable export
+                document.getElementById('export-results').disabled = false;
+                
+                console.log('Visual regression tests completed successfully');
+                
+            } catch (error) {
+                console.error('Test execution failed:', error);
+                displayError(error);
+            } finally {
+                isRunning = false;
+                setButtonsDisabled(false);
+                hideProgress();
+            }
+        }
+        
+        async function runTestsWithProgress(config) {
+            const progressFill = document.getElementById('progress-fill');
+            const progressText = document.getElementById('progress-text');
+            const currentTest = document.getElementById('current-test');
+            
+            let totalSteps = 0;
+            let currentStep = 0;
+            
+            // Calculate total steps
+            config.categories.forEach(category => {
+                switch (category) {
+                    case 'ui-components':
+                        totalSteps += 8; // 8 components
+                        break;
+                    case 'responsive-layouts':
+                        totalSteps += 5; // 5 layouts
+                        break;
+                    case 'theme-variations':
+                        totalSteps += 9; // 3 themes × 3 components
+                        break;
+                    case 'interactive-states':
+                        totalSteps += 9; // 9 interactions
+                        break;
+                    case 'cross-browser':
+                        totalSteps += 4; // 4 test cases
+                        break;
+                    case 'breakpoints':
+                        totalSteps += 28; // 7 breakpoints × 4 components
+                        break;
+                }
+            });
+            
+            function updateProgress(testName = '') {
+                currentStep++;
+                const percentage = Math.min((currentStep / totalSteps) * 100, 100);
+                progressFill.style.width = percentage + '%';
+                progressText.textContent = Math.round(percentage) + '%';
+                if (testName) {
+                    currentTest.textContent = `Running: ${testName}`;
+                }
+            }
+            
+            // Run selected test categories
+            if (config.categories.includes('ui-components')) {
+                currentTest.textContent = 'Testing UI Components...';
+                await testFramework.testUIComponents();
+                updateProgress('UI Components');
+            }
+            
+            if (config.categories.includes('responsive-layouts')) {
+                currentTest.textContent = 'Testing Responsive Layouts...';
+                await testFramework.testResponsiveLayouts();
+                updateProgress('Responsive Layouts');
+            }
+            
+            if (config.categories.includes('theme-variations')) {
+                currentTest.textContent = 'Testing Theme Variations...';
+                await testFramework.testThemeVariations();
+                updateProgress('Theme Variations');
+            }
+            
+            if (config.categories.includes('interactive-states')) {
+                currentTest.textContent = 'Testing Interactive States...';
+                await testFramework.testInteractiveStates();
+                updateProgress('Interactive States');
+            }
+            
+            if (config.categories.includes('cross-browser')) {
+                currentTest.textContent = 'Testing Cross-Browser Consistency...';
+                await testFramework.testCrossBrowserConsistency();
+                updateProgress('Cross-Browser Consistency');
+            }
+            
+            if (config.categories.includes('breakpoints')) {
+                currentTest.textContent = 'Testing Responsive Breakpoints...';
+                await testFramework.testResponsiveBreakpoints();
+                updateProgress('Responsive Breakpoints');
+            }
+            
+            currentTest.textContent = 'Generating report...';
+            progressFill.style.width = '100%';
+            progressText.textContent = '100%';
+            
+            return testFramework.generateReport();
+        }
+        
+        function displayResults(results) {
+            const resultsElement = document.getElementById('test-results');
+            
+            // Create summary
+            const summary = `
+                <div class="summary-stats">
+                    <div class="stat-card">
+                        <div class="stat-value">${results.summary.total}</div>
+                        <div class="stat-label">Total Tests</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" style="color: #27ae60;">${results.summary.passed}</div>
+                        <div class="stat-label">Passed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" style="color: #e74c3c;">${results.summary.failed}</div>
+                        <div class="stat-label">Failed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${results.summary.successRate}%</div>
+                        <div class="stat-label">Success Rate</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${results.summary.avgDifference.toFixed(2)}%</div>
+                        <div class="stat-label">Avg Difference</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${results.summary.threshold}%</div>
+                        <div class="stat-label">Threshold</div>
+                    </div>
+                </div>
+            `;
+            
+            // Group results by category
+            const categories = {};
+            results.results.forEach(result => {
+                if (!categories[result.category]) {
+                    categories[result.category] = [];
+                }
+                categories[result.category].push(result);
+            });
+            
+            // Create category sections
+            let categoriesHTML = '';
+            Object.keys(categories).forEach(categoryName => {
+                const categoryTests = categories[categoryName];
+                const categoryPassed = categoryTests.filter(t => t.passed).length;
+                const categoryTotal = categoryTests.length;
+                const categorySuccessRate = Math.round((categoryPassed / categoryTotal) * 100);
+                
+                categoriesHTML += `
+                    <div class="test-category">
+                        <div class="category-header">
+                            <span>${categoryName}</span>
+                            <span class="category-stats">${categoryPassed}/${categoryTotal} (${categorySuccessRate}%)</span>
+                        </div>
+                        ${categoryTests.map(test => `
+                            <div class="test-item">
+                                <div class="test-name">${test.name}</div>
+                                <div>
+                                    <span class="test-status ${test.passed ? 'pass' : 'fail'}">
+                                        ${test.passed ? '✓ Pass' : '✗ Fail'}
+                                    </span>
+                                    ${test.difference > 0 ? `<span class="test-meta">${test.difference.toFixed(2)}% diff</span>` : ''}
+                                    ${test.message ? `<span class="test-meta">${test.message}</span>` : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            });
+            
+            // Create recommendations
+            let recommendationsHTML = '';
+            if (results.recommendations && results.recommendations.length > 0) {
+                recommendationsHTML = `
+                    <div class="recommendations">
+                        <h3>💡 Recommendations</h3>
+                        ${results.recommendations.map(rec => `
+                            <div class="recommendation ${rec.type}">
+                                <strong>${rec.type.toUpperCase()}:</strong> ${rec.message}
+                                ${rec.tests ? `<br><small>Affected tests: ${rec.tests.slice(0, 3).join(', ')}${rec.tests.length > 3 ? ` and ${rec.tests.length - 3} more` : ''}</small>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            resultsElement.innerHTML = summary + categoriesHTML + recommendationsHTML;
+        }
+        
+        function displayScreenshots(results) {
+            const gallery = document.getElementById('screenshot-gallery');
+            gallery.innerHTML = '';
+            
+            // Display failed tests with screenshots
+            const failedTests = results.results.filter(r => !r.passed && r.artifacts);
+            
+            if (failedTests.length === 0) {
+                gallery.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No failed tests with screenshots to display.</p>';
+                return;
+            }
+            
+            failedTests.slice(0, 12).forEach(test => { // Limit to 12 screenshots
+                const screenshotItem = document.createElement('div');
+                screenshotItem.className = 'screenshot-item';
+                
+                screenshotItem.innerHTML = `
+                    <div class="screenshot-header">${test.name}</div>
+                    <div class="screenshot-content">
+                        <div class="screenshot-placeholder">
+                            📷 Screenshot<br>
+                            <small>${test.difference.toFixed(2)}% difference</small>
+                        </div>
+                    </div>
+                `;
+                
+                gallery.appendChild(screenshotItem);
+            });
+        }
+        
+        function displayError(error) {
+            const resultsElement = document.getElementById('test-results');
+            resultsElement.innerHTML = `
+                <div class="recommendation error">
+                    <strong>ERROR:</strong> Test execution failed: ${error.message}
+                    <br><small>Check the console for more details.</small>
+                </div>
+            `;
+        }
+        
+        function setButtonsDisabled(disabled) {
+            const buttons = ['run-all-tests', 'run-selected-tests', 'create-baselines', 'clear-results'];
+            buttons.forEach(id => {
+                document.getElementById(id).disabled = disabled;
+            });
+        }
+        
+        function showProgress() {
+            document.getElementById('progress-container').style.display = 'block';
+        }
+        
+        function hideProgress() {
+            document.getElementById('progress-container').style.display = 'none';
+        }
+        
+        function showResults() {
+            document.getElementById('results-container').style.display = 'grid';
+        }
+        
+        function clearConsole() {
+            document.getElementById('console-output').innerHTML = '';
+        }
+        
+        function clearResults() {
+            document.getElementById('test-results').innerHTML = '';
+            document.getElementById('screenshot-gallery').innerHTML = '';
+            document.getElementById('results-container').style.display = 'none';
+            document.getElementById('export-results').disabled = true;
+            testResults = null;
+            clearConsole();
+        }
+        
+        function exportResults(format = 'json') {
+            if (!testResults) {
+                alert('No test results to export. Please run tests first.');
+                return;
+            }
+            
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            let filename, content, mimeType;
+            
+            if (format === 'html') {
+                filename = `visual-regression-report-${timestamp}.html`;
+                content = testFramework.generateHTMLReport(testResults);
+                mimeType = 'text/html';
+            } else {
+                filename = `visual-regression-results-${timestamp}.json`;
+                content = JSON.stringify({
+                    timestamp: new Date().toISOString(),
+                    config: getTestConfig(),
+                    results: testResults,
+                    userAgent: navigator.userAgent,
+                    url: window.location.href
+                }, null, 2);
+                mimeType = 'application/json';
+            }
+            
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            console.log(`Exported results as ${format.toUpperCase()}: ${filename}`);
+        }
+        
+        // Auto-log initialization
+        window.addEventListener('load', function() {
+            console.log('Visual Regression Test Runner loaded successfully');
+            console.log('Ready to test Live Admin Styler UI consistency');
+            
+            // Check for html2canvas availability
+            if (typeof html2canvas !== 'undefined') {
+                console.log('html2canvas available - real screenshots enabled');
+            } else {
+                console.warn('html2canvas not available - using mock screenshots');
+            }
+        });
+    </script>
+</body>
+</html>

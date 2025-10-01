@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAS Error Reporting and Recovery Integration Test</title>
+    
+    <!-- WordPress Admin Styles -->
+    <link rel="stylesheet" href="../assets/css/ui-repair.css">
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 20px;
+            background: #f0f0f1;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .test-controls {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+        
+        .test-controls button {
+            margin: 5px;
+            padding: 8px 16px;
+            border: 1px solid #ccc;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .test-controls button:hover {
+            background: #f0f0f0;
+        }
+        
+        .test-controls button.danger {
+            background: #ffebee;
+            border-color: #d63638;
+            color: #d63638;
+        }
+        
+        .test-controls button.danger:hover {
+            background: #d63638;
+            color: white;
+        }
+        
+        .status-display {
+            margin: 10px 0;
+            padding: 10px;
+            background: #e7f3ff;
+            border-left: 4px solid #0073aa;
+            border-radius: 4px;
+        }
+        
+        .error-display {
+            margin: 10px 0;
+            padding: 10px;
+            background: #ffebee;
+            border-left: 4px solid #d63638;
+            border-radius: 4px;
+            color: #d63638;
+        }
+        
+        .success-display {
+            margin: 10px 0;
+            padding: 10px;
+            background: #e8f5e8;
+            border-left: 4px solid #00a32a;
+            border-radius: 4px;
+            color: #00a32a;
+        }
+        
+        .log-output {
+            background: #1e1e1e;
+            color: #fff;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .error-queue {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .error-item {
+            padding: 5px;
+            margin: 2px 0;
+            background: white;
+            border-left: 3px solid #ddd;
+            border-radius: 2px;
+            font-size: 12px;
+        }
+        
+        .error-item.network { border-left-color: #ff9800; }
+        .error-item.security { border-left-color: #f44336; }
+        .error-item.component { border-left-color: #2196f3; }
+        .error-item.critical { border-left-color: #9c27b0; }
+        
+        .recovery-status {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .recovery-status.success {
+            background: #e8f5e8;
+            color: #00a32a;
+        }
+        
+        .recovery-status.failed {
+            background: #ffebee;
+            color: #d63638;
+        }
+        
+        .recovery-status.pending {
+            background: #fff8e1;
+            color: #dba617;
+        }
+        
+        .statistics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .stat-card {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #0073aa;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #646970;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body class="wp-admin">
+    <div class="test-container">
+        <h1>LAS Error Reporting and Recovery Integration Test</h1>
+        <p>This test demonstrates the comprehensive error reporting and recovery system including error classification, recovery strategies, and server communication.</p>
+        
+        <!-- Test Controls -->
+        <div class="test-controls">
+            <h3>System Controls</h3>
+            <button onclick="initializeSystem()">Initialize System</button>
+            <button onclick="resetSystem()">Reset System</button>
+            <button onclick="clearLog()">Clear Log</button>
+            <button onclick="getErrorStatistics()">Get Statistics</button>
+            
+            <h3>Error Simulation</h3>
+            <button onclick="simulateNetworkError()">Network Error</button>
+            <button onclick="simulateSecurityError()">Security Error</button>
+            <button onclick="simulateComponentError()">Component Error</button>
+            <button onclick="simulateJavaScriptError()">JavaScript Error</button>
+            <button onclick="simulatePromiseRejection()">Promise Rejection</button>
+            <button class="danger" onclick="simulateCriticalError()">Critical Error</button>
+            
+            <h3>Recovery Testing</h3>
+            <button onclick="testNetworkRecovery()">Test Network Recovery</button>
+            <button onclick="testSecurityRecovery()">Test Security Recovery</button>
+            <button onclick="testComponentRecovery()">Test Component Recovery</button>
+            <button onclick="simulateMultipleErrors()">Multiple Errors</button>
+        </div>
+        
+        <!-- System Status -->
+        <div class="test-section">
+            <h3>System Status</h3>
+            <div id="system-status" class="status-display">
+                System not initialized
+            </div>
+            
+            <div class="statistics-grid" id="statistics-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-queue-size">0</div>
+                    <div class="stat-label">Errors in Queue</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-recovery-attempts">0</div>
+                    <div class="stat-label">Recovery Attempts</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-successful-recoveries">0</div>
+                    <div class="stat-label">Successful Recoveries</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="stat-reporting-enabled">No</div>
+                    <div class="stat-label">Reporting Enabled</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Error Queue Display -->
+        <div class="test-section">
+            <h3>Error Queue <span id="queue-count">(0 errors)</span></h3>
+            <div id="error-queue" class="error-queue">
+                No errors in queue
+            </div>
+            <button onclick="processErrorQueue()">Process Queue</button>
+            <button onclick="clearErrorQueue()">Clear Queue</button>
+        </div>
+        
+        <!-- Recovery Status -->
+        <div class="test-section">
+            <h3>Recovery Status</h3>
+            <div id="recovery-status">
+                No recovery attempts
+            </div>
+        </div>
+        
+        <!-- Test UI Components -->
+        <div class="las-fresh-settings-wrap">
+            <div class="test-section">
+                <h3>Test Components (for error simulation)</h3>
+                
+                <div style="margin: 10px 0;">
+                    <button onclick="triggerTabError()">Trigger Tab Error</button>
+                    <button onclick="triggerMenuError()">Trigger Menu Error</button>
+                    <button onclick="triggerFormError()">Trigger Form Error</button>
+                </div>
+                
+                <div class="las-tabs-container">
+                    <button class="las-tab active" data-tab="general">General</button>
+                    <button class="las-tab" data-tab="advanced">Advanced</button>
+                </div>
+                
+                <div class="las-tab-panel active" id="las-tab-general">
+                    <p>General settings content</p>
+                </div>
+                
+                <div class="las-tab-panel" id="las-tab-advanced">
+                    <p>Advanced settings content</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Log Output -->
+        <div class="test-section">
+            <h3>System Log</h3>
+            <div id="log-output" class="log-output">
+                System log will appear here...
+            </div>
+        </div>
+    </div>
+
+    <!-- Include UI Repair System -->
+    <script src="../assets/js/ui-repair.js"></script>
+    
+    <script>
+        let uiCore = null;
+        let errorReporter = null;
+        let logOutput = document.getElementById('log-output');
+        let errorCount = 0;
+        let recoveryAttempts = 0;
+        let successfulRecoveries = 0;
+        
+        // Mock WordPress AJAX endpoint
+        window.lasComm = {
+            ajaxUrl: '/wp-admin/admin-ajax.php',
+            nonces: { ajax: 'test-nonce-123' }
+        };
+        
+        // Override console methods to capture logs
+        const originalLog = console.log;
+        const originalWarn = console.warn;
+        const originalError = console.error;
+        
+        function logToOutput(message, level = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${level.toUpperCase()}: ${message}\n`;
+            logOutput.textContent += logEntry;
+            logOutput.scrollTop = logOutput.scrollHeight;
+        }
+        
+        console.log = function(...args) {
+            logToOutput(args.join(' '), 'info');
+            originalLog.apply(console, args);
+        };
+        
+        console.warn = function(...args) {
+            logToOutput(args.join(' '), 'warn');
+            originalWarn.apply(console, args);
+        };
+        
+        console.error = function(...args) {
+            logToOutput(args.join(' '), 'error');
+            originalError.apply(console, args);
+        };
+        
+        // Mock fetch for server communication
+        const originalFetch = window.fetch;
+        window.fetch = function(url, options) {
+            logToOutput(`AJAX Request: ${url}`, 'info');
+            
+            // Simulate server response
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve({
+                        ok: true,
+                        json: () => Promise.resolve({
+                            success: true,
+                            data: {
+                                processed: 1,
+                                failed: 0,
+                                message: 'Errors processed successfully'
+                            }
+                        })
+                    });
+                }, 500);
+            });
+        };
+        
+        // Initialize the UI system
+        async function initializeSystem() {
+            try {
+                logToOutput('Initializing Error Reporting and Recovery System...', 'info');
+                
+                // Create UI Core Manager
+                uiCore = new LASUICoreManager({
+                    debug: true,
+                    timeout: 5000
+                });
+                
+                // Initialize the system
+                await uiCore.init();
+                
+                // Get error reporter component
+                errorReporter = uiCore.get('errorReporter');
+                
+                // Bind events for monitoring
+                bindSystemEvents();
+                
+                updateSystemStatus();
+                logToOutput('System initialized successfully', 'info');
+                
+            } catch (error) {
+                logToOutput(`System initialization failed: ${error.message}`, 'error');
+                updateSystemStatus();
+            }
+        }
+        
+        // Bind system events for monitoring
+        function bindSystemEvents() {
+            if (!uiCore || !errorReporter) return;
+            
+            // Listen for error reporting events
+            uiCore.on('error:reported', (event) => {
+                const { error } = event.detail;
+                logToOutput(`Error reported: ${error.message} (${error.classification?.type})`, 'warn');
+                errorCount++;
+                updateErrorQueue();
+                updateSystemStatus();
+            });
+            
+            uiCore.on('error:recovered', (event) => {
+                const { error } = event.detail;
+                logToOutput(`Error recovered: ${error.id}`, 'success');
+                successfulRecoveries++;
+                updateRecoveryStatus();
+                updateSystemStatus();
+            });
+            
+            uiCore.on('network:recovered', () => {
+                logToOutput('Network connectivity recovered', 'success');
+                updateRecoveryStatus();
+            });
+            
+            uiCore.on('security:nonce-refreshed', (event) => {
+                const { nonce } = event.detail;
+                logToOutput(`Security nonce refreshed: ${nonce.substring(0, 10)}...`, 'info');
+                updateRecoveryStatus();
+            });
+            
+            uiCore.on('component:recovered', (event) => {
+                const { component } = event.detail;
+                logToOutput(`Component recovered: ${component}`, 'success');
+                updateRecoveryStatus();
+            });
+        }
+        
+        // Error simulation functions
+        function simulateNetworkError() {
+            if (!errorReporter) {
+                logToOutput('System not initialized', 'error');
+                return;
+            }
+            
+            logToOutput('Simulating network error...', 'warn');
+            
+            errorReporter.reportError({
+                type: 'network_error',
+                message: 'Network request timeout',
+                stack: 'fetch() timeout error',
+                timestamp: Date.now()
+            }, { component: 'ajax' });
+        }
+        
+        function simulateSecurityError() {
+            if (!errorReporter) {
+                logToOutput('System not initialized', 'error');
+                return;
+            }
+            
+            logToOutput('Simulating security error...', 'warn');
+            
+            errorReporter.reportError({
+                type: 'security_error',
+                message: 'Invalid nonce token',
+                stack: 'Security validation failed',
+                timestamp: Date.now()
+            }, { component: 'security' });
+        }
+        
+        function simulateComponentError() {
+            if (!errorReporter) {
+                logToOutput('System not initialized', 'error');
+                return;
+            }
+            
+            logToOutput('Simulating component error...', 'warn');
+            
+            errorReporter.reportError({
+                type: 'component_error',
+                message: 'Component tabs failed to initialize',
+                stack: 'TypeError: Cannot read property of undefined',
+                timestamp: Date.now()
+            }, { component: 'tabs' });
+        }
+        
+        function simulateJavaScriptError() {
+            logToOutput('Simulating JavaScript error...', 'warn');
+            
+            // This will trigger the global error handler
+            setTimeout(() => {
+                throw new Error('Simulated JavaScript runtime error');
+            }, 100);
+        }
+        
+        function simulatePromiseRejection() {
+            logToOutput('Simulating promise rejection...', 'warn');
+            
+            // This will trigger the unhandled rejection handler
+            Promise.reject(new Error('Simulated promise rejection'));
+        }
+        
+        function simulateCriticalError() {
+            if (!errorReporter) {
+                logToOutput('System not initialized', 'error');
+                return;
+            }
+            
+            logToOutput('Simulating critical error...', 'error');
+            
+            errorReporter.reportError({
+                type: 'critical_error',
+                message: 'Out of memory error',
+                stack: 'RangeError: Maximum call stack size exceeded',
+                timestamp: Date.now()
+            });
+        }
+        
+        function simulateMultipleErrors() {
+            logToOutput('Simulating multiple errors...', 'warn');
+            
+            setTimeout(() => simulateNetworkError(), 100);
+            setTimeout(() => simulateComponentError(), 200);
+            setTimeout(() => simulateSecurityError(), 300);
+            setTimeout(() => simulateJavaScriptError(), 400);
+        }
+        
+        // Recovery testing functions
+        function testNetworkRecovery() {
+            if (!errorReporter) {
+                logToOutput('System not initialized', 'error');
+                return;
+            }
+            
+            logToOutput('Testing network recovery...', 'info');
+            
+            const errorInfo = {
+                id: 'test_network_recovery',
+                message: 'Network timeout',
+                classification: {
+                    type: 'network',
+                    recoverable: true,
+                    strategy: 'network_recovery'
+                }
+            };
+            
+            errorReporter.attemptRecovery(errorInfo);
+            recoveryAttempts++;
+            updateSystemStatus();
+        }
+        
+        function testSecurityRecovery() {
+            if (!errorReporter) {
+                logToOutput('System not initialized', 'error');
+                return;
+            }
+            
+            logToOutput('Testing security recovery...', 'info');
+            
+            const errorInfo = {
+                id: 'test_security_recovery',
+                message: 'Invalid nonce',
+                classification: {
+                    type: 'security',
+                    recoverable: true,
+                    strategy: 'security_recovery'
+                }
+            };
+            
+            errorReporter.attemptRecovery(errorInfo);
+            recoveryAttempts++;
+            updateSystemStatus();
+        }
+        
+        function testComponentRecovery() {
+            if (!errorReporter) {
+                logToOutput('System not initialized', 'error');
+                return;
+            }
+            
+            logToOutput('Testing component recovery...', 'info');
+            
+            const errorInfo = {
+                id: 'test_component_recovery',
+                message: 'Component failed',
+                classification: {
+                    type: 'component',
+                    recoverable: true,
+                    strategy: 'component_recovery'
+                },
+                context: { component: 'tabs' }
+            };
+            
+            errorReporter.attemptRecovery(errorInfo);
+            recoveryAttempts++;
+            updateSystemStatus();
+        }
+        
+        // Component error triggers
+        function triggerTabError() {
+            logToOutput('Triggering tab component error...', 'warn');
+            
+            // Simulate tab component failure
+            const tabManager = uiCore?.get('tabs');
+            if (tabManager) {
+                tabManager.emit('error', new Error('Tab component simulated failure'));
+            }
+        }
+        
+        function triggerMenuError() {
+            logToOutput('Triggering menu component error...', 'warn');
+            
+            // Simulate menu component failure
+            const menuManager = uiCore?.get('menu');
+            if (menuManager) {
+                menuManager.emit('error', new Error('Menu component simulated failure'));
+            }
+        }
+        
+        function triggerFormError() {
+            logToOutput('Triggering form component error...', 'warn');
+            
+            // Simulate form component failure
+            const formManager = uiCore?.get('forms');
+            if (formManager) {
+                formManager.emit('error', new Error('Form component simulated failure'));
+            }
+        }
+        
+        // Queue management
+        function processErrorQueue() {
+            if (!errorReporter) {
+                logToOutput('System not initialized', 'error');
+                return;
+            }
+            
+            logToOutput('Processing error queue...', 'info');
+            errorReporter.processErrorQueue();
+        }
+        
+        function clearErrorQueue() {
+            if (!errorReporter) {
+                logToOutput('System not initialized', 'error');
+                return;
+            }
+            
+            logToOutput('Clearing error queue...', 'info');
+            errorReporter.errorQueue.length = 0;
+            updateErrorQueue();
+            updateSystemStatus();
+        }
+        
+        // Statistics and status updates
+        function getErrorStatistics() {
+            if (!errorReporter) {
+                logToOutput('System not initialized', 'error');
+                return;
+            }
+            
+            const stats = errorReporter.getErrorStatistics();
+            logToOutput(`Error Statistics: ${JSON.stringify(stats, null, 2)}`, 'info');
+        }
+        
+        function updateSystemStatus() {
+            const statusEl = document.getElementById('system-status');
+            
+            if (!uiCore || !errorReporter) {
+                statusEl.textContent = 'System not initialized';
+                statusEl.className = 'error-display';
+                return;
+            }
+            
+            const status = uiCore.getStatus();
+            const errorStats = errorReporter.getErrorStatistics();
+            
+            if (status.initialized) {
+                statusEl.textContent = `System running - ${errorStats.queueSize} errors queued, ${recoveryAttempts} recovery attempts, ${successfulRecoveries} successful recoveries`;
+                statusEl.className = 'success-display';
+            } else {
+                statusEl.textContent = 'System initialization failed';
+                statusEl.className = 'error-display';
+            }
+            
+            // Update statistics
+            document.getElementById('stat-queue-size').textContent = errorStats.queueSize;
+            document.getElementById('stat-recovery-attempts').textContent = recoveryAttempts;
+            document.getElementById('stat-successful-recoveries').textContent = successfulRecoveries;
+            document.getElementById('stat-reporting-enabled').textContent = errorStats.reportingEnabled ? 'Yes' : 'No';
+        }
+        
+        function updateErrorQueue() {
+            const queueEl = document.getElementById('error-queue');
+            const countEl = document.getElementById('queue-count');
+            
+            if (!errorReporter || errorReporter.errorQueue.length === 0) {
+                queueEl.innerHTML = 'No errors in queue';
+                countEl.textContent = '(0 errors)';
+                return;
+            }
+            
+            const errors = errorReporter.errorQueue;
+            countEl.textContent = `(${errors.length} errors)`;
+            
+            queueEl.innerHTML = errors.map(error => {
+                const type = error.classification?.type || 'unknown';
+                return `
+                    <div class="error-item ${type}">
+                        <strong>${error.type}</strong>: ${error.message}
+                        <br><small>ID: ${error.id} | Type: ${type}</small>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function updateRecoveryStatus() {
+            const statusEl = document.getElementById('recovery-status');
+            
+            if (recoveryAttempts === 0) {
+                statusEl.innerHTML = 'No recovery attempts';
+                return;
+            }
+            
+            const successRate = Math.round((successfulRecoveries / recoveryAttempts) * 100);
+            
+            statusEl.innerHTML = `
+                <div>Total Recovery Attempts: ${recoveryAttempts}</div>
+                <div>Successful Recoveries: ${successfulRecoveries}</div>
+                <div>Success Rate: ${successRate}%</div>
+            `;
+        }
+        
+        // System management
+        function resetSystem() {
+            if (uiCore) {
+                logToOutput('Resetting system...', 'info');
+                uiCore.destroy();
+                uiCore = null;
+                errorReporter = null;
+            }
+            
+            // Reset counters
+            errorCount = 0;
+            recoveryAttempts = 0;
+            successfulRecoveries = 0;
+            
+            updateSystemStatus();
+            updateErrorQueue();
+            updateRecoveryStatus();
+            logToOutput('System reset complete', 'info');
+        }
+        
+        function clearLog() {
+            logOutput.textContent = 'Log cleared...\n';
+        }
+        
+        // Initialize system on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            logToOutput('Page loaded, ready for testing', 'info');
+            
+            // Auto-initialize after a short delay
+            setTimeout(() => {
+                initializeSystem();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+{
+    "extends": [
+        "./.eslintrc.json"
+    ],
+    "plugins": [
+        "security"
+    ],
+    "rules": {
+        "security/detect-buffer-noassert": "error",
+        "security/detect-child-process": "error",
+        "security/detect-disable-mustache-escape": "error",
+        "security/detect-eval-with-expression": "error",
+        "security/detect-new-buffer": "error",
+        "security/detect-no-csrf-before-method-override": "error",
+        "security/detect-non-literal-fs-filename": "error",
+        "security/detect-non-literal-regexp": "error",
+        "security/detect-non-literal-require": "error",
+        "security/detect-object-injection": "error",
+        "security/detect-possible-timing-attacks": "error",
+        "security/detect-pseudoRandomBytes": "error",
+        "security/detect-unsafe-regex": "error",
+        
+        "no-eval": "error",
+        "no-implied-eval": "error",
+        "no-new-func": "error",
+        "no-script-url": "error",
+        "no-proto": "error",
+        "no-iterator": "error",
+        "no-with": "error",
+        
+        "no-global-assign": "error",
+        "no-implicit-globals": "error",
+        "no-restricted-globals": [
+            "error",
+            {
+                "name": "event",
+                "message": "Use local parameter instead."
+            },
+            {
+                "name": "fdescribe",
+                "message": "Do not commit fdescribe. Use describe instead."
+            }
+        ],
+        
+        "no-restricted-properties": [
+            "error",
+            {
+                "object": "document",
+                "property": "write",
+                "message": "document.write is not allowed"
+            },
+            {
+                "object": "document",
+                "property": "writeln",
+                "message": "document.writeln is not allowed"
+            },
+            {
+                "property": "__proto__",
+                "message": "Use Object.getPrototypeOf or Object.setPrototypeOf instead"
+            },
+            {
+                "property": "__defineGetter__",
+                "message": "Use Object.defineProperty instead"
+            },
+            {
+                "property": "__defineSetter__",
+                "message": "Use Object.defineProperty instead"
+            }
+        ],
+        
+        "no-restricted-syntax": [
+            "error",
+            {
+                "selector": "CallExpression[callee.name='setTimeout'][arguments.length!=2]",
+                "message": "setTimeout must always be invoked with two arguments."
+            },
+            {
+                "selector": "CallExpression[callee.name='setInterval'][arguments.length!=2]",
+                "message": "setInterval must always be invoked with two arguments."
+            }
+        ]
+    }
+}

@@ -1,0 +1,684 @@
+/**
+ * Animations and Loading States - 60fps micro-animations and loading components
+ * Optimized for performance with hardware acceleration and reduced motion support
+ */
+
+/* Animation Performance Optimizations */
+.las-spinner,
+.las-skeleton,
+.las-progress,
+.las-loading-overlay {
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
+
+/* Loading Overlay */
+.las-loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+}
+
+.las-loading {
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Spinner Components */
+.las-spinner {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--las-primary, #6750a4);
+}
+
+/* Spinner Sizes */
+.las-spinner-small {
+    width: 16px; /* 2 * 8px */
+    height: 16px;
+}
+
+.las-spinner-medium {
+    width: 24px; /* 3 * 8px */
+    height: 24px;
+}
+
+.las-spinner-large {
+    width: 32px; /* 4 * 8px */
+    height: 32px;
+}
+
+/* Spinner Colors */
+.las-spinner-primary {
+    color: var(--las-primary, #6750a4);
+}
+
+.las-spinner-secondary {
+    color: var(--las-secondary, #625b71);
+}
+
+.las-spinner-error {
+    color: var(--las-error, #ba1a1a);
+}
+
+.las-spinner-success {
+    color: var(--las-success, #006e1c);
+}
+
+/* Circular Spinner */
+.las-spinner-circular .las-spinner-svg {
+    width: 100%;
+    height: 100%;
+    animation: las-spin 2s linear infinite;
+}
+
+.las-spinner-circular .las-spinner-circle {
+    stroke: currentColor;
+    stroke-linecap: round;
+}
+
+/* Linear Spinner */
+.las-spinner-linear {
+    width: 100%;
+    height: 4px; /* 0.5 * 8px */
+    border-radius: 2px;
+    overflow: hidden;
+    background: var(--las-surface-variant, #f3f0f4);
+}
+
+.las-spinner-linear .las-spinner-track {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.las-spinner-linear .las-spinner-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background: currentColor;
+    border-radius: inherit;
+    animation: las-linear-progress 2s ease-in-out infinite;
+}
+
+/* Dots Spinner */
+.las-spinner-dots {
+    display: flex;
+    gap: 4px; /* 0.5 * 8px */
+}
+
+.las-spinner-dots .las-spinner-dot {
+    width: 6px; /* 0.75 * 8px */
+    height: 6px;
+    background: currentColor;
+    border-radius: 50%;
+    animation: las-dots 1.4s ease-in-out infinite both;
+}
+
+.las-spinner-dots .las-spinner-dot:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.las-spinner-dots .las-spinner-dot:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+/* Pulse Spinner */
+.las-spinner-pulse .las-spinner-pulse {
+    width: 100%;
+    height: 100%;
+    background: currentColor;
+    border-radius: 50%;
+    animation: las-pulse-spinner 1.5s ease-in-out infinite;
+}
+
+/* Spinner Speed Variants */
+.las-spinner-slow .las-spinner-svg {
+    animation-duration: 3s;
+}
+
+.las-spinner-fast .las-spinner-svg {
+    animation-duration: 1s;
+}
+
+.las-spinner-slow .las-spinner-bar {
+    animation-duration: 3s;
+}
+
+.las-spinner-fast .las-spinner-bar {
+    animation-duration: 1s;
+}
+
+/* Skeleton Loaders */
+.las-skeleton {
+    background: linear-gradient(90deg, 
+        var(--las-surface-variant, #f3f0f4) 25%, 
+        var(--las-outline-variant, #e0e0e0) 50%, 
+        var(--las-surface-variant, #f3f0f4) 75%
+    );
+    background-size: 200% 100%;
+    border-radius: 4px; /* 0.5 * 8px */
+    display: block;
+}
+
+.las-skeleton-wave {
+    animation: las-skeleton-wave 2s ease-in-out infinite;
+}
+
+.las-skeleton-pulse {
+    animation: las-skeleton-pulse 2s ease-in-out infinite;
+}
+
+.las-skeleton-text {
+    height: 1em;
+    margin-bottom: 8px; /* 1 * 8px */
+}
+
+.las-skeleton-text:last-child {
+    margin-bottom: 0;
+}
+
+.las-skeleton-rectangular {
+    border-radius: 8px; /* 1 * 8px */
+}
+
+.las-skeleton-circular {
+    border-radius: 50%;
+}
+
+.las-skeleton-line {
+    height: 1em;
+    margin-bottom: 8px;
+    background: inherit;
+    border-radius: inherit;
+}
+
+.las-skeleton-line:last-child {
+    margin-bottom: 0;
+}
+
+/* Progress Bars */
+.las-progress {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    color: var(--las-primary, #6750a4);
+}
+
+/* Linear Progress */
+.las-progress-linear {
+    width: 100%;
+    flex-direction: column;
+    gap: 4px; /* 0.5 * 8px */
+}
+
+.las-progress-track {
+    width: 100%;
+    height: 4px; /* 0.5 * 8px */
+    background: var(--las-outline-variant, #e0e0e0);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.las-progress-bar {
+    height: 100%;
+    background: currentColor;
+    border-radius: inherit;
+    transition: width 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.las-progress-animated .las-progress-bar {
+    background-image: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.2) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, 0.2) 50%,
+        rgba(255, 255, 255, 0.2) 75%,
+        transparent 75%,
+        transparent
+    );
+    background-size: 20px 20px;
+    animation: las-progress-stripes 1s linear infinite;
+}
+
+/* Circular Progress */
+.las-progress-circular {
+    width: 40px; /* 5 * 8px */
+    height: 40px;
+    position: relative;
+}
+
+.las-progress-svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.las-progress-track-circle,
+.las-progress-bar-circle {
+    stroke: currentColor;
+    stroke-linecap: round;
+}
+
+.las-progress-track-circle {
+    opacity: 0.2;
+}
+
+.las-progress-bar-circle {
+    transition: stroke-dashoffset 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Progress Sizes */
+.las-progress-small .las-progress-track {
+    height: 2px; /* 0.25 * 8px */
+}
+
+.las-progress-small.las-progress-circular {
+    width: 24px; /* 3 * 8px */
+    height: 24px;
+}
+
+.las-progress-large .las-progress-track {
+    height: 6px; /* 0.75 * 8px */
+}
+
+.las-progress-large.las-progress-circular {
+    width: 56px; /* 7 * 8px */
+    height: 56px;
+}
+
+/* Progress Label */
+.las-progress-label {
+    font-size: 12px; /* 1.5 * 8px */
+    font-weight: 500;
+    color: var(--las-on-surface-variant, #49454f);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.las-progress-linear .las-progress-label {
+    position: static;
+    transform: none;
+    align-self: flex-end;
+}
+
+/* Micro-Animation Keyframes */
+@keyframes las-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes las-linear-progress {
+    0% {
+        transform: translateX(-100%);
+    }
+    50% {
+        transform: translateX(0%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+@keyframes las-dots {
+    0%, 80%, 100% {
+        transform: scale(0);
+        opacity: 0.5;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes las-pulse-spinner {
+    0%, 100% {
+        transform: scale(0);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1);
+        opacity: 0.7;
+    }
+}
+
+@keyframes las-skeleton-wave {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+@keyframes las-skeleton-pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.4;
+    }
+}
+
+@keyframes las-progress-stripes {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 20px 0;
+    }
+}
+
+/* Micro-Animation Classes */
+@keyframes las-bounce {
+    0%, 20%, 53%, 80%, 100% {
+        transform: translate3d(0, 0, 0);
+    }
+    40%, 43% {
+        transform: translate3d(0, -8px, 0);
+    }
+    70% {
+        transform: translate3d(0, -4px, 0);
+    }
+    90% {
+        transform: translate3d(0, -2px, 0);
+    }
+}
+
+@keyframes las-shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-4px);
+    }
+    20%, 40%, 60%, 80% {
+        transform: translateX(4px);
+    }
+}
+
+@keyframes las-pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(var(--las-pulse-scale, 1.05));
+    }
+}
+
+@keyframes las-rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(var(--las-rotate-degrees, 360deg));
+    }
+}
+
+/* Hover and Focus Micro-Animations */
+.las-micro-hover {
+    transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.las-micro-hover:hover {
+    transform: translateY(-2px);
+}
+
+.las-micro-scale {
+    transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.las-micro-scale:hover {
+    transform: scale(1.02);
+}
+
+.las-micro-glow {
+    transition: box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.las-micro-glow:hover {
+    box-shadow: 0 0 20px rgba(103, 80, 164, 0.3);
+}
+
+/* State Transitions */
+.las-fade-in {
+    animation: las-fade-in 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.las-fade-out {
+    animation: las-fade-out 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.las-slide-in-up {
+    animation: las-slide-in-up 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.las-slide-in-down {
+    animation: las-slide-in-down 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.las-slide-in-left {
+    animation: las-slide-in-left 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.las-slide-in-right {
+    animation: las-slide-in-right 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+@keyframes las-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes las-fade-out {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes las-slide-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes las-slide-in-down {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes las-slide-in-left {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes las-slide-in-right {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Dark Theme Support */
+@media (prefers-color-scheme: dark) {
+    .las-loading-overlay {
+        background: rgba(28, 27, 31, 0.8);
+    }
+    
+    .las-skeleton {
+        background: linear-gradient(90deg, 
+            var(--las-surface-variant-dark, #49454f) 25%, 
+            var(--las-outline-variant-dark, #938f99) 50%, 
+            var(--las-surface-variant-dark, #49454f) 75%
+        );
+        background-size: 200% 100%;
+    }
+    
+    .las-progress-track {
+        background: var(--las-outline-variant-dark, #49454f);
+    }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    .las-spinner,
+    .las-progress {
+        color: var(--las-on-surface, #1c1b1f);
+    }
+    
+    .las-skeleton {
+        background: repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 10px,
+            var(--las-outline, #79747e) 10px,
+            var(--las-outline, #79747e) 11px
+        );
+    }
+    
+    .las-loading-overlay {
+        background: rgba(255, 255, 255, 0.95);
+        border: 2px solid var(--las-outline, #79747e);
+    }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    .las-spinner-svg,
+    .las-spinner-bar,
+    .las-spinner-dot,
+    .las-spinner-pulse,
+    .las-skeleton,
+    .las-progress-bar,
+    .las-progress-bar-circle,
+    .las-micro-hover,
+    .las-micro-scale,
+    .las-micro-glow {
+        animation: none;
+        transition: none;
+    }
+    
+    .las-skeleton-wave,
+    .las-skeleton-pulse {
+        animation: none;
+        opacity: 0.7;
+    }
+    
+    .las-progress-animated .las-progress-bar {
+        background-image: none;
+    }
+}
+
+.las-reduced-motion .las-spinner-svg,
+.las-reduced-motion .las-spinner-bar,
+.las-reduced-motion .las-spinner-dot,
+.las-reduced-motion .las-spinner-pulse,
+.las-reduced-motion .las-skeleton,
+.las-reduced-motion .las-progress-bar,
+.las-reduced-motion .las-progress-bar-circle,
+.las-reduced-motion .las-micro-hover,
+.las-reduced-motion .las-micro-scale,
+.las-reduced-motion .las-micro-glow {
+    animation: none !important;
+    transition: none !important;
+}
+
+/* Performance Optimizations */
+.las-spinner,
+.las-skeleton,
+.las-progress,
+.las-micro-hover,
+.las-micro-scale {
+    transform: translateZ(0);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Print Styles */
+@media print {
+    .las-spinner,
+    .las-skeleton,
+    .las-loading-overlay {
+        display: none;
+    }
+    
+    .las-progress {
+        background: #000;
+        color: #000;
+    }
+    
+    .las-progress-bar {
+        background: #000;
+    }
+}
+
+/* Utility Classes */
+.las-animation-paused {
+    animation-play-state: paused;
+}
+
+.las-animation-running {
+    animation-play-state: running;
+}
+
+.las-no-animation {
+    animation: none !important;
+    transition: none !important;
+}
+
+.las-hardware-accelerated {
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+/* Focus Visible Support */
+.las-spinner:focus-visible,
+.las-progress:focus-visible {
+    outline: 2px solid var(--las-primary, #6750a4);
+    outline-offset: 2px;
+}

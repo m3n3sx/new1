@@ -1,0 +1,3168 @@
+/**
+ * Live Admin Styler UI Repair Styles
+ * CSS for restored UI functionality including tabs, menus, and accessibility
+ * 
+ * @package LiveAdminStyler
+ * @version 1.0.0
+ */
+
+/* ==========================================================================
+   CSS Custom Properties for Theming
+   ========================================================================== */
+
+:root {
+    --las-ui-primary: #0073aa;
+    --las-ui-primary-hover: #005a87;
+    --las-ui-primary-active: #004c73;
+    --las-ui-secondary: #646970;
+    --las-ui-success: #00a32a;
+    --las-ui-warning: #dba617;
+    --las-ui-error: #d63638;
+    
+    --las-ui-bg-primary: #ffffff;
+    --las-ui-bg-secondary: #f6f7f7;
+    --las-ui-bg-tertiary: #f0f0f1;
+    
+    --las-ui-text-primary: #1d2327;
+    --las-ui-text-secondary: #646970;
+    --las-ui-text-tertiary: #8c8f94;
+    
+    --las-ui-border: #c3c4c7;
+    --las-ui-border-light: #dcdcde;
+    --las-ui-border-dark: #8c8f94;
+    
+    --las-ui-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --las-ui-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --las-ui-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+    
+    --las-ui-radius-sm: 3px;
+    --las-ui-radius-md: 6px;
+    --las-ui-radius-lg: 12px;
+    
+    --las-ui-transition-fast: 150ms ease;
+    --las-ui-transition-normal: 200ms ease;
+    --las-ui-transition-slow: 300ms ease;
+    
+    --las-ui-z-dropdown: 1000;
+    --las-ui-z-modal: 1050;
+    --las-ui-z-tooltip: 1100;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --las-ui-bg-primary: #1d2327;
+        --las-ui-bg-secondary: #2c3338;
+        --las-ui-bg-tertiary: #3c434a;
+        
+        --las-ui-text-primary: #f0f0f1;
+        --las-ui-text-secondary: #c3c4c7;
+        --las-ui-text-tertiary: #8c8f94;
+        
+        --las-ui-border: #646970;
+        --las-ui-border-light: #8c8f94;
+        --las-ui-border-dark: #3c434a;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    :root {
+        --las-ui-border: #000000;
+        --las-ui-text-primary: #000000;
+        --las-ui-primary: #0000ff;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --las-ui-transition-fast: 0ms;
+        --las-ui-transition-normal: 0ms;
+        --las-ui-transition-slow: 0ms;
+    }
+}
+
+/* ==========================================================================
+   Base UI Repair Styles
+   ========================================================================== */
+
+.las-ui-error {
+    background: var(--las-ui-bg-primary);
+    border-left: 4px solid var(--las-ui-error);
+    padding: 12px 16px;
+    margin: 16px 0;
+    border-radius: var(--las-ui-radius-sm);
+    box-shadow: var(--las-ui-shadow-sm);
+}
+
+.las-ui-error p {
+    margin: 0 0 8px 0;
+    color: var(--las-ui-text-primary);
+}
+
+.las-ui-error p:last-child {
+    margin-bottom: 0;
+}
+
+.las-ui-error small {
+    color: var(--las-ui-text-secondary);
+    font-size: 12px;
+}
+
+/* Graceful degradation mode */
+.las-ui-degraded .las-tab-panel {
+    display: block !important;
+}
+
+.las-ui-degraded .las-tab-panel:not(.active) {
+    display: none !important;
+}
+
+/* ==========================================================================
+   Tab Navigation Styles
+   ========================================================================== */
+
+/* Tab wrapper and container */
+.nav-tab-wrapper,
+.las-tabs-container {
+    position: relative;
+    margin: 0 0 20px 0;
+    border-bottom: 1px solid var(--las-ui-border);
+    background: var(--las-ui-bg-secondary);
+    border-radius: var(--las-ui-radius-md) var(--las-ui-radius-md) 0 0;
+}
+
+/* Individual tab buttons */
+.nav-tab,
+.las-tab {
+    position: relative;
+    display: inline-block;
+    padding: 12px 16px;
+    margin: 0 2px -1px 0;
+    background: var(--las-ui-bg-tertiary);
+    border: 1px solid var(--las-ui-border);
+    border-bottom: none;
+    color: var(--las-ui-text-secondary);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    cursor: pointer;
+    transition: all var(--las-ui-transition-normal);
+    border-radius: var(--las-ui-radius-sm) var(--las-ui-radius-sm) 0 0;
+    outline: none;
+    user-select: none;
+}
+
+/* Tab button states */
+.nav-tab:hover,
+.las-tab:hover {
+    background: var(--las-ui-bg-primary);
+    color: var(--las-ui-text-primary);
+    border-color: var(--las-ui-border-dark);
+    transform: translateY(-1px);
+}
+
+.nav-tab:focus,
+.las-tab:focus {
+    background: var(--las-ui-bg-primary);
+    color: var(--las-ui-text-primary);
+    border-color: var(--las-ui-primary);
+    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.2);
+    z-index: 1;
+}
+
+.nav-tab.active,
+.nav-tab.nav-tab-active,
+.las-tab.active {
+    background: var(--las-ui-bg-primary);
+    color: var(--las-ui-text-primary);
+    border-color: var(--las-ui-border);
+    border-bottom-color: var(--las-ui-bg-primary);
+    z-index: 2;
+}
+
+.nav-tab.active:hover,
+.nav-tab.nav-tab-active:hover,
+.las-tab.active:hover {
+    transform: none;
+}
+
+/* Tab button accessibility indicators */
+.nav-tab:focus-visible,
+.las-tab:focus-visible {
+    outline: 2px solid var(--las-ui-primary);
+    outline-offset: 2px;
+}
+
+/* Tab button loading state */
+.nav-tab.las-tab-loading,
+.las-tab.las-tab-loading {
+    opacity: 0.6;
+    cursor: wait;
+    pointer-events: none;
+}
+
+.nav-tab.las-tab-loading::after,
+.las-tab.las-tab-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    width: 12px;
+    height: 12px;
+    margin-top: -6px;
+    border: 2px solid var(--las-ui-border);
+    border-top-color: var(--las-ui-primary);
+    border-radius: 50%;
+    animation: las-spin 1s linear infinite;
+}
+
+@keyframes las-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ==========================================================================
+   Tab Panel Styles
+   ========================================================================== */
+
+/* Tab panels container */
+.las-tab-panels {
+    position: relative;
+    background: var(--las-ui-bg-primary);
+    border: 1px solid var(--las-ui-border);
+    border-top: none;
+    border-radius: 0 0 var(--las-ui-radius-md) var(--las-ui-radius-md);
+    min-height: 400px;
+}
+
+/* Individual tab panels */
+.las-tab-panel,
+.tab-panel {
+    display: none;
+    padding: 24px;
+    background: var(--las-ui-bg-primary);
+    border-radius: 0 0 var(--las-ui-radius-md) var(--las-ui-radius-md);
+    position: relative;
+    overflow: hidden;
+}
+
+.las-tab-panel.active,
+.tab-panel.active {
+    display: block;
+}
+
+/* Tab panel transitions */
+.las-tab-panel.las-tab-transition-in {
+    animation: las-tab-fade-in var(--las-ui-transition-normal) ease-out;
+}
+
+@keyframes las-tab-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Tab panel content styling */
+.las-tab-panel h2,
+.las-tab-panel h3 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    color: var(--las-ui-text-primary);
+}
+
+.las-tab-panel p {
+    margin-bottom: 16px;
+    color: var(--las-ui-text-secondary);
+    line-height: 1.6;
+}
+
+.las-tab-panel .form-table {
+    margin-top: 0;
+}
+
+/* ==========================================================================
+   Responsive Tab Design
+   ========================================================================== */
+
+/* Mobile and tablet adjustments */
+@media screen and (max-width: 782px) {
+    .nav-tab-wrapper,
+    .las-tabs-container {
+        margin: 0 0 16px 0;
+    }
+    
+    .nav-tab,
+    .las-tab {
+        display: block;
+        width: 100%;
+        margin: 0 0 1px 0;
+        border-radius: 0;
+        text-align: left;
+    }
+    
+    .nav-tab:first-child,
+    .las-tab:first-child {
+        border-radius: var(--las-ui-radius-sm) var(--las-ui-radius-sm) 0 0;
+    }
+    
+    .nav-tab:last-child,
+    .las-tab:last-child {
+        border-radius: 0 0 var(--las-ui-radius-sm) var(--las-ui-radius-sm);
+    }
+    
+    .nav-tab.active,
+    .nav-tab.nav-tab-active,
+    .las-tab.active {
+        border-left: 4px solid var(--las-ui-primary);
+    }
+    
+    .las-tab-panels {
+        border-radius: var(--las-ui-radius-md);
+        border-top: 1px solid var(--las-ui-border);
+        margin-top: 16px;
+    }
+    
+    .las-tab-panel,
+    .tab-panel {
+        padding: 16px;
+    }
+}
+
+/* Small mobile adjustments */
+@media screen and (max-width: 480px) {
+    .nav-tab,
+    .las-tab {
+        padding: 16px 12px;
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+    
+    .las-tab-panel,
+    .tab-panel {
+        padding: 12px;
+    }
+}
+
+/* ==========================================================================
+   Accessibility Enhancements
+   ========================================================================== */
+
+/* Screen reader only content */
+.las-sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+/* Focus management */
+.las-focus-trap {
+    outline: none;
+}
+
+/* High contrast mode enhancements */
+@media (prefers-contrast: high) {
+    .nav-tab,
+    .las-tab {
+        border-width: 2px;
+    }
+    
+    .nav-tab:focus,
+    .las-tab:focus {
+        border-width: 3px;
+    }
+    
+    .nav-tab.active,
+    .nav-tab.nav-tab-active,
+    .las-tab.active {
+        background: var(--las-ui-bg-primary);
+        border-color: var(--las-ui-text-primary);
+    }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    .nav-tab,
+    .las-tab {
+        transition: none;
+    }
+    
+    .las-tab-panel.las-tab-transition-in {
+        animation: none;
+    }
+    
+    .nav-tab:hover,
+    .las-tab:hover {
+        transform: none;
+    }
+}
+
+/* ==========================================================================
+   Error States and Fallbacks
+   ========================================================================== */
+
+/* Tab error states */
+.nav-tab.las-tab-error,
+.las-tab.las-tab-error {
+    border-color: var(--las-ui-error);
+    color: var(--las-ui-error);
+}
+
+.nav-tab.las-tab-error:hover,
+.las-tab.las-tab-error:hover {
+    background: rgba(214, 54, 56, 0.1);
+}
+
+/* Tab panel error states */
+.las-tab-panel.las-tab-error {
+    border-left: 4px solid var(--las-ui-error);
+    background: rgba(214, 54, 56, 0.05);
+}
+
+/* Fallback styles for when JavaScript fails */
+.no-js .las-tab-panel,
+.no-js .tab-panel {
+    display: block !important;
+    border-top: 2px solid var(--las-ui-border);
+    margin-top: 16px;
+}
+
+.no-js .las-tab-panel:first-child,
+.no-js .tab-panel:first-child {
+    border-top: none;
+    margin-top: 0;
+}
+
+/* ==========================================================================
+   WordPress Admin Integration
+   ========================================================================== */
+
+/* Integration with WordPress admin styles */
+.wp-admin .nav-tab-wrapper .nav-tab {
+    background: var(--las-ui-bg-tertiary);
+    border-color: var(--las-ui-border);
+}
+
+.wp-admin .nav-tab-wrapper .nav-tab.nav-tab-active {
+    background: var(--las-ui-bg-primary);
+    border-bottom-color: var(--las-ui-bg-primary);
+}
+
+/* ==========================================================================
+   WordPress Admin Color Scheme Integration
+   ========================================================================== */
+
+/* Fresh (Default) Color Scheme */
+.admin-color-fresh {
+    --las-ui-primary: #0073aa;
+    --las-ui-primary-hover: #005a87;
+    --las-ui-primary-active: #004c73;
+}
+
+.admin-color-fresh .nav-tab:focus,
+.admin-color-fresh .las-tab:focus,
+.admin-color-fresh .las-button:focus,
+.admin-color-fresh .las-text-input:focus {
+    border-color: #0073aa;
+    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.2);
+}
+
+/* Light Color Scheme */
+.admin-color-light {
+    --las-ui-primary: #0085ba;
+    --las-ui-primary-hover: #0073aa;
+    --las-ui-primary-active: #005a87;
+}
+
+.admin-color-light .nav-tab:focus,
+.admin-color-light .las-tab:focus,
+.admin-color-light .las-button:focus,
+.admin-color-light .las-text-input:focus {
+    border-color: #0085ba;
+    box-shadow: 0 0 0 2px rgba(0, 133, 186, 0.2);
+}
+
+/* Blue Color Scheme */
+.admin-color-blue {
+    --las-ui-primary: #096484;
+    --las-ui-primary-hover: #07526c;
+    --las-ui-primary-active: #064054;
+}
+
+.admin-color-blue .nav-tab:focus,
+.admin-color-blue .las-tab:focus,
+.admin-color-blue .las-button:focus,
+.admin-color-blue .las-text-input:focus {
+    border-color: #096484;
+    box-shadow: 0 0 0 2px rgba(9, 100, 132, 0.2);
+}
+
+/* Coffee Color Scheme */
+.admin-color-coffee {
+    --las-ui-primary: #46403c;
+    --las-ui-primary-hover: #383330;
+    --las-ui-primary-active: #2b2724;
+}
+
+.admin-color-coffee .nav-tab:focus,
+.admin-color-coffee .las-tab:focus,
+.admin-color-coffee .las-button:focus,
+.admin-color-coffee .las-text-input:focus {
+    border-color: #46403c;
+    box-shadow: 0 0 0 2px rgba(70, 64, 60, 0.2);
+}
+
+/* Ectoplasm Color Scheme */
+.admin-color-ectoplasm {
+    --las-ui-primary: #523f6d;
+    --las-ui-primary-hover: #46365d;
+    --las-ui-primary-active: #3a2c4d;
+}
+
+.admin-color-ectoplasm .nav-tab:focus,
+.admin-color-ectoplasm .las-tab:focus,
+.admin-color-ectoplasm .las-button:focus,
+.admin-color-ectoplasm .las-text-input:focus {
+    border-color: #523f6d;
+    box-shadow: 0 0 0 2px rgba(82, 63, 109, 0.2);
+}
+
+/* Midnight Color Scheme */
+.admin-color-midnight {
+    --las-ui-primary: #e14d43;
+    --las-ui-primary-hover: #dd382d;
+    --las-ui-primary-active: #d62c20;
+}
+
+.admin-color-midnight .nav-tab:focus,
+.admin-color-midnight .las-tab:focus,
+.admin-color-midnight .las-button:focus,
+.admin-color-midnight .las-text-input:focus {
+    border-color: #e14d43;
+    box-shadow: 0 0 0 2px rgba(225, 77, 67, 0.2);
+}
+
+/* Ocean Color Scheme */
+.admin-color-ocean {
+    --las-ui-primary: #627c83;
+    --las-ui-primary-hover: #576e74;
+    --las-ui-primary-active: #4c5f65;
+}
+
+.admin-color-ocean .nav-tab:focus,
+.admin-color-ocean .las-tab:focus,
+.admin-color-ocean .las-button:focus,
+.admin-color-ocean .las-text-input:focus {
+    border-color: #627c83;
+    box-shadow: 0 0 0 2px rgba(98, 124, 131, 0.2);
+}
+
+/* Sunrise Color Scheme */
+.admin-color-sunrise {
+    --las-ui-primary: #dd823b;
+    --las-ui-primary-hover: #d97426;
+    --las-ui-primary-active: #c7681a;
+}
+
+.admin-color-sunrise .nav-tab:focus,
+.admin-color-sunrise .las-tab:focus,
+.admin-color-sunrise .las-button:focus,
+.admin-color-sunrise .las-text-input:focus {
+    border-color: #dd823b;
+    box-shadow: 0 0 0 2px rgba(221, 130, 59, 0.2);
+}
+
+/* Modern Color Scheme (WordPress 5.7+) */
+.admin-color-modern {
+    --las-ui-primary: #3858e9;
+    --las-ui-primary-hover: #2145e6;
+    --las-ui-primary-active: #183ad6;
+}
+
+.admin-color-modern .nav-tab:focus,
+.admin-color-modern .las-tab:focus,
+.admin-color-modern .las-button:focus,
+.admin-color-modern .las-text-input:focus {
+    border-color: #3858e9;
+    box-shadow: 0 0 0 2px rgba(56, 88, 233, 0.2);
+}
+
+/* ==========================================================================
+   Print Styles
+   ========================================================================== */
+
+@media print {
+    .nav-tab-wrapper,
+    .las-tabs-container {
+        display: none;
+    }
+    
+    .las-tab-panel,
+    .tab-panel {
+        display: block !important;
+        border: 1px solid #000;
+        margin-bottom: 20px;
+        page-break-inside: avoid;
+    }
+    
+    .las-tab-panel h2,
+    .las-tab-panel h3 {
+        page-break-after: avoid;
+    }
+}
+/
+* ==========================================================================
+   WordPress Admin Menu Enhancement Styles
+   ========================================================================== */
+
+/* Menu Manager Base Styles */
+.las-submenu-visible {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.wp-submenu {
+    transition: opacity var(--las-ui-transition-normal), 
+               visibility var(--las-ui-transition-normal);
+}
+
+.wp-submenu:not(.las-submenu-visible) {
+    opacity: 0;
+    visibility: hidden;
+}
+
+/* Enhanced menu item states */
+.las-menu-expanded > .wp-menu-name,
+.las-menu-expanded > a {
+    background-color: var(--las-ui-primary) !important;
+    color: #ffffff !important;
+    position: relative;
+}
+
+.las-menu-expanded > .wp-menu-name::before,
+.las-menu-expanded > a::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Touch device improvements */
+.las-touch-device .wp-has-submenu > .wp-menu-name::after,
+.las-touch-device .wp-has-submenu > a::after {
+    content: "▼";
+    float: right;
+    font-size: 12px;
+    margin-top: 2px;
+    transition: transform var(--las-ui-transition-fast);
+    opacity: 0.7;
+}
+
+.las-touch-device .las-menu-expanded > .wp-menu-name::after,
+.las-touch-device .las-menu-expanded > a::after {
+    transform: rotate(180deg);
+    opacity: 1;
+}
+
+/* Submenu positioning enhancements */
+.wp-submenu.las-submenu-visible {
+    z-index: var(--las-ui-z-dropdown);
+    box-shadow: var(--las-ui-shadow-lg);
+    border: 1px solid var(--las-ui-border);
+    border-radius: var(--las-ui-radius-sm);
+    background: var(--las-ui-bg-primary);
+}
+
+/* Submenu item enhancements */
+.wp-submenu.las-submenu-visible li > a {
+    transition: all var(--las-ui-transition-fast);
+    border-radius: var(--las-ui-radius-sm);
+    margin: 2px 4px;
+    padding: 8px 12px;
+}
+
+.wp-submenu.las-submenu-visible li > a:hover,
+.wp-submenu.las-submenu-visible li > a:focus {
+    background: var(--las-ui-bg-secondary);
+    color: var(--las-ui-text-primary);
+    transform: translateX(2px);
+}
+
+/* Focus indicators for keyboard navigation */
+.wp-submenu.las-submenu-visible li > a:focus {
+    outline: 2px solid var(--las-ui-primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(0, 115, 170, 0.1);
+}
+
+/* Menu item keyboard focus */
+#adminmenu .wp-menu-name:focus,
+#adminmenu .menu-top > a:focus {
+    outline: 2px solid var(--las-ui-primary);
+    outline-offset: -2px;
+    box-shadow: inset 0 0 0 2px rgba(0, 115, 170, 0.2);
+}
+
+/* Responsive menu improvements */
+@media (max-width: 782px) {
+    .wp-submenu.las-submenu-visible {
+        position: static !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        background: rgba(0, 0, 0, 0.1) !important;
+        margin-left: 12px !important;
+    }
+    
+    .wp-submenu.las-submenu-visible li > a {
+        margin: 0;
+        border-radius: 0;
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .las-touch-device .wp-has-submenu > .wp-menu-name::after,
+    .las-touch-device .wp-has-submenu > a::after {
+        font-size: 14px;
+        margin-top: 0;
+    }
+}
+
+/* Folded menu (collapsed sidebar) improvements */
+.folded .wp-submenu.las-submenu-visible {
+    left: 36px !important;
+    top: 0 !important;
+    min-width: 200px;
+    max-width: 300px;
+}
+
+.folded .las-menu-expanded > .wp-menu-name,
+.folded .las-menu-expanded > a {
+    border-radius: 0 var(--las-ui-radius-sm) var(--las-ui-radius-sm) 0;
+}
+
+/* Auto-folded menu improvements */
+.auto-fold .wp-submenu.las-submenu-visible {
+    left: 36px !important;
+}
+
+/* Menu hover states enhancement */
+#adminmenu .wp-has-submenu:hover > .wp-menu-name,
+#adminmenu .wp-has-submenu:hover > a {
+    background-color: var(--las-ui-primary-hover) !important;
+    color: #ffffff !important;
+}
+
+/* Menu separator styling */
+#adminmenu .wp-menu-separator {
+    border-bottom: 1px solid var(--las-ui-border-light);
+    margin: 4px 0;
+    opacity: 0.5;
+}
+
+/* Menu icon enhancements */
+#adminmenu .wp-menu-image {
+    transition: all var(--las-ui-transition-fast);
+}
+
+.las-menu-expanded .wp-menu-image {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+}
+
+/* Menu badge/count styling */
+#adminmenu .wp-menu-name .awaiting-mod,
+#adminmenu .wp-menu-name .update-plugins {
+    background: var(--las-ui-error);
+    color: #ffffff;
+    border-radius: 50%;
+    font-size: 10px;
+    line-height: 1;
+    padding: 2px 6px;
+    margin-left: 4px;
+    animation: las-pulse 2s infinite;
+}
+
+@keyframes las-pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
+}
+
+/* High contrast mode menu enhancements */
+@media (prefers-contrast: high) {
+    .las-menu-expanded > .wp-menu-name,
+    .las-menu-expanded > a {
+        border: 2px solid #ffffff !important;
+    }
+    
+    .wp-submenu.las-submenu-visible {
+        border: 2px solid #000000 !important;
+    }
+    
+    .wp-submenu.las-submenu-visible li > a:focus {
+        outline: 3px solid #000000;
+        background: #ffff00 !important;
+        color: #000000 !important;
+    }
+}
+
+/* Reduced motion menu preferences */
+@media (prefers-reduced-motion: reduce) {
+    .wp-submenu {
+        transition: none !important;
+    }
+    
+    .wp-submenu.las-submenu-visible li > a {
+        transition: none !important;
+    }
+    
+    .wp-submenu.las-submenu-visible li > a:hover {
+        transform: none !important;
+    }
+    
+    .las-touch-device .wp-has-submenu > .wp-menu-name::after,
+    .las-touch-device .wp-has-submenu > a::after {
+        transition: none !important;
+    }
+    
+    #adminmenu .wp-menu-image {
+        transition: none !important;
+    }
+    
+    .las-menu-expanded .wp-menu-image {
+        transform: none !important;
+    }
+    
+    #adminmenu .wp-menu-name .awaiting-mod,
+    #adminmenu .wp-menu-name .update-plugins {
+        animation: none !important;
+    }
+}
+
+/* Dark mode menu enhancements */
+@media (prefers-color-scheme: dark) {
+    .wp-submenu.las-submenu-visible {
+        background: var(--las-ui-bg-secondary);
+        border-color: var(--las-ui-border-dark);
+    }
+    
+    .wp-submenu.las-submenu-visible li > a:hover,
+    .wp-submenu.las-submenu-visible li > a:focus {
+        background: var(--las-ui-bg-tertiary);
+    }
+}
+
+/* Menu loading states */
+.las-menu-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.las-menu-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    width: 12px;
+    height: 12px;
+    margin-top: -6px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: las-spin 1s linear infinite;
+}
+
+/* Menu error states */
+.las-menu-error {
+    background: var(--las-ui-error) !important;
+    color: #ffffff !important;
+}
+
+.las-menu-error::before {
+    content: '⚠';
+    margin-right: 4px;
+    font-weight: bold;
+}
+
+/* Menu accessibility enhancements */
+.las-menu-skip-link {
+    position: absolute;
+    left: -9999px;
+    top: -9999px;
+    z-index: 999999;
+    padding: 8px 16px;
+    background: var(--las-ui-primary);
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: var(--las-ui-radius-sm);
+}
+
+.las-menu-skip-link:focus {
+    left: 6px;
+    top: 7px;
+}
+
+/* Menu keyboard navigation indicators */
+.las-keyboard-navigation #adminmenu .wp-menu-name:focus,
+.las-keyboard-navigation #adminmenu .menu-top > a:focus {
+    background: var(--las-ui-primary-hover) !important;
+    color: #ffffff !important;
+}
+
+/* Menu performance optimizations */
+.wp-submenu {
+    will-change: opacity, visibility;
+}
+
+.wp-submenu.las-submenu-visible li > a {
+    will-change: transform, background-color;
+}
+
+/* Menu print styles */
+@media print {
+    #adminmenu {
+        display: none !important;
+    }
+}
+
+/* Menu RTL support */
+.rtl .folded .wp-submenu.las-submenu-visible {
+    left: auto !important;
+    right: 36px !important;
+}
+
+.rtl .las-touch-device .wp-has-submenu > .wp-menu-name::after,
+.rtl .las-touch-device .wp-has-submenu > a::after {
+    float: left;
+    margin-left: 2px;
+    margin-right: 0;
+}
+
+.rtl .wp-submenu.las-submenu-visible li > a:hover,
+.rtl .wp-submenu.las-submenu-visible li > a:focus {
+    transform: translateX(-2px);
+}/* =======
+===================================================================
+   Enhanced Responsive and Accessibility Features
+   ========================================================================== */
+
+/* Screen reader only content for announcements */
+.las-sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+/* Keyboard navigation indicators */
+.las-keyboard-navigation #adminmenu .wp-menu-name:focus,
+.las-keyboard-navigation #adminmenu .menu-top > a:focus {
+    background: var(--las-ui-primary-hover) !important;
+    color: #ffffff !important;
+    outline: 2px solid var(--las-ui-primary);
+    outline-offset: -2px;
+    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+.las-keyboard-navigation .wp-submenu.las-submenu-visible li > a:focus {
+    outline: 2px solid var(--las-ui-primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(0, 115, 170, 0.1);
+    background: var(--las-ui-bg-secondary);
+    color: var(--las-ui-text-primary);
+}
+
+/* Mobile responsive enhancements */
+.las-mobile-menu #adminmenu .wp-submenu.las-submenu-visible {
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: rgba(0, 0, 0, 0.1) !important;
+    margin-left: 12px !important;
+    padding: 0 !important;
+}
+
+.las-mobile-menu #adminmenu .wp-submenu.las-submenu-visible li > a {
+    margin: 0 !important;
+    border-radius: 0 !important;
+    padding: 12px 16px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    font-size: 16px !important; /* Prevent zoom on iOS */
+}
+
+.las-mobile-menu #adminmenu .wp-submenu.las-submenu-visible li:last-child > a {
+    border-bottom: none !important;
+}
+
+/* Tablet responsive enhancements */
+.las-tablet-menu #adminmenu .wp-submenu.las-submenu-visible {
+    min-width: 180px !important;
+    max-width: 250px !important;
+}
+
+.las-tablet-menu #adminmenu .wp-submenu.las-submenu-visible li > a {
+    padding: 10px 14px !important;
+    font-size: 14px !important;
+}
+
+/* Touch device enhancements */
+.las-touch-device #adminmenu .wp-has-submenu > .wp-menu-name,
+.las-touch-device #adminmenu .wp-has-submenu > a {
+    position: relative;
+}
+
+.las-touch-device #adminmenu .wp-has-submenu > .wp-menu-name::after,
+.las-touch-device #adminmenu .wp-has-submenu > a::after {
+    content: "▼";
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    transition: transform var(--las-ui-transition-fast);
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.las-touch-device .las-menu-expanded > .wp-menu-name::after,
+.las-touch-device .las-menu-expanded > a::after {
+    transform: translateY(-50%) rotate(180deg);
+    opacity: 1;
+}
+
+/* Touch gesture indicators */
+.las-touch-device #adminmenu .wp-has-submenu > .wp-menu-name::before,
+.las-touch-device #adminmenu .wp-has-submenu > a::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: transparent;
+    transition: background var(--las-ui-transition-fast);
+}
+
+.las-touch-device #adminmenu .wp-has-submenu:active > .wp-menu-name::before,
+.las-touch-device #adminmenu .wp-has-submenu:active > a::before {
+    background: var(--las-ui-primary);
+}
+
+/* High contrast mode enhancements */
+.las-high-contrast #adminmenu .wp-menu-name,
+.las-high-contrast #adminmenu .menu-top > a {
+    border: 2px solid transparent !important;
+}
+
+.las-high-contrast #adminmenu .wp-menu-name:focus,
+.las-high-contrast #adminmenu .menu-top > a:focus {
+    border: 3px solid #000000 !important;
+    background: #ffff00 !important;
+    color: #000000 !important;
+}
+
+.las-high-contrast .las-menu-expanded > .wp-menu-name,
+.las-high-contrast .las-menu-expanded > a {
+    border: 2px solid #ffffff !important;
+    background: #000000 !important;
+    color: #ffffff !important;
+}
+
+.las-high-contrast .wp-submenu.las-submenu-visible {
+    border: 3px solid #000000 !important;
+    background: #ffffff !important;
+}
+
+.las-high-contrast .wp-submenu.las-submenu-visible li > a {
+    border: 1px solid #000000 !important;
+    margin: 2px !important;
+}
+
+.las-high-contrast .wp-submenu.las-submenu-visible li > a:focus {
+    outline: 3px solid #000000 !important;
+    background: #ffff00 !important;
+    color: #000000 !important;
+}
+
+/* Reduced motion preferences */
+.las-reduced-motion #adminmenu .wp-menu-name,
+.las-reduced-motion #adminmenu .menu-top > a,
+.las-reduced-motion .wp-submenu,
+.las-reduced-motion .wp-submenu li > a {
+    transition: none !important;
+    animation: none !important;
+}
+
+.las-reduced-motion .wp-submenu.las-submenu-visible li > a:hover {
+    transform: none !important;
+}
+
+.las-reduced-motion .las-touch-device .wp-has-submenu > .wp-menu-name::after,
+.las-reduced-motion .las-touch-device .wp-has-submenu > a::after {
+    transition: none !important;
+}
+
+.las-reduced-motion #adminmenu .wp-menu-image {
+    transition: none !important;
+}
+
+.las-reduced-motion .las-menu-expanded .wp-menu-image {
+    transform: none !important;
+}
+
+/* Dark mode enhancements */
+.las-dark-mode .wp-submenu.las-submenu-visible {
+    background: var(--las-ui-bg-secondary) !important;
+    border-color: var(--las-ui-border-dark) !important;
+    color: var(--las-ui-text-primary) !important;
+}
+
+.las-dark-mode .wp-submenu.las-submenu-visible li > a {
+    color: var(--las-ui-text-primary) !important;
+}
+
+.las-dark-mode .wp-submenu.las-submenu-visible li > a:hover,
+.las-dark-mode .wp-submenu.las-submenu-visible li > a:focus {
+    background: var(--las-ui-bg-tertiary) !important;
+    color: var(--las-ui-text-primary) !important;
+}
+
+/* Voice control indicators */
+.las-voice-active #adminmenu {
+    position: relative;
+}
+
+.las-voice-active #adminmenu::before {
+    content: '🎤 Voice control active';
+    position: absolute;
+    top: -30px;
+    left: 0;
+    right: 0;
+    background: var(--las-ui-primary);
+    color: #ffffff;
+    padding: 4px 8px;
+    font-size: 12px;
+    text-align: center;
+    border-radius: var(--las-ui-radius-sm);
+    z-index: 1001;
+}
+
+/* Skip link for accessibility */
+.las-menu-skip-link {
+    position: absolute;
+    left: -9999px;
+    top: -9999px;
+    z-index: 999999;
+    padding: 8px 16px;
+    background: var(--las-ui-primary);
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: var(--las-ui-radius-sm);
+    font-weight: bold;
+}
+
+.las-menu-skip-link:focus {
+    left: 6px;
+    top: 7px;
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+}
+
+/* Orientation change handling */
+@media screen and (orientation: landscape) {
+    .las-mobile-menu #adminmenu .wp-submenu.las-submenu-visible {
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+}
+
+@media screen and (orientation: portrait) {
+    .las-mobile-menu #adminmenu .wp-submenu.las-submenu-visible {
+        max-height: 40vh;
+        overflow-y: auto;
+    }
+}
+
+/* Focus trap for modal-like behavior on mobile */
+.las-mobile-menu .las-submenu-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    display: none;
+}
+
+.las-mobile-menu .las-submenu-modal-overlay.active {
+    display: block;
+}
+
+/* Loading states for dynamic menus */
+.las-menu-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+.las-menu-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    width: 12px;
+    height: 12px;
+    margin-top: -6px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: las-spin 1s linear infinite;
+}
+
+/* Error states */
+.las-menu-error {
+    background: var(--las-ui-error) !important;
+    color: #ffffff !important;
+}
+
+.las-menu-error::before {
+    content: '⚠ ';
+    margin-right: 4px;
+    font-weight: bold;
+}
+
+/* Performance optimizations */
+.wp-submenu {
+    will-change: opacity, visibility, transform;
+}
+
+.wp-submenu.las-submenu-visible li > a {
+    will-change: transform, background-color;
+}
+
+/* Print styles */
+@media print {
+    #adminmenu,
+    .las-menu-skip-link,
+    #las-menu-announcements {
+        display: none !important;
+    }
+}
+
+/* RTL (Right-to-Left) support */
+.rtl .folded .wp-submenu.las-submenu-visible {
+    left: auto !important;
+    right: 36px !important;
+}
+
+.rtl .auto-fold .wp-submenu.las-submenu-visible {
+    left: auto !important;
+    right: 36px !important;
+}
+
+.rtl .las-touch-device .wp-has-submenu > .wp-menu-name::after,
+.rtl .las-touch-device .wp-has-submenu > a::after {
+    float: left;
+    margin-left: 2px;
+    margin-right: 0;
+    right: auto;
+    left: 8px;
+}
+
+.rtl .wp-submenu.las-submenu-visible li > a:hover,
+.rtl .wp-submenu.las-submenu-visible li > a:focus {
+    transform: translateX(-2px);
+}
+
+.rtl .las-menu-expanded > .wp-menu-name::before,
+.rtl .las-menu-expanded > a::before {
+    left: auto;
+    right: 0;
+}
+
+/* ==========================================================================
+   Form Controls Comprehensive Styling
+   ========================================================================== */
+
+/* Form Manager Base Styles */
+.las-form-container {
+    background: var(--las-ui-bg-primary);
+    border-radius: var(--las-ui-radius-md);
+    padding: 24px;
+    margin: 16px 0;
+}
+
+/* Color Picker Enhancements */
+.las-color-picker-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.las-color-picker {
+    width: 60px;
+    height: 32px;
+    border: 2px solid var(--las-ui-border);
+    border-radius: var(--las-ui-radius-sm);
+    cursor: pointer;
+    transition: all var(--las-ui-transition-normal);
+    background: transparent;
+    padding: 0;
+}
+
+.las-color-picker:hover {
+    border-color: var(--las-ui-primary);
+    transform: scale(1.05);
+}
+
+.las-color-picker:focus {
+    outline: 2px solid var(--las-ui-primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(0, 115, 170, 0.1);
+}
+
+.las-color-picker:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* WordPress Color Picker Integration */
+.wp-picker-container {
+    position: relative;
+}
+
+.wp-picker-container .wp-color-result {
+    border-radius: var(--las-ui-radius-sm);
+    border: 2px solid var(--las-ui-border);
+    transition: all var(--las-ui-transition-normal);
+}
+
+.wp-picker-container .wp-color-result:hover {
+    border-color: var(--las-ui-primary);
+}
+
+.wp-picker-container .wp-color-result:focus {
+    outline: 2px solid var(--las-ui-primary);
+    outline-offset: 2px;
+}
+
+.wp-picker-container .wp-picker-input-wrap {
+    margin-top: 8px;
+}
+
+.wp-picker-container .wp-picker-input-wrap input[type="text"] {
+    border-radius: var(--las-ui-radius-sm);
+    border: 1px solid var(--las-ui-border);
+    padding: 6px 8px;
+    font-size: 13px;
+    transition: border-color var(--las-ui-transition-normal);
+}
+
+.wp-picker-container .wp-picker-input-wrap input[type="text"]:focus {
+    border-color: var(--las-ui-primary);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.2);
+}
+
+/* Slider Enhancements */
+.las-slider-wrapper {
+    position: relative;
+    margin: 16px 0;
+}
+
+.las-slider {
+    width: 100%;
+    height: 6px;
+    border-radius: var(--las-ui-radius-sm);
+    background: var(--las-ui-bg-tertiary);
+    outline: none;
+    transition: all var(--las-ui-transition-normal);
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.las-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--las-ui-primary);
+    cursor: pointer;
+    border: 2px solid #ffffff;
+    box-shadow: var(--las-ui-shadow-sm);
+    transition: all var(--las-ui-transition-normal);
+}
+
+.las-slider::-webkit-slider-thumb:hover {
+    background: var(--las-ui-primary-hover);
+    transform: scale(1.1);
+}
+
+.las-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--las-ui-primary);
+    cursor: pointer;
+    border: 2px solid #ffffff;
+    box-shadow: var(--las-ui-shadow-sm);
+    transition: all var(--las-ui-transition-normal);
+}
+
+.las-slider::-moz-range-thumb:hover {
+    background: var(--las-ui-primary-hover);
+    transform: scale(1.1);
+}
+
+.las-slider:focus {
+    outline: 2px solid var(--las-ui-primary);
+    outline-offset: 2px;
+}
+
+.las-slider:focus::-webkit-slider-thumb {
+    box-shadow: 0 0 0 4px rgba(0, 115, 170, 0.2);
+}
+
+.las-slider:focus::-moz-range-thumb {
+    box-shadow: 0 0 0 4px rgba(0, 115, 170, 0.2);
+}
+
+/* jQuery UI Slider Integration */
+.las-slider-ui {
+    height: 8px;
+    background: var(--las-ui-bg-tertiary);
+    border: 1px solid var(--las-ui-border);
+    border-radius: var(--las-ui-radius-sm);
+    position: relative;
+    margin: 8px 0;
+}
+
+.las-slider-ui .ui-slider-handle {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--las-ui-primary);
+    border: 2px solid #ffffff;
+    box-shadow: var(--las-ui-shadow-sm);
+    cursor: pointer;
+    outline: none;
+    transition: all var(--las-ui-transition-normal);
+    top: 50%;
+    margin-top: -10px;
+}
+
+.las-slider-ui .ui-slider-handle:hover {
+    background: var(--las-ui-primary-hover);
+    transform: scale(1.1);
+}
+
+.las-slider-ui .ui-slider-handle:focus {
+    box-shadow: 0 0 0 4px rgba(0, 115, 170, 0.2);
+}
+
+.las-slider-ui .ui-slider-range {
+    background: var(--las-ui-primary);
+    border-radius: var(--las-ui-radius-sm);
+    height: 100%;
+}
+
+/* Slider value display */
+.las-slider-value {
+    display: inline-block;
+    margin-left: 12px;
+    padding: 4px 8px;
+    background: var(--las-ui-bg-secondary);
+    border: 1px solid var(--las-ui-border);
+    border-radius: var(--las-ui-radius-sm);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--las-ui-text-primary);
+    min-width: 40px;
+    text-align: center;
+}
+
+/* Text Input Enhancements */
+.las-text-input,
+.las-form-container input[type="text"],
+.las-form-container input[type="number"],
+.las-form-container input[type="email"],
+.las-form-container input[type="url"],
+.las-form-container textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--las-ui-border);
+    border-radius: var(--las-ui-radius-sm);
+    background: var(--las-ui-bg-primary);
+    color: var(--las-ui-text-primary);
+    font-size: 14px;
+    line-height: 1.4;
+    transition: all var(--las-ui-transition-normal);
+    outline: none;
+}
+
+.las-text-input:hover,
+.las-form-container input[type="text"]:hover,
+.las-form-container input[type="number"]:hover,
+.las-form-container input[type="email"]:hover,
+.las-form-container input[type="url"]:hover,
+.las-form-container textarea:hover {
+    border-color: var(--las-ui-border-dark);
+}
+
+.las-text-input:focus,
+.las-form-container input[type="text"]:focus,
+.las-form-container input[type="number"]:focus,
+.las-form-container input[type="email"]:focus,
+.las-form-container input[type="url"]:focus,
+.las-form-container textarea:focus {
+    border-color: var(--las-ui-primary);
+    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.2);
+}
+
+.las-text-input:disabled,
+.las-form-container input:disabled,
+.las-form-container textarea:disabled {
+    background: var(--las-ui-bg-tertiary);
+    color: var(--las-ui-text-tertiary);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Input validation states */
+.las-text-input.las-input-error,
+.las-form-container input.las-input-error,
+.las-form-container textarea.las-input-error {
+    border-color: var(--las-ui-error);
+    box-shadow: 0 0 0 2px rgba(214, 54, 56, 0.2);
+}
+
+.las-text-input.las-input-success,
+.las-form-container input.las-input-success,
+.las-form-container textarea.las-input-success {
+    border-color: var(--las-ui-success);
+    box-shadow: 0 0 0 2px rgba(0, 163, 42, 0.2);
+}
+
+.las-text-input.las-input-warning,
+.las-form-container input.las-input-warning,
+.las-form-container textarea.las-input-warning {
+    border-color: var(--las-ui-warning);
+    box-shadow: 0 0 0 2px rgba(219, 166, 23, 0.2);
+}
+
+/* Toggle/Checkbox Enhancements */
+.las-toggle-wrapper {
+    position: relative;
+    display: inline-block;
+    margin: 8px 0;
+}
+
+.las-toggle {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.las-toggle input[type="checkbox"] {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.las-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--las-ui-bg-tertiary);
+    border: 2px solid var(--las-ui-border);
+    transition: all var(--las-ui-transition-normal);
+    border-radius: 24px;
+}
+
+.las-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background: #ffffff;
+    border-radius: 50%;
+    transition: all var(--las-ui-transition-normal);
+    box-shadow: var(--las-ui-shadow-sm);
+}
+
+.las-toggle input:checked + .las-toggle-slider {
+    background: var(--las-ui-primary);
+    border-color: var(--las-ui-primary);
+}
+
+.las-toggle input:checked + .las-toggle-slider:before {
+    transform: translateX(20px);
+}
+
+.las-toggle input:focus + .las-toggle-slider {
+    outline: 2px solid var(--las-ui-primary);
+    outline-offset: 2px;
+}
+
+.las-toggle input:disabled + .las-toggle-slider {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Standard checkbox styling */
+.las-checkbox {
+    position: relative;
+    display: inline-block;
+    margin: 4px 8px 4px 0;
+}
+
+.las-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--las-ui-border);
+    border-radius: var(--las-ui-radius-sm);
+    background: var(--las-ui-bg-primary);
+    cursor: pointer;
+    transition: all var(--las-ui-transition-normal);
+    -webkit-appearance: none;
+    appearance: none;
+    outline: none;
+    position: relative;
+}
+
+.las-checkbox input[type="checkbox"]:hover {
+    border-color: var(--las-ui-primary);
+}
+
+.las-checkbox input[type="checkbox"]:focus {
+    outline: 2px solid var(--las-ui-primary);
+    outline-offset: 2px;
+}
+
+.las-checkbox input[type="checkbox"]:checked {
+    background: var(--las-ui-primary);
+    border-color: var(--las-ui-primary);
+}
+
+.las-checkbox input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.las-checkbox input[type="checkbox"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Dropdown/Select Enhancements */
+.las-select-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.las-select,
+.las-form-container select {
+    width: 100%;
+    padding: 8px 32px 8px 12px;
+    border: 1px solid var(--las-ui-border);
+    border-radius: var(--las-ui-radius-sm);
+    background: var(--las-ui-bg-primary);
+    color: var(--las-ui-text-primary);
+    font-size: 14px;
+    line-height: 1.4;
+    cursor: pointer;
+    transition: all var(--las-ui-transition-normal);
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.las-select:hover,
+.las-form-container select:hover {
+    border-color: var(--las-ui-border-dark);
+}
+
+.las-select:focus,
+.las-form-container select:focus {
+    border-color: var(--las-ui-primary);
+    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.2);
+}
+
+.las-select:disabled,
+.las-form-container select:disabled {
+    background: var(--las-ui-bg-tertiary);
+    color: var(--las-ui-text-tertiary);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.las-select-wrapper::after {
+    content: '▼';
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--las-ui-text-secondary);
+    font-size: 12px;
+    transition: transform var(--las-ui-transition-normal);
+}
+
+.las-select-wrapper:hover::after {
+    color: var(--las-ui-text-primary);
+}
+
+.las-select:focus + .las-select-wrapper::after {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+/* Button Enhancements */
+.las-button,
+.las-form-container .button,
+.las-form-container button[type="submit"],
+.las-form-container button[type="button"] {
+    display: inline-block;
+    padding: 8px 16px;
+    border: 1px solid var(--las-ui-primary);
+    border-radius: var(--las-ui-radius-sm);
+    background: var(--las-ui-primary);
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all var(--las-ui-transition-normal);
+    outline: none;
+    user-select: none;
+}
+
+.las-button:hover,
+.las-form-container .button:hover,
+.las-form-container button[type="submit"]:hover,
+.las-form-container button[type="button"]:hover {
+    background: var(--las-ui-primary-hover);
+    border-color: var(--las-ui-primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--las-ui-shadow-md);
+}
+
+.las-button:focus,
+.las-form-container .button:focus,
+.las-form-container button[type="submit"]:focus,
+.las-form-container button[type="button"]:focus {
+    outline: 2px solid var(--las-ui-primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(0, 115, 170, 0.2);
+}
+
+.las-button:active,
+.las-form-container .button:active,
+.las-form-container button[type="submit"]:active,
+.las-form-container button[type="button"]:active {
+    background: var(--las-ui-primary-active);
+    border-color: var(--las-ui-primary-active);
+    transform: translateY(0);
+    box-shadow: var(--las-ui-shadow-sm);
+}
+
+.las-button:disabled,
+.las-form-container .button:disabled,
+.las-form-container button:disabled {
+    background: var(--las-ui-bg-tertiary);
+    border-color: var(--las-ui-border);
+    color: var(--las-ui-text-tertiary);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    opacity: 0.6;
+}
+
+/* Button variants */
+.las-button.las-button-secondary {
+    background: transparent;
+    color: var(--las-ui-primary);
+}
+
+.las-button.las-button-secondary:hover {
+    background: var(--las-ui-primary);
+    color: #ffffff;
+}
+
+.las-button.las-button-danger {
+    background: var(--las-ui-error);
+    border-color: var(--las-ui-error);
+}
+
+.las-button.las-button-danger:hover {
+    background: #b32d2e;
+    border-color: #b32d2e;
+}
+
+.las-button.las-button-success {
+    background: var(--las-ui-success);
+    border-color: var(--las-ui-success);
+}
+
+.las-button.las-button-success:hover {
+    background: #008a00;
+    border-color: #008a00;
+}
+
+/* Button loading state */
+.las-button.las-button-loading,
+.las-form-container .button.las-button-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.las-button.las-button-loading::after,
+.las-form-container .button.las-button-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: las-spin 1s linear infinite;
+}
+
+/* Form validation messages */
+.las-validation-message {
+    display: block;
+    margin-top: 4px;
+    padding: 4px 8px;
+    border-radius: var(--las-ui-radius-sm);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.las-validation-message.las-error {
+    background: rgba(214, 54, 56, 0.1);
+    color: var(--las-ui-error);
+    border: 1px solid rgba(214, 54, 56, 0.3);
+}
+
+.las-validation-message.las-success {
+    background: rgba(0, 163, 42, 0.1);
+    color: var(--las-ui-success);
+    border: 1px solid rgba(0, 163, 42, 0.3);
+}
+
+.las-validation-message.las-warning {
+    background: rgba(219, 166, 23, 0.1);
+    color: var(--las-ui-warning);
+    border: 1px solid rgba(219, 166, 23, 0.3);
+}
+
+/* Form field groups */
+.las-field-group {
+    margin-bottom: 20px;
+}
+
+.las-field-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: var(--las-ui-text-primary);
+    font-size: 14px;
+}
+
+.las-field-group .las-field-description {
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--las-ui-text-secondary);
+    line-height: 1.4;
+}
+
+/* Form responsive design */
+@media screen and (max-width: 782px) {
+    .las-form-container {
+        padding: 16px;
+    }
+    
+    .las-text-input,
+    .las-form-container input,
+    .las-form-container textarea,
+    .las-form-container select {
+        font-size: 16px; /* Prevent zoom on iOS */
+        padding: 12px;
+    }
+    
+    .las-button,
+    .las-form-container .button,
+    .las-form-container button {
+        padding: 12px 20px;
+        font-size: 16px;
+        min-height: 44px; /* Touch target size */
+    }
+    
+    .las-toggle {
+        width: 52px;
+        height: 28px;
+    }
+    
+    .las-toggle-slider:before {
+        height: 20px;
+        width: 20px;
+        left: 2px;
+        bottom: 2px;
+    }
+    
+    .las-toggle input:checked + .las-toggle-slider:before {
+        transform: translateX(24px);
+    }
+    
+    .las-checkbox input[type="checkbox"] {
+        width: 22px;
+        height: 22px;
+    }
+    
+    .las-slider-value {
+        margin-left: 8px;
+        margin-top: 8px;
+        display: block;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .las-field-group {
+        margin-bottom: 16px;
+    }
+    
+    .las-button,
+    .las-form-container .button,
+    .las-form-container button {
+        width: 100%;
+        margin-bottom: 8px;
+    }
+}
+
+/* ==========================================================================
+   Cross-Browser Compatibility Fixes
+   ========================================================================== */
+
+/* Internet Explorer 11 fixes */
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+    .las-toggle-slider {
+        background: #cccccc;
+    }
+    
+    .las-toggle input:checked + .las-toggle-slider {
+        background: #0073aa;
+    }
+    
+    .las-select,
+    .las-form-container select {
+        background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%23666" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');
+        background-repeat: no-repeat;
+        background-position: right 8px center;
+        background-size: 12px;
+    }
+}
+
+/* Safari fixes */
+@supports (-webkit-appearance: none) {
+    .las-slider::-webkit-slider-runnable-track {
+        height: 6px;
+        background: var(--las-ui-bg-tertiary);
+        border-radius: var(--las-ui-radius-sm);
+    }
+}
+
+/* Firefox fixes */
+@-moz-document url-prefix() {
+    .las-slider {
+        background: transparent;
+    }
+    
+    .las-slider::-moz-range-track {
+        height: 6px;
+        background: var(--las-ui-bg-tertiary);
+        border-radius: var(--las-ui-radius-sm);
+        border: none;
+    }
+    
+    .las-select,
+    .las-form-container select {
+        background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%23666" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');
+        background-repeat: no-repeat;
+        background-position: right 8px center;
+        background-size: 12px;
+    }
+}
+
+/* Edge fixes */
+@supports (-ms-ime-align: auto) {
+    .las-toggle-slider:before {
+        background: #ffffff;
+    }
+}
+
+/* ==========================================================================
+   Performance Optimizations
+   ========================================================================== */
+
+/* GPU acceleration for animations */
+.las-toggle-slider,
+.las-toggle-slider:before,
+.las-button,
+.las-tab,
+.nav-tab,
+.wp-submenu.las-submenu-visible li > a {
+    will-change: transform;
+}
+
+/* Optimize repaints */
+.las-slider::-webkit-slider-thumb,
+.las-slider::-moz-range-thumb {
+    will-change: transform, background-color;
+}
+
+/* Contain layout shifts */
+.las-form-container {
+    contain: layout style;
+}
+
+.las-tab-panel {
+    contain: layout;
+}
+
+/* ==========================================================================
+   Print Styles for Forms
+   ========================================================================== */
+
+@media print {
+    .las-form-container {
+        border: 1px solid #000000;
+        background: #ffffff;
+        box-shadow: none;
+        page-break-inside: avoid;
+    }
+    
+    .las-button,
+    .las-form-container .button,
+    .las-form-container button {
+        display: none;
+    }
+    
+    .las-text-input,
+    .las-form-container input,
+    .las-form-container textarea,
+    .las-form-container select {
+        border: 1px solid #000000;
+        background: #ffffff;
+        box-shadow: none;
+    }
+    
+    .las-validation-message {
+        border: 1px solid #000000;
+        background: #ffffff;
+    }
+    
+    .las-field-group {
+        page-break-inside: avoid;
+    }
+} support */
+.rtl .folded .wp-submenu.las-submenu-visible {
+    left: auto !important;
+    right: 36px !important;
+}
+
+.rtl .las-touch-device .wp-has-submenu > .wp-menu-name::after,
+.rtl .las-touch-device .wp-has-submenu > a::after {
+    right: auto;
+    left: 8px;
+}
+
+.rtl .wp-submenu.las-submenu-visible li > a:hover,
+.rtl .wp-submenu.las-submenu-visible li > a:focus {
+    transform: translateX(-2px);
+}
+
+.rtl .las-mobile-menu #adminmenu .wp-submenu.las-submenu-visible {
+    margin-left: 0 !important;
+    margin-right: 12px !important;
+}
+
+/* Hover enhancements for desktop */
+@media (hover: hover) and (pointer: fine) {
+    #adminmenu .wp-has-submenu:hover > .wp-menu-name,
+    #adminmenu .wp-has-submenu:hover > a {
+        background-color: var(--las-ui-primary-hover) !important;
+        color: #ffffff !important;
+        transition: all var(--las-ui-transition-fast);
+    }
+    
+    .wp-submenu.las-submenu-visible li > a:hover {
+        background: var(--las-ui-bg-secondary);
+        color: var(--las-ui-text-primary);
+        transform: translateX(2px);
+        transition: all var(--las-ui-transition-fast);
+    }
+}
+
+/* No hover support (touch devices) */
+@media (hover: none) {
+    #adminmenu .wp-has-submenu > .wp-menu-name:hover,
+    #adminmenu .wp-has-submenu > a:hover {
+        background: inherit !important;
+        color: inherit !important;
+    }
+    
+    .wp-submenu.las-submenu-visible li > a:hover {
+        transform: none !important;
+        background: inherit !important;
+    }
+}
+
+/* Pointer coarse (touch) enhancements */
+@media (pointer: coarse) {
+    #adminmenu .wp-menu-name,
+    #adminmenu .menu-top > a {
+        min-height: 44px; /* Minimum touch target size */
+        display: flex;
+        align-items: center;
+    }
+    
+    .wp-submenu.las-submenu-visible li > a {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+    }
+}
+
+/* Prefers reduced data */
+@media (prefers-reduced-data: reduce) {
+    .wp-submenu {
+        will-change: auto;
+    }
+    
+    .wp-submenu.las-submenu-visible li > a {
+        will-change: auto;
+    }
+    
+    .las-menu-loading::after {
+        animation: none;
+        content: '...';
+        border: none;
+        width: auto;
+        height: auto;
+        margin: 0;
+    }
+}
+
+/* ==========================================================================
+   Form Controls and Validation
+   ========================================================================== */
+
+/* Base form control styles */
+.las-form-control {
+    display: block;
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--las-ui-text-primary);
+    background-color: var(--las-ui-bg-primary);
+    border: 1px solid var(--las-ui-border);
+    border-radius: var(--las-ui-radius-sm);
+    transition: border-color var(--las-ui-transition-fast), 
+                box-shadow var(--las-ui-transition-fast);
+}
+
+.las-form-control:focus {
+    outline: none;
+    border-color: var(--las-ui-primary);
+    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.2);
+}
+
+.las-form-control:disabled {
+    background-color: var(--las-ui-bg-tertiary);
+    color: var(--las-ui-text-tertiary);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.las-form-control.las-focused {
+    border-color: var(--las-ui-primary);
+    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.1);
+}
+
+/* Validation states */
+.las-form-control.las-valid {
+    border-color: var(--las-ui-success);
+}
+
+.las-form-control.las-valid:focus {
+    border-color: var(--las-ui-success);
+    box-shadow: 0 0 0 2px rgba(0, 163, 42, 0.2);
+}
+
+.las-form-control.las-invalid {
+    border-color: var(--las-ui-error);
+}
+
+.las-form-control.las-invalid:focus {
+    border-color: var(--las-ui-error);
+    box-shadow: 0 0 0 2px rgba(214, 54, 56, 0.2);
+}
+
+/* Validation error messages */
+.las-validation-error {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--las-ui-error);
+    line-height: 1.4;
+}
+
+.las-validation-success {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--las-ui-success);
+    line-height: 1.4;
+}
+
+/* Color picker enhancements */
+.las-color-picker-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.las-color-picker {
+    width: 60px;
+    height: 32px;
+    padding: 0;
+    border: 2px solid var(--las-ui-border);
+    border-radius: var(--las-ui-radius-sm);
+    cursor: pointer;
+    transition: border-color var(--las-ui-transition-fast);
+}
+
+.las-color-picker:hover {
+    border-color: var(--las-ui-border-dark);
+}
+
+.las-color-picker:focus {
+    outline: none;
+    border-color: var(--las-ui-primary);
+    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.2);
+}
+
+/* WordPress color picker integration */
+.wp-picker-container {
+    position: relative;
+}
+
+.wp-picker-container .wp-color-result {
+    height: 32px;
+    border-radius: var(--las-ui-radius-sm);
+    border: 1px solid var(--las-ui-border);
+    transition: border-color var(--las-ui-transition-fast);
+}
+
+.wp-picker-container .wp-color-result:hover {
+    border-color: var(--las-ui-border-dark);
+}
+
+.wp-picker-container .wp-color-result:focus {
+    border-color: var(--las-ui-primary);
+    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.2);
+}
+
+.wp-picker-container .wp-picker-clear {
+    margin-left: 8px;
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: var(--las-ui-radius-sm);
+    border: 1px solid var(--las-ui-border);
+    background: var(--las-ui-bg-secondary);
+    color: var(--las-ui-text-secondary);
+    transition: all var(--las-ui-transition-fast);
+}
+
+.wp-picker-container .wp-picker-clear:hover {
+    background: var(--las-ui-bg-tertiary);
+    border-color: var(--las-ui-border-dark);
+}
+
+/* Slider enhancements */
+.las-slider-wrapper {
+    position: relative;
+    margin: 8px 0;
+}
+
+.las-slider-ui {
+    height: 6px;
+    background: var(--las-ui-bg-tertiary);
+    border: 1px solid var(--las-ui-border);
+    border-radius: var(--las-ui-radius-sm);
+    position: relative;
+    cursor: pointer;
+}
+
+.las-slider-ui .ui-slider-handle {
+    width: 18px;
+    height: 18px;
+    background: var(--las-ui-primary);
+    border: 2px solid var(--las-ui-bg-primary);
+    border-radius: 50%;
+    cursor: grab;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: all var(--las-ui-transition-fast);
+    box-shadow: var(--las-ui-shadow-sm);
+}
+
+.las-slider-ui .ui-slider-handle:hover {
+    background: var(--las-ui-primary-hover);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.las-slider-ui .ui-slider-handle:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 115, 170, 0.3);
+}
+
+.las-slider-ui .ui-slider-handle:active {
+    cursor: grabbing;
+    background: var(--las-ui-primary-active);
+}
+
+.las-slider-ui .ui-slider-range {
+    background: var(--las-ui-primary);
+    border-radius: var(--las-ui-radius-sm);
+    height: 100%;
+}
+
+.las-slider-display {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--las-ui-text-primary);
+    color: var(--las-ui-bg-primary);
+    padding: 2px 6px;
+    border-radius: var(--las-ui-radius-sm);
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+.las-slider-display::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-top-color: var(--las-ui-text-primary);
+}
+
+/* Native range input fallback */
+input[type="range"].las-slider-fallback {
+    width: 100%;
+    height: 6px;
+    background: var(--las-ui-bg-tertiary);
+    border-radius: var(--las-ui-radius-sm);
+    outline: none;
+    -webkit-appearance: none;
+}
+
+input[type="range"].las-slider-fallback::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background: var(--las-ui-primary);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background var(--las-ui-transition-fast);
+}
+
+input[type="range"].las-slider-fallback::-webkit-slider-thumb:hover {
+    background: var(--las-ui-primary-hover);
+}
+
+input[type="range"].las-slider-fallback::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: var(--las-ui-primary);
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    transition: background var(--las-ui-transition-fast);
+}
+
+input[type="range"].las-slider-fallback::-moz-range-thumb:hover {
+    background: var(--las-ui-primary-hover);
+}
+
+/* Toggle switches */
+.las-toggle-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.las-toggle {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background: var(--las-ui-bg-tertiary);
+    border: 1px solid var(--las-ui-border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all var(--las-ui-transition-fast);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    outline: none;
+}
+
+.las-toggle:checked {
+    background: var(--las-ui-primary);
+    border-color: var(--las-ui-primary);
+}
+
+.las-toggle::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    background: var(--las-ui-bg-primary);
+    border-radius: 50%;
+    transition: transform var(--las-ui-transition-fast);
+    box-shadow: var(--las-ui-shadow-sm);
+}
+
+.las-toggle:checked::before {
+    transform: translateX(20px);
+}
+
+.las-toggle:focus {
+    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.2);
+}
+
+.las-toggle:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Select dropdowns */
+.las-select-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.las-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23646970' d='M8 10.5L4 6h8l-4 4.5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 12px;
+    padding-right: 32px;
+}
+
+.las-select:focus {
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%230073aa' d='M8 10.5L4 6h8l-4 4.5z'/%3E%3C/svg%3E");
+}
+
+/* Textarea */
+.las-textarea {
+    resize: vertical;
+    min-height: 80px;
+    font-family: inherit;
+}
+
+/* Form groups */
+.las-form-group {
+    margin-bottom: 16px;
+}
+
+.las-form-group label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 500;
+    color: var(--las-ui-text-primary);
+}
+
+.las-form-group .las-form-help {
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--las-ui-text-secondary);
+    line-height: 1.4;
+}
+
+/* Loading states */
+.las-button-loading {
+    position: relative;
+    color: transparent !important;
+    pointer-events: none;
+}
+
+.las-button-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    border: 2px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: las-spin 1s linear infinite;
+}
+
+/* Responsive form controls */
+@media (max-width: 782px) {
+    .las-form-control {
+        font-size: 16px; /* Prevent zoom on iOS */
+        padding: 10px 12px;
+    }
+    
+    .las-slider-ui {
+        height: 8px;
+    }
+    
+    .las-slider-ui .ui-slider-handle {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .las-toggle {
+        width: 50px;
+        height: 28px;
+    }
+    
+    .las-toggle::before {
+        width: 22px;
+        height: 22px;
+        top: 2px;
+        left: 2px;
+    }
+    
+    .las-toggle:checked::before {
+        transform: translateX(22px);
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .las-form-control {
+        border-width: 2px;
+    }
+    
+    .las-form-control:focus {
+        border-width: 3px;
+    }
+    
+    .las-slider-ui .ui-slider-handle {
+        border-width: 3px;
+    }
+    
+    .las-toggle {
+        border-width: 2px;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .las-form-control,
+    .las-color-picker,
+    .wp-picker-container .wp-color-result,
+    .wp-picker-container .wp-picker-clear,
+    .las-slider-ui .ui-slider-handle,
+    .las-toggle,
+    .las-toggle::before {
+        transition: none;
+    }
+    
+    .las-button-loading::after {
+        animation: none;
+    }
+}/
+* ===================================
+   INTERACTION FEEDBACK STYLES
+   =================================== */
+
+/* Visual feedback states */
+.las-feedback-focused {
+    outline: 2px solid var(--las-primary-color, #0073aa) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 4px rgba(0, 115, 170, 0.2) !important;
+}
+
+.las-feedback-hovered {
+    background-color: rgba(0, 115, 170, 0.1) !important;
+    transition: background-color 0.2s ease !important;
+}
+
+.las-feedback-active,
+.las-feedback-touched {
+    background-color: rgba(0, 115, 170, 0.2) !important;
+    transform: scale(0.98) !important;
+    transition: all 0.1s ease !important;
+}
+
+.las-feedback-activated {
+    animation: las-activation-pulse 0.3s ease !important;
+}
+
+/* Ripple effect animation */
+@keyframes las-ripple {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+.las-ripple-effect {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    animation: las-ripple 0.6s ease-out;
+    pointer-events: none;
+}
+
+/* Activation pulse animation */
+@keyframes las-activation-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 115, 170, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(0, 115, 170, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 115, 170, 0);
+    }
+}
+
+/* ===================================
+   ACCESSIBILITY STYLES
+   =================================== */
+
+/* High contrast mode adjustments */
+.las-high-contrast * {
+    border-color: currentColor !important;
+    background-image: none !important;
+}
+
+.las-high-contrast .las-feedback-focused {
+    outline: 3px solid currentColor !important;
+    outline-offset: 2px !important;
+    box-shadow: none !important;
+}
+
+/* Reduced motion preferences */
+.las-reduced-motion *,
+.las-reduced-motion *::before,
+.las-reduced-motion *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+}
+
+.las-reduced-motion .las-ripple-effect {
+    display: none !important;
+}
+
+/* Screen reader optimizations */
+.las-screen-reader .las-visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+/* Focus indicators for keyboard navigation */
+.las-keyboard-navigation *:focus {
+    outline: 2px solid var(--las-primary-color, #0073aa) !important;
+    outline-offset: 2px !important;
+}
+
+/* Skip links */
+.las-skip-link {
+    position: absolute;
+    top: -40px;
+    left: 6px;
+    background: var(--las-primary-color, #0073aa);
+    color: white;
+    padding: 8px;
+    text-decoration: none;
+    border-radius: 4px;
+    z-index: 10000;
+    transition: top 0.3s ease;
+}
+
+.las-skip-link:focus {
+    top: 6px;
+}
+
+/* ===================================
+   TOUCH DEVICE OPTIMIZATIONS
+   =================================== */
+
+/* Touch device adjustments */
+.las-touch-device .las-small-touch-target {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    padding: 8px !important;
+}
+
+.las-touch-device button,
+.las-touch-device .las-button,
+.las-touch-device [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+}
+
+/* Touch feedback */
+.las-touch-device *:active {
+    background-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Hover states disabled on touch devices */
+@media (hover: none) {
+    .las-feedback-hovered {
+        background-color: transparent !important;
+    }
+}
+
+/* ===================================
+   RESPONSIVE INTERACTION STYLES
+   =================================== */
+
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
+    .las-feedback-focused {
+        outline-width: 3px !important;
+        outline-offset: 3px !important;
+    }
+    
+    .las-touch-device button,
+    .las-touch-device .las-button {
+        min-height: 48px;
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+}
+
+/* Tablet adjustments */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .las-feedback-focused {
+        outline-width: 2px !important;
+    }
+}
+
+/* Desktop adjustments */
+@media (min-width: 1025px) {
+    .las-feedback-hovered {
+        transition: all 0.2s ease !important;
+    }
+}
+
+/* ===================================
+   ARIA LIVE REGION STYLES
+   =================================== */
+
+#las-aria-live {
+    position: absolute !important;
+    left: -10000px !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+}
+
+/* ===================================
+   KEYBOARD NAVIGATION INDICATORS
+   =================================== */
+
+/* Tab navigation indicators */
+.las-tab-navigation-active [tabindex="0"]:focus,
+.las-tab-navigation-active [role="tab"]:focus {
+    background-color: rgba(0, 115, 170, 0.1) !important;
+    border: 2px solid var(--las-primary-color, #0073aa) !important;
+}
+
+/* Menu navigation indicators */
+.las-menu-navigation-active [role="menuitem"]:focus {
+    background-color: var(--las-primary-color, #0073aa) !important;
+    color: white !important;
+}
+
+/* Form control focus indicators */
+input:focus,
+select:focus,
+textarea:focus,
+button:focus {
+    outline: 2px solid var(--las-primary-color, #0073aa) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 4px rgba(0, 115, 170, 0.2) !important;
+}
+
+/* ===================================
+   ERROR AND SUCCESS FEEDBACK
+   =================================== */
+
+.las-feedback-error {
+    border-color: #dc3232 !important;
+    box-shadow: 0 0 0 2px rgba(220, 50, 50, 0.2) !important;
+    animation: las-error-shake 0.5s ease-in-out !important;
+}
+
+.las-feedback-success {
+    border-color: #46b450 !important;
+    box-shadow: 0 0 0 2px rgba(70, 180, 80, 0.2) !important;
+    animation: las-success-pulse 0.5s ease-in-out !important;
+}
+
+@keyframes las-error-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+@keyframes las-success-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* ===================================
+   LOADING AND DISABLED STATES
+   =================================== */
+
+.las-feedback-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.las-feedback-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid transparent;
+    border-top: 2px solid var(--las-primary-color, #0073aa);
+    border-radius: 50%;
+    animation: las-loading-spin 1s linear infinite;
+}
+
+@keyframes las-loading-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.las-feedback-disabled {
+    opacity: 0.5 !important;
+    pointer-events: none !important;
+    cursor: not-allowed !important;
+}
+
+/* ===================================
+   PRINT STYLES
+   =================================== */
+
+@media print {
+    .las-feedback-focused,
+    .las-feedback-hovered,
+    .las-feedback-active,
+    .las-feedback-touched,
+    .las-ripple-effect {
+        display: none !important;
+    }
+    
+    #las-aria-live {
+        display: none !important;
+    }
+}/* =======
+===================================================================
+   Graceful Degradation Styles
+   ========================================================================== */
+
+/* Base degradation state */
+.las-ui-degraded {
+    --las-ui-transition-fast: none;
+    --las-ui-transition-normal: none;
+    --las-ui-transition-slow: none;
+}
+
+.las-ui-degraded * {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+}
+
+/* Degradation level indicators */
+.las-ui-degraded[data-degradation-level="1"] {
+    border-top: 3px solid var(--las-ui-warning);
+}
+
+.las-ui-degraded[data-degradation-level="2"] {
+    border-top: 3px solid var(--las-ui-error);
+}
+
+.las-ui-degraded[data-degradation-level="3"] {
+    border-top: 5px solid var(--las-ui-error);
+    background-color: #fff8e1;
+}
+
+/* Emergency mode styles */
+.las-ui-emergency {
+    background-color: #ffebee !important;
+}
+
+.las-ui-emergency * {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+}
+
+.las-ui-emergency .las-tab,
+.las-ui-emergency .las-menu-item {
+    background: var(--las-ui-bg-primary) !important;
+    border: 1px solid var(--las-ui-border) !important;
+    padding: 8px 12px !important;
+    margin: 2px !important;
+    display: inline-block !important;
+}
+
+.las-ui-emergency .las-tab:hover,
+.las-ui-emergency .las-menu-item:hover {
+    background: var(--las-ui-bg-secondary) !important;
+}
+
+.las-ui-emergency .las-tab.active {
+    background: var(--las-ui-primary) !important;
+    color: white !important;
+}
+
+/* Degradation notifications */
+.las-degradation-notice {
+    position: relative;
+    margin: 10px 0;
+    padding: 12px 16px;
+    border-left: 4px solid var(--las-ui-warning);
+    background: #fff8e1;
+    border-radius: var(--las-ui-radius-sm);
+    box-shadow: var(--las-ui-shadow-sm);
+}
+
+.las-degradation-notice.notice-error {
+    border-left-color: var(--las-ui-error);
+    background: #ffebee;
+}
+
+.las-degradation-notice.notice-info {
+    border-left-color: var(--las-ui-primary);
+    background: #e3f2fd;
+}
+
+.las-degradation-notice p {
+    margin: 0;
+    color: var(--las-ui-text-primary);
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.las-degradation-notice strong {
+    font-weight: 600;
+}
+
+/* Fallback tab styles */
+.las-ui-degraded .las-tab {
+    display: inline-block;
+    padding: 8px 16px;
+    margin: 0 2px;
+    background: var(--las-ui-bg-secondary);
+    border: 1px solid var(--las-ui-border);
+    border-radius: var(--las-ui-radius-sm);
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--las-ui-text-primary);
+}
+
+.las-ui-degraded .las-tab:hover {
+    background: var(--las-ui-bg-tertiary);
+}
+
+.las-ui-degraded .las-tab.active {
+    background: var(--las-ui-primary);
+    color: white;
+    border-color: var(--las-ui-primary);
+}
+
+.las-ui-degraded .las-tab-panel {
+    display: none;
+    padding: 20px;
+    border: 1px solid var(--las-ui-border);
+    border-radius: var(--las-ui-radius-sm);
+    background: var(--las-ui-bg-primary);
+    margin-top: 10px;
+}
+
+.las-ui-degraded .las-tab-panel.active {
+    display: block;
+}
+
+/* Fallback menu styles */
+.las-ui-degraded .las-menu-item {
+    display: block;
+    padding: 8px 12px;
+    background: var(--las-ui-bg-primary);
+    border: 1px solid var(--las-ui-border);
+    margin: 2px 0;
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--las-ui-text-primary);
+}
+
+.las-ui-degraded .las-menu-item:hover {
+    background: var(--las-ui-bg-secondary);
+}
+
+.las-ui-degraded .wp-submenu {
+    display: none;
+    margin-left: 20px;
+    border-left: 2px solid var(--las-ui-border-light);
+    padding-left: 10px;
+}
+
+.las-ui-degraded .wp-submenu[style*="block"] {
+    display: block !important;
+}
+
+/* Fallback form styles */
+.las-ui-degraded input[required]:invalid {
+    border-color: var(--las-ui-error) !important;
+    box-shadow: 0 0 0 1px var(--las-ui-error) !important;
+}
+
+.las-ui-degraded input[required]:valid {
+    border-color: var(--las-ui-success) !important;
+}
+
+/* Accessibility improvements for degraded mode */
+.las-ui-degraded .las-tab:focus,
+.las-ui-degraded .las-menu-item:focus {
+    outline: 2px solid var(--las-ui-primary);
+    outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .las-ui-degraded {
+        --las-ui-border: #000000;
+        --las-ui-text-primary: #000000;
+        --las-ui-bg-primary: #ffffff;
+    }
+    
+    .las-ui-degraded .las-tab.active {
+        background: #000000;
+        color: #ffffff;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .las-ui-degraded * {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+/* Print styles for degraded mode */
+@media print {
+    .las-degradation-notice {
+        display: none;
+    }
+    
+    .las-ui-degraded .las-tab-panel {
+        display: block !important;
+        border: none;
+        box-shadow: none;
+    }
+    
+    .las-ui-degraded .las-tab {
+        display: none;
+    }
+}

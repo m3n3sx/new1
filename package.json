@@ -19,16 +19,52 @@
     "test:php:coverage": "phpunit --coverage-html tests/coverage/php",
     "test:all": "npm run test:php && npm run test",
     "test:modern-ui": "npm run test:ui && npm run test:ui:comprehensive",
-    "lint:js": "eslint js/ assets/js/ tests/js/",
-    "lint:php": "phpcs --standard=WordPress includes/ live-admin-styler.php",
-    "build": "npm run test:all && npm run lint:js",
-    "validate:modern-ui": "npm run test:modern-ui && npm run lint:js"
+    
+    "lint": "npm run lint:js && npm run lint:php && npm run lint:css",
+    "lint:js": "eslint assets/js/**/*.js js/**/*.js --format=stylish",
+    "lint:js:fix": "eslint assets/js/**/*.js js/**/*.js --fix",
+    "lint:php": "phpcs --standard=phpcs.xml",
+    "lint:php:fix": "phpcbf --standard=phpcs.xml",
+    "lint:css": "stylelint 'assets/css/**/*.css' --formatter=string",
+    "lint:css:fix": "stylelint 'assets/css/**/*.css' --fix",
+    
+    "format": "npm run format:js && npm run format:php && npm run format:css",
+    "format:js": "prettier --write 'assets/js/**/*.js' 'js/**/*.js'",
+    "format:php": "phpcbf --standard=phpcs.xml",
+    "format:css": "prettier --write 'assets/css/**/*.css'",
+    "format:check": "prettier --check 'assets/js/**/*.js' 'js/**/*.js' 'assets/css/**/*.css'",
+    
+    "quality": "./scripts/code-quality.sh",
+    "quality:php": "phpcs --standard=phpcs.xml --report=summary",
+    "quality:js": "eslint assets/js/**/*.js --format=compact",
+    "quality:security": "npm audit && npm run lint:security",
+    "lint:security": "eslint assets/js/**/*.js --config .eslintrc.security.json",
+    
+    "docs": "npm run docs:js && npm run docs:php",
+    "docs:js": "jsdoc -c jsdoc.conf.json",
+    "docs:php": "phpdoc --config=phpdoc.xml",
+    "docs:serve": "http-server docs -p 8080",
+    
+    "pre-commit": "npm run lint && npm run format:check && npm run test",
+    "pre-push": "npm run quality && npm run test:all",
+    "ci": "npm run quality && npm run test:all && npm run docs",
+    
+    "build": "npm run quality && npm run test:all && npm run docs",
+    "build:production": "npm run ci && npm run build:assets",
+    "build:assets": "npm run format && npm run lint:fix",
+    "lint:fix": "npm run lint:js:fix && npm run lint:php:fix && npm run lint:css:fix",
+    
+    "validate:modern-ui": "npm run test:modern-ui && npm run lint:js",
+    "validate:all": "npm run quality && npm run test:all && npm run docs"
   },
   "jest": {
     "testEnvironment": "jsdom",
     "testMatch": [
       "**/tests/js/**/*.js"
     ],
+    "transform": {
+      "^.+\\.js$": "babel-jest"
+    },
     "collectCoverageFrom": [
       "js/**/*.js",
       "assets/js/**/*.js",
@@ -44,7 +80,7 @@
     "setupFilesAfterEnv": [
       "<rootDir>/tests/js/setup.js"
     ],
-    "moduleNameMapping": {
+    "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/$1"
     },
     "coverageThreshold": {
@@ -58,11 +94,26 @@
     "testTimeout": 10000
   },
   "devDependencies": {
+    "@babel/core": "^7.28.4",
+    "@babel/plugin-transform-modules-commonjs": "^7.27.1",
+    "@babel/preset-env": "^7.28.3",
+    "@wordpress/eslint-config": "^17.0.0",
+    "@wordpress/prettier-config": "^3.0.0",
+    "babel-jest": "^30.2.0",
     "eslint": "^8.0.0",
+    "eslint-config-prettier": "^9.0.0",
     "eslint-config-wordpress": "^2.0.0",
+    "eslint-plugin-jsdoc": "^46.0.0",
+    "eslint-plugin-security": "^1.7.0",
+    "http-server": "^14.1.0",
     "jest": "^29.0.0",
     "jest-environment-jsdom": "^30.2.0",
-    "jquery": "^3.6.0"
+    "jsdoc": "^4.0.0",
+    "jquery": "^3.6.0",
+    "prettier": "^3.0.0",
+    "stylelint": "^15.0.0",
+    "stylelint-config-standard": "^34.0.0",
+    "stylelint-config-wordpress": "^17.0.0"
   },
   "keywords": [
     "wordpress",

@@ -1,693 +1,521 @@
 /**
- * AJAX Communication Workflow Tests
- * Tests comprehensive AJAX communication patterns and error handling
- * 
- * Requirements: 3.1, 3.2, 3.3, 3.4, 5.1
+ * Integration Tests for AJAX Request Queuing and Conflict Prevention
+ * Tests complete workflows and request management scenarios
  */
 
-// Mock environment setup
-if (typeof jQuery === 'undefined') {
-    global.jQuery = require('jquery');
-    global.$ = global.jQuery;
-}
+// Import the class from the main file
+require('../../js/admin-settings.js');
 
-global.lasAdminData = {
-    ajaxurl: '/wp-admin/admin-ajax.php',
-    nonce: 'test_nonce_12345',
-    auto_refresh_nonce: true,
-    retry_attempts: 3,
-    retry_delay: 1000
-};
-
-describe('AJAX Communication Workflows', () => {
-    let mockAjaxResponse;
-    let mockErrorManager;
-    let AjaxManager;
+describe('AJAX Request Queuing and Conflict Prevention', () => {
+    let core, ajaxManager, mockFetch, mockErrorHandler;
     
     beforeEach(() => {
-        // Reset mocks
-        jest.clearAllMocks();
-        
-        // Mock jQuery AJAX
-        mockAjaxResponse = {
-            success: true,
-            data: {
-                css: 'body { background-color: #ffffff; }',
-                performance: { execution_time_ms: 150 }
-            }
+        // Mock core manager
+        core = {
+            config: {
+                ajax_url: 'https://example.com/wp-admin/admin-ajax.php',
+                nonce: 'test-nonce-123',
+                debug: true
+            },
+            get: jest.fn(),
+            on: jest.fn(),
+            emit: jest.fn()
         };
         
-        global.$.ajax = jest.fn(() => ({
-            done: jest.fn((callback) => {
-                callback(mockAjaxResponse);
-                return { fail: jest.fn() };
-            }),
-            fail: jest.fn(),
-            always: jest.fn((callback) => {
-                callback();
-                return { done: jest.fn(), fail: jest.fn() };
-            })
-        }));
-        
-        global.$.post = jest.fn(() => ({
-            done: jest.fn((callback) => {
-                callback(mockAjaxResponse);
-                return { fail: jest.fn() };
-            }),
-            fail: jest.fn()
-        }));
-        
-        // Mock ErrorManager
-        mockErrorManager = {
-            showError: jest.fn(),
-            showWarning: jest.fn(),
+        // Mock error handler
+        mockErrorHandler = {
+            showLoading: jest.fn(),
             showSuccess: jest.fn(),
-            showInfo: jest.fn()
-        };
-        global.ErrorManager = mockErrorManager;
-        
-        // Initialize AJAX Manager
-        AjaxManager = {
-            activeRequests: new Map(),
-            requestQueue: [],
-            isProcessingQueue: false,
-            maxConcurrentRequests: 3,
-            requestTimeout: 8000,
-            retryAttempts: 3,
-            retryDelay: 1000,
-            nonceRefreshInProgress: false,
-            
-            init: function() {
-                return this;
-            },
-            
-            makeRequest: function(action, data, options) {
-                options = Object.assign({
-                    timeout: this.requestTimeout,
-                    retries: this.retryAttempts,
-                    priority: 'normal'
-                }, options || {});
-                
-                const requestId = this.generateRequestId();
-                const requestData = Object.assign({
-                    action: action,
-                    nonce: lasAdminData.nonce
-                }, data || {});
-                
-                const request = {
-                    id: requestId,
-                    action: action,
-                    data: requestData,
-                    options: options,
-                    attempts: 0,
-                    startTime: Date.now()
-                };
-                
-                this.activeRequests.set(requestId, request);
-                
-                return this.executeRequest(request);
-            },
-            
-            executeRequest: function(request) {
-                request.attempts++;
-                
-                return $.ajax({
-                    url: lasAdminData.ajaxurl,
-                    type: 'POST',
-                    data: request.data,
-                    dataType: 'json',
-                    timeout: request.options.timeout
-                })
-                .done((response) => {
-                    this.handleSuccess(request, response);
-                })
-                .fail((jqXHR, textStatus, errorThrown) => {
-                    this.handleError(request, jqXHR, textStatus, errorThrown);
-                })
-                .always(() => {
-                    this.cleanupRequest(request.id);
-                });
-            },
-            
-            handleSuccess: function(request, response) {
-                if (!response || typeof response !== 'object') {
-                    this.handleError(request, null, 'parsererror', 'Invalid response format');
-                    return;
-                }
-                
-                if (response.success === false) {
-                    if (response.data && response.data.code === 'invalid_nonce') {
-                        this.handleNonceError(request);
-                        return;
-                    }
-                    
-                    const errorMessage = response.data && response.data.message 
-                        ? response.data.message 
-                        : 'Server returned error';
-                    
-                    if (ErrorManager) {
-                        ErrorManager.showError(errorMessage);
-                    }
-                    return;
-                }
-                
-                // Success handling
-                const executionTime = Date.now() - request.startTime;
-                if (executionTime > 2000) {
-                    if (ErrorManager) {
-                        ErrorManager.showWarning(`Slow request: ${executionTime}ms`);
-                    }
-                }
-                
-                return response;
-            },
-            
-            handleError: function(request, jqXHR, textStatus, errorThrown) {
-                const canRetry = request.attempts < request.options.retries;
-                
-                if (textStatus === 'timeout' && canRetry) {
-                    setTimeout(() => {
-                        this.executeRequest(request);
-                    }, this.retryDelay * request.attempts);
-                    return;
-                }
-                
-                if (jqXHR && jqXHR.status === 0 && navigator.onLine === false) {
-                    if (ErrorManager) {
-                        ErrorManager.showError('You are offline. Please check your connection.');
-                    }
-                    return;
-                }
-                
-                if (canRetry && (jqXHR.status >= 500 || textStatus === 'error')) {
-                    setTimeout(() => {
-                        this.executeRequest(request);
-                    }, this.retryDelay * request.attempts);
-                    return;
-                }
-                
-                // Final error handling
-                let errorMessage = 'Request failed';
-                if (textStatus === 'timeout') {
-                    errorMessage = 'Request timed out';
-                } else if (textStatus === 'parsererror') {
-                    errorMessage = 'Invalid server response';
-                } else if (jqXHR && jqXHR.status >= 500) {
-                    errorMessage = 'Server error';
-                } else if (jqXHR && jqXHR.status >= 400) {
-                    errorMessage = 'Client error';
-                }
-                
-                if (ErrorManager) {
-                    ErrorManager.showError(errorMessage);
-                }
-            },
-            
-            handleNonceError: function(request) {
-                if (this.nonceRefreshInProgress) {
-                    // Queue request for retry after nonce refresh
-                    this.requestQueue.push(request);
-                    return;
-                }
-                
-                this.nonceRefreshInProgress = true;
-                
-                this.refreshNonce()
-                    .then(() => {
-                        // Retry original request with new nonce
-                        request.data.nonce = lasAdminData.nonce;
-                        request.attempts = 0; // Reset attempts for nonce retry
-                        return this.executeRequest(request);
-                    })
-                    .catch(() => {
-                        if (ErrorManager) {
-                            ErrorManager.showError('Authentication failed. Please refresh the page.');
-                        }
-                    })
-                    .finally(() => {
-                        this.nonceRefreshInProgress = false;
-                        this.processQueuedRequests();
-                    });
-            },
-            
-            refreshNonce: function() {
-                return $.post(lasAdminData.ajaxurl, {
-                    action: 'las_refresh_nonce'
-                })
-                .then((response) => {
-                    if (response.success && response.data.nonce) {
-                        lasAdminData.nonce = response.data.nonce;
-                        return response.data.nonce;
-                    }
-                    throw new Error('Nonce refresh failed');
-                });
-            },
-            
-            processQueuedRequests: function() {
-                while (this.requestQueue.length > 0) {
-                    const request = this.requestQueue.shift();
-                    request.data.nonce = lasAdminData.nonce;
-                    request.attempts = 0;
-                    this.executeRequest(request);
-                }
-            },
-            
-            generateRequestId: function() {
-                return 'req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            },
-            
-            cleanupRequest: function(requestId) {
-                this.activeRequests.delete(requestId);
-            },
-            
-            cancelRequest: function(requestId) {
-                const request = this.activeRequests.get(requestId);
-                if (request && request.xhr) {
-                    request.xhr.abort();
-                }
-                this.cleanupRequest(requestId);
-            },
-            
-            cancelAllRequests: function() {
-                this.activeRequests.forEach((request, id) => {
-                    this.cancelRequest(id);
-                });
-            },
-            
-            getActiveRequestCount: function() {
-                return this.activeRequests.size;
-            },
-            
-            getQueuedRequestCount: function() {
-                return this.requestQueue.length;
-            }
+            showError: jest.fn(),
+            showWarning: jest.fn()
         };
         
-        AjaxManager.init();
+        core.get.mockImplementation((module) => {
+            if (module === 'error') return mockErrorHandler;
+            return null;
+        });
+        
+        // Mock fetch with realistic delays
+        mockFetch = jest.fn();
+        global.fetch = mockFetch;
+        
+        // Mock AbortSignal and AbortController
+        global.AbortSignal = {
+            timeout: jest.fn(() => ({ aborted: false }))
+        };
+        
+        global.AbortController = jest.fn(() => ({
+            abort: jest.fn(),
+            signal: { aborted: false }
+        }));
+        
+        // Mock navigator.onLine
+        Object.defineProperty(navigator, 'onLine', {
+            writable: true,
+            value: true
+        });
+        
+        // Create AJAX manager instance
+        ajaxManager = new LASAjaxManager(core);
     });
     
     afterEach(() => {
-        AjaxManager.cancelAllRequests();
+        jest.clearAllMocks();
+        jest.clearAllTimers();
     });
-
-    describe('Basic AJAX Request Handling', () => {
-        test('should make successful AJAX requests', async () => {
-            const response = await AjaxManager.makeRequest('las_get_preview_css', {
-                setting: 'admin_menu_bg_color',
-                value: '#ff0000'
-            });
-            
-            expect($.ajax).toHaveBeenCalledWith({
-                url: lasAdminData.ajaxurl,
-                type: 'POST',
-                data: {
-                    action: 'las_get_preview_css',
-                    nonce: lasAdminData.nonce,
-                    setting: 'admin_menu_bg_color',
-                    value: '#ff0000'
-                },
-                dataType: 'json',
-                timeout: AjaxManager.requestTimeout
-            });
-        });
-
-        test('should handle request options correctly', async () => {
-            const customOptions = {
-                timeout: 5000,
-                retries: 2,
-                priority: 'high'
-            };
-            
-            await AjaxManager.makeRequest('test_action', { test: 'data' }, customOptions);
-            
-            expect($.ajax).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    timeout: 5000
-                })
-            );
-        });
-
-        test('should generate unique request IDs', () => {
-            const id1 = AjaxManager.generateRequestId();
-            const id2 = AjaxManager.generateRequestId();
-            
-            expect(id1).toBeDefined();
-            expect(id2).toBeDefined();
-            expect(id1).not.toBe(id2);
-            expect(id1).toMatch(/^req_\d+_[a-z0-9]+$/);
-        });
-
-        test('should track active requests', async () => {
-            expect(AjaxManager.getActiveRequestCount()).toBe(0);
-            
-            AjaxManager.makeRequest('test_action', { test: 'data' });
-            
-            expect(AjaxManager.getActiveRequestCount()).toBe(1);
-        });
-    });
-
-    describe('Error Handling Workflows', () => {
-        test('should handle server errors with retry', async () => {
-            // Mock server error response
-            global.$.ajax = jest.fn(() => ({
-                done: jest.fn(),
-                fail: jest.fn((callback) => {
-                    callback({ status: 500 }, 'error', 'Internal Server Error');
-                    return { always: jest.fn() };
-                }),
-                always: jest.fn((callback) => {
-                    callback();
-                    return { done: jest.fn(), fail: jest.fn() };
-                })
-            }));
-            
-            await AjaxManager.makeRequest('test_action', { test: 'data' });
-            
-            // Should attempt retry for server errors
-            expect($.ajax).toHaveBeenCalled();
-        });
-
-        test('should handle timeout errors with retry', async () => {
-            global.$.ajax = jest.fn(() => ({
-                done: jest.fn(),
-                fail: jest.fn((callback) => {
-                    callback({ status: 0 }, 'timeout', '');
-                    return { always: jest.fn() };
-                }),
-                always: jest.fn((callback) => {
-                    callback();
-                    return { done: jest.fn(), fail: jest.fn() };
-                })
-            }));
-            
-            await AjaxManager.makeRequest('test_action', { test: 'data' });
-            
-            expect($.ajax).toHaveBeenCalled();
-        });
-
-        test('should handle offline status', async () => {
-            // Mock offline status
-            Object.defineProperty(navigator, 'onLine', {
-                writable: true,
-                value: false
-            });
-            
-            global.$.ajax = jest.fn(() => ({
-                done: jest.fn(),
-                fail: jest.fn((callback) => {
-                    callback({ status: 0 }, 'error', 'Network Error');
-                    return { always: jest.fn() };
-                }),
-                always: jest.fn((callback) => {
-                    callback();
-                    return { done: jest.fn(), fail: jest.fn() };
-                })
-            }));
-            
-            await AjaxManager.makeRequest('test_action', { test: 'data' });
-            
-            expect(ErrorManager.showError).toHaveBeenCalledWith(
-                'You are offline. Please check your connection.'
-            );
-        });
-
-        test('should handle parse errors', async () => {
-            global.$.ajax = jest.fn(() => ({
-                done: jest.fn(),
-                fail: jest.fn((callback) => {
-                    callback({ status: 200 }, 'parsererror', 'Invalid JSON');
-                    return { always: jest.fn() };
-                }),
-                always: jest.fn((callback) => {
-                    callback();
-                    return { done: jest.fn(), fail: jest.fn() };
-                })
-            }));
-            
-            await AjaxManager.makeRequest('test_action', { test: 'data' });
-            
-            expect(ErrorManager.showError).toHaveBeenCalledWith('Invalid server response');
-        });
-
-        test('should show warning for slow requests', async () => {
-            // Mock slow response
-            const originalNow = Date.now;
-            let callCount = 0;
-            Date.now = jest.fn(() => {
-                callCount++;
-                return callCount === 1 ? 1000 : 4000; // 3 second difference
-            });
-            
-            await AjaxManager.makeRequest('test_action', { test: 'data' });
-            
-            expect(ErrorManager.showWarning).toHaveBeenCalledWith('Slow request: 3000ms');
-            
-            Date.now = originalNow;
-        });
-    });
-
-    describe('Nonce Management Workflows', () => {
-        test('should handle nonce errors and refresh', async () => {
-            // Mock nonce error response
-            mockAjaxResponse = {
-                success: false,
-                data: {
-                    code: 'invalid_nonce',
-                    message: 'Invalid nonce'
-                }
-            };
-            
-            // Mock nonce refresh success
-            global.$.post = jest.fn(() => ({
-                then: jest.fn((callback) => {
-                    callback({
-                        success: true,
-                        data: { nonce: 'new_nonce_12345' }
-                    });
-                    return {
-                        catch: jest.fn(),
-                        finally: jest.fn((finalCallback) => {
-                            finalCallback();
-                            return { then: jest.fn(), catch: jest.fn() };
-                        })
-                    };
-                })
-            }));
-            
-            await AjaxManager.makeRequest('test_action', { test: 'data' });
-            
-            expect($.post).toHaveBeenCalledWith(lasAdminData.ajaxurl, {
-                action: 'las_refresh_nonce'
-            });
-            
-            expect(lasAdminData.nonce).toBe('new_nonce_12345');
-        });
-
-        test('should queue requests during nonce refresh', async () => {
-            AjaxManager.nonceRefreshInProgress = true;
-            
-            mockAjaxResponse = {
-                success: false,
-                data: {
-                    code: 'invalid_nonce',
-                    message: 'Invalid nonce'
-                }
-            };
-            
-            await AjaxManager.makeRequest('test_action', { test: 'data' });
-            
-            expect(AjaxManager.getQueuedRequestCount()).toBe(1);
-        });
-
-        test('should handle nonce refresh failure', async () => {
-            mockAjaxResponse = {
-                success: false,
-                data: {
-                    code: 'invalid_nonce',
-                    message: 'Invalid nonce'
-                }
-            };
-            
-            // Mock nonce refresh failure
-            global.$.post = jest.fn(() => ({
-                then: jest.fn(() => ({
-                    catch: jest.fn((callback) => {
-                        callback(new Error('Nonce refresh failed'));
-                        return {
-                            finally: jest.fn((finalCallback) => {
-                                finalCallback();
-                                return { then: jest.fn(), catch: jest.fn() };
-                            })
-                        };
-                    })
-                }))
-            }));
-            
-            await AjaxManager.makeRequest('test_action', { test: 'data' });
-            
-            expect(ErrorManager.showError).toHaveBeenCalledWith(
-                'Authentication failed. Please refresh the page.'
-            );
-        });
-    });
-
+    
     describe('Request Queue Management', () => {
-        test('should process queued requests after nonce refresh', async () => {
-            // Add requests to queue
-            const request1 = { data: { nonce: 'old_nonce' }, attempts: 1 };
-            const request2 = { data: { nonce: 'old_nonce' }, attempts: 1 };
-            
-            AjaxManager.requestQueue = [request1, request2];
-            lasAdminData.nonce = 'new_nonce';
-            
-            AjaxManager.processQueuedRequests();
-            
-            expect(AjaxManager.getQueuedRequestCount()).toBe(0);
-            expect(request1.data.nonce).toBe('new_nonce');
-            expect(request2.data.nonce).toBe('new_nonce');
-            expect(request1.attempts).toBe(0);
-            expect(request2.attempts).toBe(0);
+        beforeEach(async () => {
+            mockFetch.mockResolvedValue({
+                ok: true,
+                json: () => Promise.resolve({ success: true, data: {} })
+            });
+            await ajaxManager.init();
         });
-
-        test('should handle empty queue gracefully', () => {
-            AjaxManager.requestQueue = [];
+        
+        test('should process requests sequentially', async () => {
+            const responses = [];
             
-            expect(() => {
-                AjaxManager.processQueuedRequests();
-            }).not.toThrow();
-            
-            expect(AjaxManager.getQueuedRequestCount()).toBe(0);
-        });
-    });
-
-    describe('Request Cancellation', () => {
-        test('should cancel individual requests', () => {
-            const requestId = 'test_request_id';
-            const mockXhr = { abort: jest.fn() };
-            
-            AjaxManager.activeRequests.set(requestId, { xhr: mockXhr });
-            
-            AjaxManager.cancelRequest(requestId);
-            
-            expect(mockXhr.abort).toHaveBeenCalled();
-            expect(AjaxManager.activeRequests.has(requestId)).toBe(false);
-        });
-
-        test('should cancel all active requests', () => {
-            const mockXhr1 = { abort: jest.fn() };
-            const mockXhr2 = { abort: jest.fn() };
-            
-            AjaxManager.activeRequests.set('req1', { xhr: mockXhr1 });
-            AjaxManager.activeRequests.set('req2', { xhr: mockXhr2 });
-            
-            AjaxManager.cancelAllRequests();
-            
-            expect(mockXhr1.abort).toHaveBeenCalled();
-            expect(mockXhr2.abort).toHaveBeenCalled();
-            expect(AjaxManager.getActiveRequestCount()).toBe(0);
-        });
-
-        test('should handle cancellation of non-existent requests', () => {
-            expect(() => {
-                AjaxManager.cancelRequest('non_existent_id');
-            }).not.toThrow();
-        });
-    });
-
-    describe('Response Validation', () => {
-        test('should validate response format', async () => {
-            // Test null response
-            global.$.ajax = jest.fn(() => ({
-                done: jest.fn((callback) => {
-                    callback(null);
-                    return { fail: jest.fn() };
-                }),
-                fail: jest.fn(),
-                always: jest.fn((callback) => {
-                    callback();
-                    return { done: jest.fn(), fail: jest.fn() };
-                })
-            }));
-            
-            await AjaxManager.makeRequest('test_action', { test: 'data' });
-            
-            // Should handle null response as error
-            expect(ErrorManager.showError).toHaveBeenCalled();
-        });
-
-        test('should handle server error responses', async () => {
-            mockAjaxResponse = {
-                success: false,
-                data: {
-                    message: 'Custom server error',
-                    code: 'custom_error'
-                }
-            };
-            
-            await AjaxManager.makeRequest('test_action', { test: 'data' });
-            
-            expect(ErrorManager.showError).toHaveBeenCalledWith('Custom server error');
-        });
-
-        test('should handle responses without error messages', async () => {
-            mockAjaxResponse = {
-                success: false,
-                data: {}
-            };
-            
-            await AjaxManager.makeRequest('test_action', { test: 'data' });
-            
-            expect(ErrorManager.showError).toHaveBeenCalledWith('Server returned error');
-        });
-    });
-
-    describe('Performance Monitoring', () => {
-        test('should track request execution time', async () => {
-            const originalNow = Date.now;
-            let callCount = 0;
-            Date.now = jest.fn(() => {
-                callCount++;
-                return callCount === 1 ? 1000 : 1500; // 500ms difference
+            // Mock fetch to track call order
+            mockFetch.mockImplementation(() => {
+                const callIndex = mockFetch.mock.calls.length;
+                responses.push(callIndex);
+                
+                return Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve({ 
+                        success: true, 
+                        data: { callIndex } 
+                    })
+                });
             });
             
-            await AjaxManager.makeRequest('test_action', { test: 'data' });
+            // Queue multiple requests
+            const promise1 = ajaxManager.saveSettings({ setting1: 'value1' });
+            const promise2 = ajaxManager.saveSettings({ setting2: 'value2' });
+            const promise3 = ajaxManager.saveSettings({ setting3: 'value3' });
             
-            // Should not show warning for fast requests
-            expect(ErrorManager.showWarning).not.toHaveBeenCalled();
+            // Wait for all to complete
+            const results = await Promise.all([promise1, promise2, promise3]);
             
-            Date.now = originalNow;
+            // Verify sequential processing
+            expect(mockFetch).toHaveBeenCalledTimes(3);
+            expect(results[0].callIndex).toBe(1);
+            expect(results[1].callIndex).toBe(2);
+            expect(results[2].callIndex).toBe(3);
         });
-
-        test('should provide request statistics', () => {
-            // Add some active requests
-            AjaxManager.activeRequests.set('req1', { id: 'req1' });
-            AjaxManager.activeRequests.set('req2', { id: 'req2' });
+        
+        test('should respect request priorities', async () => {
+            const callOrder = [];
             
-            // Add some queued requests
-            AjaxManager.requestQueue = [{ id: 'req3' }, { id: 'req4' }];
+            mockFetch.mockImplementation((url, options) => {
+                const formData = options.body;
+                const settings = formData.get('settings');
+                const parsedSettings = settings ? JSON.parse(settings) : {};
+                callOrder.push(parsedSettings.priority || 'normal');
+                
+                return Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve({ success: true, data: {} })
+                });
+            });
             
-            expect(AjaxManager.getActiveRequestCount()).toBe(2);
-            expect(AjaxManager.getQueuedRequestCount()).toBe(2);
+            // Queue requests with different priorities
+            ajaxManager.saveSettings({ priority: 'normal' }, { priority: 'normal' });
+            ajaxManager.saveSettings({ priority: 'high' }, { priority: 'high' });
+            ajaxManager.saveSettings({ priority: 'normal2' }, { priority: 'normal' });
+            
+            // Wait for processing
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // High priority should be processed first
+            expect(callOrder[0]).toBe('high');
         });
-    });
-
-    describe('Concurrent Request Handling', () => {
-        test('should handle multiple simultaneous requests', async () => {
+        
+        test('should prevent concurrent save operations', async () => {
+            let activeRequests = 0;
+            let maxConcurrentRequests = 0;
+            
+            mockFetch.mockImplementation(() => {
+                activeRequests++;
+                maxConcurrentRequests = Math.max(maxConcurrentRequests, activeRequests);
+                
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        activeRequests--;
+                        resolve({
+                            ok: true,
+                            json: () => Promise.resolve({ success: true, data: {} })
+                        });
+                    }, 50);
+                });
+            });
+            
+            // Queue multiple requests simultaneously
             const promises = [
-                AjaxManager.makeRequest('action1', { data: '1' }),
-                AjaxManager.makeRequest('action2', { data: '2' }),
-                AjaxManager.makeRequest('action3', { data: '3' })
+                ajaxManager.saveSettings({ setting1: 'value1' }),
+                ajaxManager.saveSettings({ setting2: 'value2' }),
+                ajaxManager.saveSettings({ setting3: 'value3' }),
+                ajaxManager.saveSettings({ setting4: 'value4' })
             ];
             
             await Promise.all(promises);
             
-            expect($.ajax).toHaveBeenCalledTimes(3);
+            // Should never have more than 1 concurrent request
+            expect(maxConcurrentRequests).toBe(1);
         });
-
-        test('should respect maximum concurrent request limit', () => {
-            // This would be implemented in a more sophisticated version
-            // For now, we just verify the limit exists
-            expect(AjaxManager.maxConcurrentRequests).toBe(3);
+        
+        test('should handle queue overflow gracefully', async () => {
+            mockFetch.mockImplementation(() => 
+                new Promise(resolve => {
+                    setTimeout(() => {
+                        resolve({
+                            ok: true,
+                            json: () => Promise.resolve({ success: true, data: {} })
+                        });
+                    }, 10);
+                })
+            );
+            
+            // Queue many requests
+            const promises = [];
+            for (let i = 0; i < 20; i++) {
+                promises.push(ajaxManager.saveSettings({ setting: `value${i}` }));
+            }
+            
+            // All should complete successfully
+            const results = await Promise.all(promises);
+            expect(results).toHaveLength(20);
+            expect(results.every(r => r !== undefined)).toBe(true);
+        });
+    });
+    
+    describe('Request Deduplication', () => {
+        beforeEach(async () => {
+            mockFetch.mockResolvedValue({
+                ok: true,
+                json: () => Promise.resolve({ success: true, data: {} })
+            });
+            await ajaxManager.init();
+        });
+        
+        test('should deduplicate identical save requests', async () => {
+            const settings = { color: 'red', size: 'large' };
+            
+            // Make identical requests
+            const promise1 = ajaxManager.saveSettings(settings);
+            const promise2 = ajaxManager.saveSettings(settings);
+            const promise3 = ajaxManager.saveSettings(settings);
+            
+            await Promise.all([promise1, promise2, promise3]);
+            
+            // Should only make one actual request
+            expect(mockFetch).toHaveBeenCalledTimes(1);
+        });
+        
+        test('should not deduplicate different save requests', async () => {
+            const promise1 = ajaxManager.saveSettings({ color: 'red' });
+            const promise2 = ajaxManager.saveSettings({ color: 'blue' });
+            const promise3 = ajaxManager.saveSettings({ size: 'large' });
+            
+            await Promise.all([promise1, promise2, promise3]);
+            
+            // Should make three separate requests
+            expect(mockFetch).toHaveBeenCalledTimes(3);
+        });
+        
+        test('should not deduplicate different request types', async () => {
+            const settings = { color: 'red' };
+            
+            const promise1 = ajaxManager.saveSettings(settings);
+            const promise2 = ajaxManager.loadSettings();
+            const promise3 = ajaxManager.resetSettings();
+            
+            await Promise.all([promise1, promise2, promise3]);
+            
+            expect(mockFetch).toHaveBeenCalledTimes(3);
+        });
+        
+        test('should handle deduplication with promise resolution', async () => {
+            const settings = { color: 'red' };
+            const expectedResult = { message: 'Settings saved' };
+            
+            mockFetch.mockResolvedValueOnce({
+                ok: true,
+                json: () => Promise.resolve({ success: true, data: expectedResult })
+            });
+            
+            // Make identical requests
+            const promise1 = ajaxManager.saveSettings(settings);
+            const promise2 = ajaxManager.saveSettings(settings);
+            
+            const [result1, result2] = await Promise.all([promise1, promise2]);
+            
+            // Both should get the same result
+            expect(result1).toEqual(expectedResult);
+            expect(result2).toEqual(expectedResult);
+            expect(mockFetch).toHaveBeenCalledTimes(1);
+        });
+        
+        test('should handle deduplication with promise rejection', async () => {
+            const settings = { color: 'red' };
+            const error = new Error('Save failed');
+            
+            mockFetch.mockRejectedValueOnce(error);
+            
+            // Make identical requests
+            const promise1 = ajaxManager.saveSettings(settings);
+            const promise2 = ajaxManager.saveSettings(settings);
+            
+            // Both should reject with the same error
+            await expect(promise1).rejects.toThrow('Save failed');
+            await expect(promise2).rejects.toThrow('Save failed');
+            expect(mockFetch).toHaveBeenCalledTimes(1);
+        });
+    });
+    
+    describe('Request Logging and Debugging', () => {
+        beforeEach(async () => {
+            core.config.debug = true;
+            mockFetch.mockResolvedValue({
+                ok: true,
+                json: () => Promise.resolve({ success: true, data: {} })
+            });
+            await ajaxManager.init();
+        });
+        
+        test('should log request lifecycle', async () => {
+            const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+            
+            await ajaxManager.saveSettings({ color: 'red' });
+            
+            // Should log request processing
+            expect(consoleSpy).toHaveBeenCalledWith(
+                expect.stringContaining('LAS: Processing request: save_settings')
+            );
+            
+            // Should log AJAX details in debug mode
+            expect(consoleSpy).toHaveBeenCalledWith(
+                'LAS AJAX Log:',
+                expect.objectContaining({
+                    type: 'save_settings',
+                    status: 'success'
+                })
+            );
+            
+            consoleSpy.mockRestore();
+        });
+        
+        test('should maintain request history', async () => {
+            await ajaxManager.saveSettings({ color: 'red' });
+            await ajaxManager.loadSettings();
+            
+            const history = ajaxManager.requestHistory;
+            
+            expect(history).toHaveLength(2);
+            expect(history[0]).toMatchObject({
+                type: 'save_settings',
+                status: 'success'
+            });
+            expect(history[1]).toMatchObject({
+                type: 'load_settings',
+                status: 'success'
+            });
+        });
+        
+        test('should limit history size', async () => {
+            // Set a small history limit for testing
+            ajaxManager.maxHistorySize = 3;
+            
+            // Make more requests than the limit
+            for (let i = 0; i < 5; i++) {
+                await ajaxManager.saveSettings({ setting: `value${i}` });
+            }
+            
+            // History should be limited
+            expect(ajaxManager.requestHistory).toHaveLength(3);
+            
+            // Should keep the most recent entries
+            const lastEntry = ajaxManager.requestHistory[ajaxManager.requestHistory.length - 1];
+            expect(lastEntry.type).toBe('save_settings');
+        });
+        
+        test('should track request timing', async () => {
+            const delay = 100;
+            mockFetch.mockImplementation(() => 
+                new Promise(resolve => {
+                    setTimeout(() => {
+                        resolve({
+                            ok: true,
+                            json: () => Promise.resolve({ success: true, data: {} })
+                        });
+                    }, delay);
+                })
+            );
+            
+            await ajaxManager.saveSettings({ color: 'red' });
+            
+            const lastEntry = ajaxManager.requestHistory[ajaxManager.requestHistory.length - 1];
+            expect(lastEntry.duration).toBeGreaterThanOrEqual(delay);
+        });
+    });
+    
+    describe('Error Recovery and Conflict Resolution', () => {
+        beforeEach(async () => {
+            await ajaxManager.init();
+            jest.useFakeTimers();
+        });
+        
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+        
+        test('should handle partial queue failures', async () => {
+            // First request fails, second succeeds
+            mockFetch
+                .mockRejectedValueOnce(new Error('Network error'))
+                .mockResolvedValueOnce({
+                    ok: true,
+                    json: () => Promise.resolve({ success: true, data: {} })
+                });
+            
+            const promise1 = ajaxManager.saveSettings({ setting1: 'value1' });
+            const promise2 = ajaxManager.saveSettings({ setting2: 'value2' });
+            
+            // Process first request failure and retry
+            await jest.runOnlyPendingTimersAsync();
+            jest.advanceTimersByTime(1000);
+            
+            // Second request should still succeed
+            const result2 = await promise2;
+            expect(result2).toBeDefined();
+            
+            // First request should eventually succeed after retry
+            mockFetch.mockResolvedValueOnce({
+                ok: true,
+                json: () => Promise.resolve({ success: true, data: {} })
+            });
+            
+            await jest.runOnlyPendingTimersAsync();
+            const result1 = await promise1;
+            expect(result1).toBeDefined();
+        });
+        
+        test('should handle queue corruption gracefully', async () => {
+            // Simulate queue corruption
+            ajaxManager.requestQueue.push(null);
+            ajaxManager.requestQueue.push(undefined);
+            ajaxManager.requestQueue.push({ invalid: 'request' });
+            
+            // Add valid request
+            const validPromise = ajaxManager.saveSettings({ color: 'red' });
+            
+            mockFetch.mockResolvedValue({
+                ok: true,
+                json: () => Promise.resolve({ success: true, data: {} })
+            });
+            
+            // Should handle corruption and process valid request
+            const result = await validPromise;
+            expect(result).toBeDefined();
+        });
+        
+        test('should recover from processing state corruption', async () => {
+            // Simulate stuck processing state
+            ajaxManager.isProcessing = true;
+            
+            // Queue a request
+            const promise = ajaxManager.saveSettings({ color: 'red' });
+            
+            // Manually reset processing state
+            ajaxManager.isProcessing = false;
+            
+            mockFetch.mockResolvedValue({
+                ok: true,
+                json: () => Promise.resolve({ success: true, data: {} })
+            });
+            
+            // Trigger processing
+            ajaxManager.processQueue();
+            
+            const result = await promise;
+            expect(result).toBeDefined();
+        });
+    });
+    
+    describe('Performance and Resource Management', () => {
+        beforeEach(async () => {
+            mockFetch.mockResolvedValue({
+                ok: true,
+                json: () => Promise.resolve({ success: true, data: {} })
+            });
+            await ajaxManager.init();
+        });
+        
+        test('should provide accurate statistics', async () => {
+            // Make some requests
+            await ajaxManager.saveSettings({ setting1: 'value1' });
+            await ajaxManager.loadSettings();
+            
+            // Simulate one failure
+            mockFetch.mockRejectedValueOnce(new Error('Network error'));
+            try {
+                await ajaxManager.saveSettings({ setting2: 'value2' });
+            } catch (error) {
+                // Expected failure
+            }
+            
+            const stats = ajaxManager.getStats();
+            
+            expect(stats.totalRequests).toBeGreaterThan(0);
+            expect(stats.successRate).toBeGreaterThan(0);
+            expect(stats.successRate).toBeLessThan(100);
+            expect(stats.averageResponseTime).toBeGreaterThan(0);
+        });
+        
+        test('should handle memory cleanup properly', async () => {
+            // Fill up history and queue
+            for (let i = 0; i < 10; i++) {
+                await ajaxManager.saveSettings({ setting: `value${i}` });
+            }
+            
+            // Add some pending requests
+            ajaxManager.saveSettings({ pending1: 'value1' });
+            ajaxManager.saveSettings({ pending2: 'value2' });
+            
+            const initialHistoryLength = ajaxManager.requestHistory.length;
+            const initialQueueLength = ajaxManager.requestQueue.length;
+            
+            expect(initialHistoryLength).toBeGreaterThan(0);
+            expect(initialQueueLength).toBeGreaterThan(0);
+            
+            // Cleanup
+            ajaxManager.cleanup();
+            
+            expect(ajaxManager.requestHistory.length).toBe(0);
+            expect(ajaxManager.requestQueue.length).toBe(0);
+            expect(ajaxManager.isProcessing).toBe(false);
+        });
+        
+        test('should handle high-frequency requests efficiently', async () => {
+            const startTime = Date.now();
+            const promises = [];
+            
+            // Queue many requests rapidly
+            for (let i = 0; i < 50; i++) {
+                promises.push(ajaxManager.saveSettings({ setting: `value${i}` }));
+            }
+            
+            await Promise.all(promises);
+            
+            const endTime = Date.now();
+            const totalTime = endTime - startTime;
+            
+            // Should complete within reasonable time (allowing for sequential processing)
+            expect(totalTime).toBeLessThan(10000); // 10 seconds max
+            
+            // All requests should succeed
+            expect(promises).toHaveLength(50);
         });
     });
 });

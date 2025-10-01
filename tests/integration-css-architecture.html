@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Architecture Integration Test</title>
+    
+    <!-- Load the three strategic CSS files -->
+    <link rel="stylesheet" href="../assets/css/las-main.css">
+    <link rel="stylesheet" href="../assets/css/las-live-edit.css">
+    <link rel="stylesheet" href="../assets/css/las-utilities.css">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: var(--las-font-system);
+            background: var(--las-content-background);
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .test-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background: var(--las-white);
+            border-radius: var(--las-radius-lg);
+            box-shadow: var(--las-shadow-sm);
+        }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .performance-metrics {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--las-white);
+            padding: 15px;
+            border-radius: var(--las-radius-base);
+            box-shadow: var(--las-shadow-md);
+            font-size: 12px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>CSS Architecture Integration Test</h1>
+        
+        <div class="performance-metrics">
+            <h4>Performance Metrics</h4>
+            <div id="css-load-time">CSS Load Time: <span>-</span></div>
+            <div id="css-file-sizes">File Sizes: <span>-</span></div>
+            <div id="total-css-size">Total Size: <span>-</span></div>
+            <div id="render-time">Render Time: <span>-</span></div>
+        </div>
+        
+        <!-- Test CSS Variables -->
+        <div class="test-section">
+            <h2>CSS Variables Test</h2>
+            <div class="test-grid">
+                <div class="las-card">
+                    <div class="las-card-header">
+                        <h3 class="las-card-title">Color Variables</h3>
+                    </div>
+                    <div class="las-card-body">
+                        <div style="background: var(--las-primary); color: white; padding: 10px; margin: 5px; border-radius: var(--las-radius-base);">Primary Color</div>
+                        <div style="background: var(--las-secondary); color: white; padding: 10px; margin: 5px; border-radius: var(--las-radius-base);">Secondary Color</div>
+                        <div style="background: var(--las-success); color: white; padding: 10px; margin: 5px; border-radius: var(--las-radius-base);">Success Color</div>
+                        <div style="background: var(--las-warning); color: black; padding: 10px; margin: 5px; border-radius: var(--las-radius-base);">Warning Color</div>
+                        <div style="background: var(--las-error); color: white; padding: 10px; margin: 5px; border-radius: var(--las-radius-base);">Error Color</div>
+                    </div>
+                </div>
+                
+                <div class="las-card">
+                    <div class="las-card-header">
+                        <h3 class="las-card-title">Spacing Variables</h3>
+                    </div>
+                    <div class="las-card-body">
+                        <div style="background: var(--las-gray-200); padding: var(--las-space-1); margin: var(--las-space-1);">Space 1 (4px)</div>
+                        <div style="background: var(--las-gray-200); padding: var(--las-space-2); margin: var(--las-space-1);">Space 2 (8px)</div>
+                        <div style="background: var(--las-gray-200); padding: var(--las-space-4); margin: var(--las-space-1);">Space 4 (16px)</div>
+                        <div style="background: var(--las-gray-200); padding: var(--las-space-6); margin: var(--las-space-1);">Space 6 (24px)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Test Glassmorphism Effects -->
+        <div class="test-section">
+            <h2>Glassmorphism Effects Test</h2>
+            <div class="test-grid">
+                <div class="las-glass" style="padding: 20px; color: white; background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <h3>Glass Effect</h3>
+                    <p>This demonstrates the glassmorphism effect with backdrop blur.</p>
+                </div>
+                
+                <div class="las-glass-light" style="padding: 20px; background-image: linear-gradient(135deg, #ff6b6b 0%, #ffa500 100%);">
+                    <h3>Light Glass</h3>
+                    <p>Lighter glassmorphism variant with less blur.</p>
+                </div>
+                
+                <div class="las-glass-heavy" style="padding: 20px; color: white; background-image: linear-gradient(135deg, #134e5e 0%, #71b280 100%);">
+                    <h3>Heavy Glass</h3>
+                    <p>Heavy glassmorphism with more blur effect.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Test Animations -->
+        <div class="test-section">
+            <h2>Animation Utilities Test</h2>
+            <div class="test-grid">
+                <div class="las-card las-hover-lift">
+                    <div class="las-card-body">
+                        <h3>Hover Lift</h3>
+                        <p>Hover over this card to see the lift effect.</p>
+                    </div>
+                </div>
+                
+                <div class="las-card las-hover-grow">
+                    <div class="las-card-body">
+                        <h3>Hover Grow</h3>
+                        <p>Hover over this card to see the grow effect.</p>
+                    </div>
+                </div>
+                
+                <div class="las-card">
+                    <div class="las-card-body">
+                        <h3>Loading Animations</h3>
+                        <div class="las-spinner" style="margin: 10px;"></div>
+                        <div class="las-dots" style="margin: 10px;">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Test Live Edit Components -->
+        <div class="test-section">
+            <h2>Live Edit Components Test</h2>
+            <div class="test-grid">
+                <div class="las-card">
+                    <div class="las-card-body">
+                        <h3>Micro Panel Simulation</h3>
+                        <div class="las-micro-panel active" style="position: relative; margin: 20px 0;">
+                            <div class="las-micro-panel-header">
+                                <h4 class="las-micro-panel-title">Color Settings</h4>
+                                <button class="las-micro-panel-close">&times;</button>
+                            </div>
+                            <div class="las-micro-panel-body">
+                                <div class="las-control-group">
+                                    <label class="las-control-label">Background Color</label>
+                                    <div class="las-color-picker">
+                                        <div class="las-color-swatch" style="background: #0073aa;"></div>
+                                        <input type="text" class="las-color-input" value="#0073aa">
+                                    </div>
+                                </div>
+                                
+                                <div class="las-control-group">
+                                    <label class="las-control-label">Opacity</label>
+                                    <div class="las-slider-control">
+                                        <input type="range" class="las-slider" min="0" max="100" value="80">
+                                        <div class="las-slider-value">80%</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="las-control-group">
+                                    <label class="las-toggle">
+                                        <input type="checkbox" checked>
+                                        <div class="las-toggle-switch"></div>
+                                        <span class="las-toggle-label">Enable Effect</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="las-card">
+                    <div class="las-card-body">
+                        <h3>Interactive Elements</h3>
+                        <div style="margin: 10px 0;">
+                            <div class="las-badge las-badge-primary">Primary Badge</div>
+                            <div class="las-badge las-badge-success">Success Badge</div>
+                            <div class="las-badge las-badge-warning">Warning Badge</div>
+                        </div>
+                        
+                        <div style="margin: 20px 0;">
+                            <div class="las-progress">
+                                <div class="las-progress-bar" style="width: 75%;"></div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin: 20px 0;">
+                            <span class="las-tooltip" data-tooltip="This is a tooltip">
+                                Hover for tooltip
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Test Responsive Grid -->
+        <div class="test-section">
+            <h2>Responsive Grid Test</h2>
+            <div class="las-grid las-grid-cols-4">
+                <div class="las-card">
+                    <div class="las-card-body">
+                        <h4>Grid Item 1</h4>
+                        <p>Responsive grid item that adapts to screen size.</p>
+                    </div>
+                </div>
+                <div class="las-card">
+                    <div class="las-card-body">
+                        <h4>Grid Item 2</h4>
+                        <p>Responsive grid item that adapts to screen size.</p>
+                    </div>
+                </div>
+                <div class="las-card">
+                    <div class="las-card-body">
+                        <h4>Grid Item 3</h4>
+                        <p>Responsive grid item that adapts to screen size.</p>
+                    </div>
+                </div>
+                <div class="las-card">
+                    <div class="las-card-body">
+                        <h4>Grid Item 4</h4>
+                        <p>Responsive grid item that adapts to screen size.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Test Form Elements -->
+        <div class="test-section">
+            <h2>Form Elements Test</h2>
+            <div class="test-grid">
+                <div class="las-card">
+                    <div class="las-card-body">
+                        <h3>Input Elements</h3>
+                        <div style="margin: 10px 0;">
+                            <input type="text" placeholder="Text input" style="width: 100%; margin-bottom: 10px;">
+                            <textarea placeholder="Textarea" style="width: 100%; margin-bottom: 10px;"></textarea>
+                            <select style="width: 100%; margin-bottom: 10px;">
+                                <option>Select option</option>
+                                <option>Option 1</option>
+                                <option>Option 2</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="las-card">
+                    <div class="las-card-body">
+                        <h3>Button Elements</h3>
+                        <div style="margin: 10px 0;">
+                            <button class="button button-primary" style="margin: 5px;">Primary Button</button>
+                            <button class="button button-secondary" style="margin: 5px;">Secondary Button</button>
+                            <button class="button button-large" style="margin: 5px;">Large Button</button>
+                            <button class="button button-small" style="margin: 5px;">Small Button</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Performance monitoring
+        document.addEventListener('DOMContentLoaded', function() {
+            const startTime = performance.now();
+            
+            // Measure CSS load time
+            const cssLinks = document.querySelectorAll('link[rel="stylesheet"]');
+            let cssLoadPromises = [];
+            
+            cssLinks.forEach(link => {
+                cssLoadPromises.push(new Promise(resolve => {
+                    if (link.sheet) {
+                        resolve();
+                    } else {
+                        link.addEventListener('load', resolve);
+                        link.addEventListener('error', resolve);
+                    }
+                }));
+            });
+            
+            Promise.all(cssLoadPromises).then(() => {
+                const cssLoadTime = performance.now() - startTime;
+                document.getElementById('css-load-time').querySelector('span').textContent = 
+                    cssLoadTime.toFixed(2) + 'ms';
+            });
+            
+            // Measure file sizes (simulated)
+            fetch('../assets/css/las-main.css')
+                .then(response => response.text())
+                .then(text => {
+                    const mainSize = new Blob([text]).size;
+                    return fetch('../assets/css/las-live-edit.css')
+                        .then(response => response.text())
+                        .then(text => {
+                            const liveEditSize = new Blob([text]).size;
+                            return fetch('../assets/css/las-utilities.css')
+                                .then(response => response.text())
+                                .then(text => {
+                                    const utilitiesSize = new Blob([text]).size;
+                                    
+                                    const totalSize = mainSize + liveEditSize + utilitiesSize;
+                                    
+                                    document.getElementById('css-file-sizes').querySelector('span').innerHTML = 
+                                        `Main: ${(mainSize/1024).toFixed(1)}KB, Live: ${(liveEditSize/1024).toFixed(1)}KB, Utils: ${(utilitiesSize/1024).toFixed(1)}KB`;
+                                    
+                                    document.getElementById('total-css-size').querySelector('span').textContent = 
+                                        (totalSize/1024).toFixed(1) + 'KB';
+                                });
+                        });
+                })
+                .catch(error => {
+                    console.error('Error measuring file sizes:', error);
+                    document.getElementById('css-file-sizes').querySelector('span').textContent = 'Error';
+                });
+            
+            // Measure render time
+            const renderTime = performance.now() - startTime;
+            document.getElementById('render-time').querySelector('span').textContent = 
+                renderTime.toFixed(2) + 'ms';
+            
+            // Test CSS variable support
+            const testElement = document.createElement('div');
+            testElement.style.setProperty('--test-var', 'test');
+            const supportsVariables = testElement.style.getPropertyValue('--test-var') === 'test';
+            
+            if (!supportsVariables) {
+                console.warn('CSS Variables not supported in this browser');
+            }
+            
+            // Test backdrop-filter support
+            const supportsBackdropFilter = CSS.supports('backdrop-filter', 'blur(10px)') || 
+                                         CSS.supports('-webkit-backdrop-filter', 'blur(10px)');
+            
+            if (!supportsBackdropFilter) {
+                console.warn('Backdrop-filter not supported, using fallbacks');
+            }
+            
+            // Animation performance test
+            const animatedElements = document.querySelectorAll('.las-animate-pulse, .las-spinner, .las-dots span');
+            let frameCount = 0;
+            let lastTime = performance.now();
+            
+            function measureFPS() {
+                frameCount++;
+                const currentTime = performance.now();
+                
+                if (currentTime - lastTime >= 1000) {
+                    console.log(`Animation FPS: ${frameCount}`);
+                    frameCount = 0;
+                    lastTime = currentTime;
+                }
+                
+                if (animatedElements.length > 0) {
+                    requestAnimationFrame(measureFPS);
+                }
+            }
+            
+            if (animatedElements.length > 0) {
+                requestAnimationFrame(measureFPS);
+            }
+            
+            // Test responsive breakpoints
+            function testResponsive() {
+                const width = window.innerWidth;
+                console.log(`Screen width: ${width}px`);
+                
+                if (width <= 768) {
+                    console.log('Mobile breakpoint active');
+                } else if (width <= 1024) {
+                    console.log('Tablet breakpoint active');
+                } else {
+                    console.log('Desktop breakpoint active');
+                }
+            }
+            
+            window.addEventListener('resize', testResponsive);
+            testResponsive();
+            
+            console.log('CSS Architecture Integration Test completed');
+        });
+        
+        // Test theme switching
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            console.log(`Theme switched to: ${newTheme}`);
+        }
+        
+        // Add theme toggle button
+        const themeButton = document.createElement('button');
+        themeButton.textContent = 'Toggle Theme';
+        themeButton.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 1000;';
+        themeButton.onclick = toggleTheme;
+        document.body.appendChild(themeButton);
+    </script>
+</body>
+</html>

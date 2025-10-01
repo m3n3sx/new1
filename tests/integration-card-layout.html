@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Layout System Integration Test</title>
+    <link rel="stylesheet" href="../assets/css/card-layout.css">
+    <style>
+        :root {
+            --las-primary: #6750a4;
+            --las-on-primary: #ffffff;
+            --las-primary-container: #eaddff;
+            --las-on-primary-container: #21005d;
+            --las-surface: #ffffff;
+            --las-on-surface: #1c1b1f;
+            --las-surface-variant: #f3f0f4;
+            --las-on-surface-variant: #49454f;
+            --las-outline: #79747e;
+            --las-outline-variant: #e0e0e0;
+            --las-spacing-xs: 4px;
+            --las-spacing-sm: 8px;
+            --las-spacing-md: 16px;
+            --las-spacing-lg: 24px;
+            --las-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        body {
+            font-family: var(--las-font-family);
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+            line-height: 1.6;
+        }
+        
+        .test-section {
+            margin-bottom: 40px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .test-title {
+            margin: 0 0 20px 0;
+            color: #333;
+            border-bottom: 2px solid #6750a4;
+            padding-bottom: 10px;
+        }
+        
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .control-btn {
+            padding: 8px 16px;
+            background: #6750a4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .control-btn:hover {
+            background: #5a47a0;
+        }
+        
+        .glass-background {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px;
+            border-radius: 16px;
+            margin: 20px 0;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <h1>Card Layout System Integration Test</h1>
+    
+    <!-- Test 1: Basic Card Grid -->
+    <div class="test-section">
+        <h2 class="test-title">Test 1: Basic Card Grid Layout</h2>
+        <div class="controls">
+            <button class="control-btn" onclick="createBasicGrid()">Create Grid</button>
+            <button class="control-btn" onclick="addCard('basic-grid')">Add Card</button>
+            <button class="control-btn" onclick="removeLastCard('basic-grid')">Remove Card</button>
+        </div>
+        <div id="basic-grid-container"></div>
+        <div id="basic-grid-status" class="status" style="display: none;"></div>
+    </div>
+    
+    <!-- Test 2: Glassmorphism Cards -->
+    <div class="test-section">
+        <h2 class="test-title">Test 2: Glassmorphism Effects</h2>
+        <div class="controls">
+            <button class="control-btn" onclick="createGlassCards()">Create Glass Cards</button>
+            <button class="control-btn" onclick="toggleGlassBackground()">Toggle Background</button>
+        </div>
+        <div id="glass-background" class="glass-background" style="display: none;">
+            <div id="glass-container"></div>
+        </div>
+        <div id="glass-status" class="status" style="display: none;"></div>
+    </div>
+    
+    <!-- Test 3: Interactive Cards -->
+    <div class="test-section">
+        <h2 class="test-title">Test 3: Interactive Cards with Actions</h2>
+        <div class="controls">
+            <button class="control-btn" onclick="createInteractiveCards()">Create Interactive Cards</button>
+            <button class="control-btn" onclick="toggleCardLoading()">Toggle Loading</button>
+        </div>
+        <div id="interactive-container"></div>
+        <div id="interactive-status" class="status" style="display: none;"></div>
+    </div>
+    
+    <!-- Test 4: Responsive Layout -->
+    <div class="test-section">
+        <h2 class="test-title">Test 4: Responsive Layout Test</h2>
+        <div class="controls">
+            <button class="control-btn" onclick="createResponsiveCards()">Create Responsive Grid</button>
+            <button class="control-btn" onclick="simulateMobile()">Simulate Mobile</button>
+            <button class="control-btn" onclick="simulateDesktop()">Simulate Desktop</button>
+        </div>
+        <div id="responsive-container"></div>
+        <div id="responsive-status" class="status" style="display: none;"></div>
+    </div>
+    
+    <!-- Test 5: Card Variants -->
+    <div class="test-section">
+        <h2 class="test-title">Test 5: All Card Variants</h2>
+        <div class="controls">
+            <button class="control-btn" onclick="createAllVariants()">Create All Variants</button>
+            <button class="control-btn" onclick="updateCardContent()">Update Content</button>
+        </div>
+        <div id="variants-container"></div>
+        <div id="variants-status" class="status" style="display: none;"></div>
+    </div>
+
+    <script type="module">
+        // Mock core system
+        const mockCore = {
+            events: new Map(),
+            on(event, callback) {
+                if (!this.events.has(event)) {
+                    this.events.set(event, []);
+                }
+                this.events.get(event).push(callback);
+            },
+            emit(event, data) {
+                if (this.events.has(event)) {
+                    this.events.get(event).forEach(callback => callback(data));
+                }
+            }
+        };
+
+        // Import CardLayout
+        let CardLayout;
+        let cardLayout;
+        let testContainers = {};
+        let cardCounter = 0;
+
+        try {
+            const module = await import('../assets/js/modules/card-layout.js');
+            CardLayout = module.default;
+            cardLayout = new CardLayout(mockCore);
+            
+            // Setup event listeners
+            mockCore.on('card-layout:card-clicked', (data) => {
+                showStatus('interactive', `Card clicked: ${data.cardId}`, 'success');
+            });
+            
+            showStatus('basic-grid', 'CardLayout module loaded successfully!', 'success');
+        } catch (error) {
+            showStatus('basic-grid', `Failed to load CardLayout: ${error.message}`, 'error');
+        }
+
+        // Utility functions
+        function showStatus(testId, message, type = 'success') {
+            const statusEl = document.getElementById(`${testId}-status`);
+            if (statusEl) {
+                statusEl.textContent = message;
+                statusEl.className = `status ${type}`;
+                statusEl.style.display = 'block';
+                
+                setTimeout(() => {
+                    statusEl.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        function generateSampleContent() {
+            const titles = [
+                'Modern Design System',
+                'User Experience Research',
+                'Frontend Development',
+                'API Integration',
+                'Performance Optimization',
+                'Accessibility Guidelines'
+            ];
+            
+            const contents = [
+                'Implementing a comprehensive design system with reusable components and consistent styling.',
+                'Conducting user research to improve the overall experience and usability of the application.',
+                'Building responsive and interactive user interfaces with modern web technologies.',
+                'Integrating with external APIs to provide dynamic content and functionality.',
+                'Optimizing application performance for better user experience and SEO.',
+                'Ensuring the application meets accessibility standards and is usable by everyone.'
+            ];
+            
+            return {
+                title: titles[Math.floor(Math.random() * titles.length)],
+                content: contents[Math.floor(Math.random() * contents.length)]
+            };
+        }
+
+        // Test functions
+        window.createBasicGrid = function() {
+            try {
+                const container = cardLayout.createContainer(
+                    document.getElementById('basic-grid-container'),
+                    {
+                        id: 'basic-grid',
+                        layout: 'grid',
+                        columns: 3,
+                        gap: '24px',
+                        responsive: true
+                    }
+                );
+                
+                testContainers['basic-grid'] = container;
+                
+                // Add some initial cards
+                for (let i = 0; i < 6; i++) {
+                    addCard('basic-grid');
+                }
+                
+                showStatus('basic-grid', 'Basic grid created with 6 cards!', 'success');
+            } catch (error) {
+                showStatus('basic-grid', `Error: ${error.message}`, 'error');
+            }
+        };
+
+        window.addCard = function(containerId) {
+            try {
+                const { title, content } = generateSampleContent();
+                cardCounter++;
+                
+                cardLayout.createCard(containerId, {
+                    id: `card-${cardCounter}`,
+                    title: title,
+                    content: content,
+                    variant: 'elevated',
+                    size: 'medium',
+                    actions: [
+                        {
+                            label: 'View Details',
+                            variant: 'text',
+                            onClick: () => showStatus(containerId, `Viewing details for ${title}`, 'success')
+                        },
+                        {
+                            label: 'Edit',
+                            variant: 'outlined',
+                            onClick: () => showStatus(containerId, `Editing ${title}`, 'success')
+                        }
+                    ]
+                });
+                
+                showStatus(containerId, `Card "${title}" added!`, 'success');
+            } catch (error) {
+                showStatus(containerId, `Error adding card: ${error.message}`, 'error');
+            }
+        };
+
+        window.removeLastCard = function(containerId) {
+            try {
+                const container = testContainers[containerId];
+                if (container && container.cards.length > 0) {
+                    const lastCardId = container.cards[container.cards.length - 1];
+                    cardLayout.removeCard(lastCardId);
+                    showStatus(containerId, 'Last card removed!', 'success');
+                } else {
+                    showStatus(containerId, 'No cards to remove', 'error');
+                }
+            } catch (error) {
+                showStatus(containerId, `Error removing card: ${error.message}`, 'error');
+            }
+        };
+
+        window.createGlassCards = function() {
+            try {
+                const container = cardLayout.createContainer(
+                    document.getElementById('glass-container'),
+                    {
+                        id: 'glass-cards',
+                        layout: 'grid',
+                        columns: 2,
+                        gap: '32px',
+                        responsive: true
+                    }
+                );
+                
+                testContainers['glass-cards'] = container;
+                
+                // Create glass cards
+                const glassCards = [
+                    { title: 'Glassmorphism Design', content: 'Modern frosted glass effect with backdrop blur.' },
+                    { title: 'Transparent UI', content: 'Semi-transparent interface elements with depth.' },
+                    { title: 'Blur Effects', content: 'Advanced CSS backdrop-filter implementation.' },
+                    { title: 'Modern Aesthetics', content: 'Contemporary design with glass-like appearance.' }
+                ];
+                
+                glassCards.forEach((card, index) => {
+                    cardLayout.createCard('glass-cards', {
+                        id: `glass-card-${index + 1}`,
+                        title: card.title,
+                        content: card.content,
+                        variant: 'glass',
+                        size: 'medium',
+                        interactive: true
+                    });
+                });
+                
+                document.getElementById('glass-background').style.display = 'block';
+                showStatus('glass', 'Glass cards created with backdrop blur effects!', 'success');
+            } catch (error) {
+                showStatus('glass', `Error: ${error.message}`, 'error');
+            }
+        };
+
+        window.toggleGlassBackground = function() {
+            const bg = document.getElementById('glass-background');
+            bg.style.display = bg.style.display === 'none' ? 'block' : 'none';
+        };
+
+        window.createInteractiveCards = function() {
+            try {
+                const container = cardLayout.createContainer(
+                    document.getElementById('interactive-container'),
+                    {
+                        id: 'interactive-cards',
+                        layout: 'flex',
+                        gap: '20px',
+                        responsive: true
+                    }
+                );
+                
+                testContainers['interactive-cards'] = container;
+                
+                // Create interactive cards with different variants
+                const variants = ['elevated', 'filled', 'outlined'];
+                
+                variants.forEach((variant, index) => {
+                    const { title, content } = generateSampleContent();
+                    
+                    cardLayout.createCard('interactive-cards', {
+                        id: `interactive-card-${index + 1}`,
+                        title: `${variant.charAt(0).toUpperCase() + variant.slice(1)} Card`,
+                        content: content,
+                        variant: variant,
+                        size: 'medium',
+                        interactive: true,
+                        actions: [
+                            {
+                                label: 'Primary Action',
+                                variant: 'filled',
+                                onClick: () => showStatus('interactive', `Primary action clicked on ${variant} card`, 'success')
+                            },
+                            {
+                                label: 'Secondary',
+                                variant: 'text',
+                                onClick: () => showStatus('interactive', `Secondary action clicked on ${variant} card`, 'success')
+                            }
+                        ]
+                    });
+                });
+                
+                showStatus('interactive', 'Interactive cards created! Click on cards or buttons.', 'success');
+            } catch (error) {
+                showStatus('interactive', `Error: ${error.message}`, 'error');
+            }
+        };
+
+        window.toggleCardLoading = function() {
+            try {
+                const container = testContainers['interactive-cards'];
+                if (container && container.cards.length > 0) {
+                    const cardId = container.cards[0];
+                    const card = cardLayout.getCardState(cardId);
+                    
+                    cardLayout.updateCard(cardId, {
+                        loading: !card.loading
+                    });
+                    
+                    showStatus('interactive', `Loading state toggled for first card`, 'success');
+                }
+            } catch (error) {
+                showStatus('interactive', `Error: ${error.message}`, 'error');
+            }
+        };
+
+        window.createResponsiveCards = function() {
+            try {
+                const container = cardLayout.createContainer(
+                    document.getElementById('responsive-container'),
+                    {
+                        id: 'responsive-cards',
+                        layout: 'grid',
+                        responsive: true,
+                        gap: '16px'
+                    }
+                );
+                
+                testContainers['responsive-cards'] = container;
+                
+                // Create multiple cards to test responsive behavior
+                for (let i = 0; i < 8; i++) {
+                    const { title, content } = generateSampleContent();
+                    
+                    cardLayout.createCard('responsive-cards', {
+                        id: `responsive-card-${i + 1}`,
+                        title: `${title} ${i + 1}`,
+                        content: content,
+                        variant: i % 2 === 0 ? 'elevated' : 'filled',
+                        size: 'small'
+                    });
+                }
+                
+                showStatus('responsive', 'Responsive grid created! Resize window to test.', 'success');
+            } catch (error) {
+                showStatus('responsive', `Error: ${error.message}`, 'error');
+            }
+        };
+
+        window.simulateMobile = function() {
+            const container = document.getElementById('responsive-container');
+            container.style.maxWidth = '375px';
+            container.style.margin = '0 auto';
+            showStatus('responsive', 'Simulating mobile viewport (375px)', 'success');
+        };
+
+        window.simulateDesktop = function() {
+            const container = document.getElementById('responsive-container');
+            container.style.maxWidth = 'none';
+            container.style.margin = '0';
+            showStatus('responsive', 'Restored desktop viewport', 'success');
+        };
+
+        window.createAllVariants = function() {
+            try {
+                const container = cardLayout.createContainer(
+                    document.getElementById('variants-container'),
+                    {
+                        id: 'all-variants',
+                        layout: 'grid',
+                        columns: 2,
+                        gap: '24px',
+                        responsive: true
+                    }
+                );
+                
+                testContainers['all-variants'] = container;
+                
+                const variants = [
+                    { variant: 'elevated', size: 'small' },
+                    { variant: 'filled', size: 'medium' },
+                    { variant: 'outlined', size: 'large' },
+                    { variant: 'glass', size: 'medium' }
+                ];
+                
+                variants.forEach((config, index) => {
+                    cardLayout.createCard('all-variants', {
+                        id: `variant-card-${index + 1}`,
+                        title: `${config.variant.charAt(0).toUpperCase() + config.variant.slice(1)} Card`,
+                        content: `This is a ${config.variant} card with ${config.size} size. It demonstrates the visual styling and behavior of this card variant.`,
+                        image: index % 2 === 0 ? {
+                            src: `https://picsum.photos/400/200?random=${index}`,
+                            alt: `Sample image ${index + 1}`
+                        } : null,
+                        variant: config.variant,
+                        size: config.size,
+                        interactive: true,
+                        actions: [
+                            {
+                                label: 'Action',
+                                variant: 'filled',
+                                onClick: () => showStatus('variants', `Action clicked on ${config.variant} card`, 'success')
+                            }
+                        ]
+                    });
+                });
+                
+                showStatus('variants', 'All card variants created successfully!', 'success');
+            } catch (error) {
+                showStatus('variants', `Error: ${error.message}`, 'error');
+            }
+        };
+
+        window.updateCardContent = function() {
+            try {
+                const container = testContainers['all-variants'];
+                if (container && container.cards.length > 0) {
+                    const cardId = container.cards[0];
+                    const { title, content } = generateSampleContent();
+                    
+                    cardLayout.updateCard(cardId, {
+                        title: `Updated: ${title}`,
+                        content: `Updated content: ${content}`,
+                        badge: '🔄'
+                    });
+                    
+                    showStatus('variants', 'First card content updated!', 'success');
+                }
+            } catch (error) {
+                showStatus('variants', `Error: ${error.message}`, 'error');
+            }
+        };
+
+        // Auto-run basic test
+        setTimeout(() => {
+            if (CardLayout) {
+                createBasicGrid();
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
